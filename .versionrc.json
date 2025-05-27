@@ -1,12 +1,12 @@
 {
   "types": [
-    {"type": "feat", "section": "✨ Features"},
-    {"type": "fix", "section": "🐛 Bug Fixes"},
-    {"type": "chore", "section": "🔧 Chores"},
-    {"type": "docs", "section": "📝 Documentation"},
-    {"type": "style", "section": "💄 Styles"},
-    {"type": "refactor", "section": "♻️ Code Refactoring"},
-    {"type": "perf", "section": "⚡ Performance Improvements"},
-    {"type": "test", "section": "✅ Tests"}
+    {"type": "feat", "section": "✨ 新增功能"},
+    {"type": "fix", "section": "🐛 Bug 修复"},
+    {"type": "chore", "section": "🔧 其他改动"},
+    {"type": "docs", "section": "📝 文档"},
+    {"type": "style", "section": "💄 代码风格"},
+    {"type": "refactor", "section": "♻️ 代码重构"},
+    {"type": "perf", "section": "⚡ 性能优化"},
+    {"type": "test", "section": "✅ 测试"}
   ]
 }
