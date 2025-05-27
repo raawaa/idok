@@ -300,6 +300,7 @@ function createWindow () {
         width: 1200,
         height: 800,
         title: productName, // 设置窗口标题为产品名称
+        autoHideMenuBar: true, // 自动隐藏菜单栏
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
