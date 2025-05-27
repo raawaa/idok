@@ -1,5 +1,8 @@
 # idok ✨
 
+![image](https://github.com/user-attachments/assets/399e3dfb-8a06-4422-88c5-1026ca6ce512)
+
+
 ## 项目简介 🎬
 
 idok 是一个基于 Electron 构建的本地 AV 影片资料库管理工具。它可以扫描您指定的本地目录，自动查找 AV 视频文件及其配套的 NFO 文件，提取影片信息（如片名、发布日期、演员、片商、类别等）和封面图片，并在一个用户友好的界面中展示。
