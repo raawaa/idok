@@ -29,110 +29,110 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
     line-height: 1.6;
-    padding: 20px; /* 默认 padding */
-    padding-top: 50px; /* 为自定义标题栏和顶部内容留出更多空间 */
-    overflow-y: auto; /* 允许 body 自身出现滚动条 */
+    padding: 0;
+    /* 默认 padding */
+    padding-top: 30px;
+    /* 为自定义标题栏和顶部内容留出更多空间 */
+    padding-right: 0;
+    /* 为垂直滚动条留出空间 */
+    overflow-y: hidden;
+    /* 阻止 body 自身出现滚动条 */
+}
+
+#content-container {
+    padding-top: 30px;
+    /* 与标题栏高度相同 */
+    padding-right: 0;
+    /* 移除右侧 padding，让滚动条紧贴窗口 */
+    padding-left: 0;
+    /* 同时移除左侧 padding */
+    overflow-y: auto;
+    /* 在内容容器上启用滚动条 */
+    height: calc(100vh - 30px - 1px);
+    /* 减去标题栏高度，并额外减去1px防止溢出 */
+    overscroll-behavior: contain;
+    /* 防止滚动到底部时的反弹效果 */
 }
 
 #custom-titlebar {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 30px; /* 标题栏高度 */
-    background-color: var(--card-bg); /* 使用卡片背景色或自定义 */
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* 分隔线 */
+    right: 0;
+    height: 30px;
+    background-color: rgba(240, 240, 240, 0.8);
     display: flex;
     align-items: center;
-    justify-content: space-between; /* 标题和按钮分布在两端 */
-    -webkit-app-region: drag; /* 使该区域可拖动 */
-    z-index: 999; /* 确保标题栏在最顶层 */
-    padding: 0 10px; /* 标题栏左右 padding */
-}
-
-#custom-titlebar .title {
-    font-weight: 500;
-    color: var(--text-color);
-    -webkit-user-select: none; /* 禁止用户选择标题文本 */
-    font-size: 0.9em;
-    -webkit-app-region: no-drag; /* 标题文本本身不可拖动 */
-}
-
-.window-controls {
-    display: flex;
-    align-items: center;
-    -webkit-app-region: no-drag; /* 窗口控制按钮区域不可拖动 */
-}
-
-.control-button {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: none;
-    margin-left: 6px; /* 按钮之间的间距 */
-    cursor: pointer;
-    display: flex;
     justify-content: center;
+    padding: 0 10px;
+    -webkit-app-region: drag;
+    /* 使整个标题栏可拖动 */
+    z-index: 1000;
+}
+
+#window-controls {
+    display: flex;
+    -webkit-app-region: no-drag;
+    /* 窗口控制按钮不可拖动 */
+    position: absolute;
+    /* 绝对定位 */
+    right: 10px;
+    /* 靠右，10px 是到边框的距离 */
+    top: 50%;
+    /* 垂直居中 */
+    transform: translateY(-50%);
+    /* 精确垂直居中 */
+}
+
+.window-control-btn {
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
     align-items: center;
-    font-size: 8px; /* 按钮内文字大小 */
-    color: transparent; /* 默认隐藏文字 */
-    transition: all 0.1s ease;
-    padding: 0;
-    line-height: 1;
+    justify-content: center;
+    transition: background-color 0.3s;
 }
 
-.control-button:hover {
-    color: rgba(0, 0, 0, 0.8); /* 鼠标悬停时显示文字 */
-}
-
-@media (prefers-color-scheme: dark) {
-    .control-button:hover {
-        color: rgba(255, 255, 255, 0.8); /* 暗色主题下鼠标悬停时显示文字 */
-    }
-}
-
-#close-btn {
-    background-color: #ff605c; /* 红色 */
-}
-
-#minimize-btn {
-    background-color: #ffbd44; /* 黄色 */
-}
-
-#maximize-restore-btn {
-    background-color: #00ca4e; /* 绿色 */
+.window-control-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 #close-btn:hover {
-    background-color: #ff605c; 
+    background-color: rgba(255, 0, 0, 0.2);
 }
 
-#minimize-btn:hover {
-    background-color: #ffbd44;
+#app-title {
+    -webkit-app-region: drag;
+    font-size: 14px;
+    font-weight: bold;
+    /* 确保标题在 flex 布局中能够正确居中，即使有绝对定位的元素 */
+    /* text-align: center; 已由父级 justify-content: center 处理 */
+    /* flex-grow: 1; 如果左右还有其他非绝对定位元素，可能需要 */
 }
 
-#maximize-restore-btn:hover {
-    background-color: #00ca4e;
-}
+@media (prefers-color-scheme: dark) {
+    #custom-titlebar {
+        background-color: rgba(50, 50, 50, 0.8);
+        color: white;
+    }
 
-/* 根据操作系统调整标题栏样式 */
-.is-windows #custom-titlebar {
-    justify-content: flex-end; /* Windows 下按钮靠右 */
-    padding: 0 10px 0 0;
-}
+    .window-control-btn {
+        color: white;
+    }
 
-.is-windows #custom-titlebar .title {
-    /* Windows 下标题通常不居中 */
-    flex-grow: 1; /* 占据剩余空间 */
-    text-align: center;
-    -webkit-app-region: drag; /* Windows 下标题区域也可拖动 */
-    padding-left: 100px; /* 为左侧的默认窗口图标留出空间，根据实际情况调整 */
-}
+    .window-control-btn:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
 
-.is-windows .window-controls {
-     /* Windows 下按钮靠右 */
+    #close-btn:hover {
+        background-color: rgba(255, 0, 0, 0.4);
+    }
 }
-
 
 h1 {
     text-align: center;
@@ -141,7 +141,8 @@ h1 {
     margin-bottom: 30px;
     font-size: 2em;
     /* 如果使用了自定义标题栏，可以移除此处的 margin-top */
-    margin-top: 0; /* 移除默认 H1 的顶部 margin */
+    margin-top: 0;
+    /* 移除默认 H1 的顶部 margin */
 }
 
 #controls {
@@ -150,9 +151,17 @@ h1 {
     justify-content: center;
     align-items: center;
     gap: 15px;
-    margin-bottom: 30px;
+    margin-top: 0;
+    /* 移除顶部 margin */
+    margin-left: 10px;
+    margin-right: 10px;
     background-color: var(--card-bg);
     padding: 20px;
+    /* 保持垂直 padding */
+    padding-left: 20px;
+    /* 添加左侧 padding */
+    padding-right: 20px;
+    /* 添加右侧 padding */
     border-radius: var(--border-radius);
     box-shadow: var(--card-shadow);
 }
@@ -162,8 +171,8 @@ h1 {
     color: var(--text-color);
 }
 
-#controls select, 
-#controls input, 
+#controls select,
+#controls input,
 #controls button {
     background-color: var(--bg-color);
     border: 1px solid rgba(0, 0, 0, 0.1);
@@ -185,7 +194,7 @@ h1 {
     opacity: 0.9;
 }
 
-#controls select, 
+#controls select,
 #controls input {
     background-color: var(--bg-color);
     color: var(--text-color);
@@ -196,15 +205,15 @@ h1 {
     outline: none;
     transition: all 0.3s ease;
     appearance: none;
-    background-image: linear-gradient(45deg, transparent 50%, var(--text-color) 50%), 
-                      linear-gradient(135deg, var(--text-color) 50%, transparent 50%);
-    background-position: calc(100% - 20px) calc(1em + 2px), 
-                         calc(100% - 15px) calc(1em + 2px);
+    background-image: linear-gradient(45deg, transparent 50%, var(--text-color) 50%),
+        linear-gradient(135deg, var(--text-color) 50%, transparent 50%);
+    background-position: calc(100% - 20px) calc(1em + 2px),
+        calc(100% - 15px) calc(1em + 2px);
     background-size: 5px 5px, 5px 5px;
     background-repeat: no-repeat;
 }
 
-#controls select:focus, 
+#controls select:focus,
 #controls input:focus {
     border-color: var(--accent-color);
     box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
@@ -214,7 +223,8 @@ h1 {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
-    padding: 20px 0;
+    padding: 20px;
+    /* 添加水平和垂直 padding */
     justify-items: center;
 }
 
@@ -229,13 +239,13 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    transform: scale(1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    /* transform: scale(1); */ /* 移除默认的 scale */
+    transition: /* transform 0.3s ease, */ box-shadow 0.3s ease; /* 只保留 box-shadow 的过渡 */
 }
 
 .movie-item:hover {
-    transform: scale(1.03);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    /* transform: scale(1.03); */ /* 移除缩放效果 */
+    box-shadow: 0 0 15px 5px var(--accent-color); /* 添加边缘发光效果 */
 }
 
 .movie-item img {
@@ -286,7 +296,7 @@ h1 {
 }
 
 /* 模态框样式 */
-#settings-modal, 
+#settings-modal,
 #delete-modal {
     position: fixed;
     top: 0;
@@ -300,8 +310,8 @@ h1 {
     z-index: 1000;
 }
 
-#settings-modal > div, 
-#delete-modal > div {
+#settings-modal>div,
+#delete-modal>div {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
@@ -312,13 +322,13 @@ h1 {
     padding: 30px;
 }
 
-#settings-modal h2, 
+#settings-modal h2,
 #delete-modal h2 {
     margin-bottom: 20px;
     color: var(--text-color);
 }
 
-#settings-modal button, 
+#settings-modal button,
 #delete-modal button {
     background-color: var(--accent-color);
     color: white;
@@ -330,46 +340,56 @@ h1 {
     transition: opacity 0.3s ease;
 }
 
-#settings-modal button:hover, 
+#settings-modal button:hover,
 #delete-modal button:hover {
     opacity: 0.9;
 }
 
-/* 美化滚动条 */
-::-webkit-scrollbar {
-    width: 8px; /* 垂直滚动条宽度 */
-    height: 8px; /* 水平滚动条高度 */
+/* 调整滚动条样式，使其在 #content-container 中生效 */
+#content-container::-webkit-scrollbar {
+    width: 6px;
+    /* 减小滚动条宽度 */
+    height: 6px;
+    /* 水平滚动条高度 */
 }
 
-::-webkit-scrollbar-track {
-    background: var(--bg-color); /* 滚动条轨道背景 */
-    border-radius: 4px;
+#content-container::-webkit-scrollbar-track {
+    background: transparent; /* 轨道背景透明 */
+    border-radius: 3px;
 }
 
-::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2); /* 滚动条滑块背景，根据主题调整 */
-    border-radius: 4px;
+/* 新：滚动条滑块默认透明，实现自动隐藏效果 */
+#content-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2); /* 亮色主题下，滑块的基础颜色 */
+    border-radius: 3px;
+    opacity: 0; /* 默认完全透明 */
+    transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out; /* 为透明度和背景色添加过渡 */
+}
+
+/* 当鼠标悬停在内容容器上时，滑块渐显 */
+#content-container:hover::-webkit-scrollbar-thumb {
+    opacity: 1;
+}
+
+/* 当鼠标直接悬停在已显示的滑块上时，滑块颜色变化（更深/更亮） */
+#content-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.4); /* 亮色主题下，悬停时颜色加深 */
 }
 
 @media (prefers-color-scheme: dark) {
-    ::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2); /* 暗色主题下滑块颜色 */
+    /* 新：暗色主题下，当鼠标悬停在内容容器上时，滑块变得可见 */
+    #content-container:hover::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2); /* 暗色主题下的滑块颜色 */
+    }
+
+    /* 新：暗色主题下，当鼠标直接悬停在滑块上时，滑块颜色加深 */
+    #content-container::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.4); /* 暗色主题下，滑块悬停时更明显 */
     }
 }
-
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.3); /* 滑块悬停颜色 */
-}
-
-@media (prefers-color-scheme: dark) {
-    ::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.3); /* 暗色主题下滑块悬停颜色 */
-    }
-}
-
 
 @media (max-width: 600px) {
     #movie-covers {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     }
-} 
+}

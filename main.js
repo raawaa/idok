@@ -296,17 +296,32 @@ function createWindow () {
     const win = new BrowserWindow({
         width: 1200,
         height: 800,
-        title: productName, // 设置窗口标题为产品名称
-        autoHideMenuBar: true, // 自动隐藏菜单栏
-        frame: false, // 移除默认窗口框架
-        titleBarStyle: 'hidden', // 隐藏 macOS 上的原生标题栏，内容会上移
+        frame: false, // 移除默认标题栏
+        titleBarStyle: 'hidden', // 隐藏标题栏
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: false,
+            enableRemoteModule: true,
+            // 其他现有的 webPreferences 配置
         }
     })
 
     win.loadFile('index.html')
+
+    // 开发者工具
+    if (process.env.NODE_ENV === 'development') {
+        win.webContents.openDevTools()
+    }
+
+    // 窗口控制事件处理
+    win.on('maximize', () => {
+        win.webContents.send('window-maximized', true)
+    })
+
+    win.on('unmaximize', () => {
+        win.webContents.send('window-maximized', false)
+    })
+
     // 在创建窗口时加载设置并开始扫描
     readSettings().then(settings => {
         if (settings && settings.directories && settings.directories.length > 0) {
