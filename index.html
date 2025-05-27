@@ -75,6 +75,31 @@
 <body>
     <h1>我的媒体资料库</h1>
 
+    <div id="controls" style="margin-bottom: 20px; text-align: center;">
+        <label for="sort-by">排序方式:</label>
+        <select id="sort-by">
+            <option value="title">片名</option>
+            <option value="year">发布年份</option>
+        </select>
+
+        <label for="sort-order" style="margin-left: 10px;">顺序:</label>
+        <select id="sort-order">
+            <option value="asc">升序</option>
+            <option value="desc">降序</option>
+        </select>
+
+        <label for="filter-actor" style="margin-left: 20px;">演员:</label>
+        <input type="text" id="filter-actor" placeholder="输入演员名">
+
+        <label for="filter-studio" style="margin-left: 20px;">片商:</label>
+        <input type="text" id="filter-studio" placeholder="输入片商名">
+
+        <!-- 清除过滤按钮 -->
+        <button id="clear-filters" style="margin-left: 20px;">清除过滤</button>
+
+        <!-- 可以根据需要添加更多过滤选项 -->
+    </div>
+
     <!-- 这里将显示电影封面 -->
     <div id="movie-covers">
 
@@ -82,35 +107,156 @@
 
     <script>
         const { ipcRenderer } = require('electron');
-        const path = require('path'); // 需要 path 模块来构建图片路径
+        const path = require('path');
+
+        let allMediaList = []; // 存储所有媒体数据的原始列表
 
         document.addEventListener('DOMContentLoaded', async () => {
             const movieCoversDiv = document.getElementById('movie-covers');
             const directoryPath = 'd:\\Porn'; // 这里使用你提供的路径
 
-            const mediaList = await ipcRenderer.invoke('scan-directory', directoryPath);
+            const sortBySelect = document.getElementById('sort-by');
+            const sortOrderSelect = document.getElementById('sort-order');
+            const filterActorInput = document.getElementById('filter-actor');
+            const filterStudioInput = document.getElementById('filter-studio');
+            const clearFiltersButton = document.getElementById('clear-filters'); // 获取清除过滤按钮
 
-            if (mediaList.length > 0) {
-                mediaList.forEach(movie => {
+            // 获取媒体数据
+            allMediaList = await ipcRenderer.invoke('scan-directory', directoryPath);
+
+            // 初次渲染
+            renderMediaList(allMediaList);
+
+            // 添加事件监听器
+            sortBySelect.addEventListener('change', () => renderMediaList(allMediaList));
+            sortOrderSelect.addEventListener('change', () => renderMediaList(allMediaList));
+            filterActorInput.addEventListener('input', () => renderMediaList(allMediaList));
+            filterStudioInput.addEventListener('input', () => renderMediaList(allMediaList));
+
+            // 添加清除过滤按钮事件监听器
+            clearFiltersButton.addEventListener('click', () => {
+                filterActorInput.value = ''; // 清空演员过滤输入框
+                filterStudioInput.value = ''; // 清空片商过滤输入框
+                // 清空其他过滤输入框 (如果添加了)
+                renderMediaList(allMediaList); // 重新渲染列表
+            });
+
+        });
+
+        // 根据当前排序和过滤条件渲染媒体列表
+        function renderMediaList(mediaList) {
+            const movieCoversDiv = document.getElementById('movie-covers');
+            const sortBy = document.getElementById('sort-by').value;
+            const sortOrder = document.getElementById('sort-order').value; // 获取排序顺序
+            const filterActor = document.getElementById('filter-actor').value.toLowerCase();
+            const filterStudio = document.getElementById('filter-studio').value.toLowerCase();
+
+            // 过滤
+            const filteredList = mediaList.filter(movie => {
+                const matchActor = filterActor === '' || (movie.actors && movie.actors.some(actor => actor.toLowerCase().includes(filterActor)));
+                const matchStudio = filterStudio === '' || (movie.studio && movie.studio.toLowerCase().includes(filterStudio));
+                // 可以根据需要添加更多过滤条件
+                return matchActor && matchStudio;
+            });
+
+
+            // 排序
+            const sortedList = filteredList.sort((a, b) => {
+                let compareResult = 0;
+                if (sortBy === 'title') {
+                    compareResult = a.title.localeCompare(b.title);
+                } else if (sortBy === 'year') {
+                    const yearA = a.year ? parseInt(a.year) : 0;
+                    const yearB = b.year ? parseInt(b.year) : 0;
+                    compareResult = yearA - yearB; // 默认按年份升序
+                }
+
+                // 根据排序顺序调整结果
+                if (sortOrder === 'desc') {
+                    return -compareResult; // 降序
+                }
+                return compareResult; // 升序
+            });
+
+            // 清空当前显示
+            movieCoversDiv.innerHTML = '';
+
+            // 渲染过滤和排序后的列表
+            if (sortedList.length > 0) {
+                sortedList.forEach(movie => {
                     const movieElement = document.createElement('div');
-                    movieElement.classList.add('movie-item'); // 添加一个 class 用于样式控制
+                    movieElement.classList.add('movie-item');
 
                     const titleElement = document.createElement('h3');
                     titleElement.textContent = movie.title;
                     movieElement.appendChild(titleElement);
 
+                     // 显示年份和片商 (如果存在)
+                     if (movie.year) {
+                        const yearElement = document.createElement('p');
+                        yearElement.textContent = `年份: ${movie.year}`;
+                        movieElement.appendChild(yearElement);
+                     }
+
+                     // 显示片商 (如果存在) 并添加点击事件
+                     if (movie.studio) {
+                        const studioElement = document.createElement('p');
+                        const studioSpan = document.createElement('span');
+                        studioSpan.textContent = `片商: ${movie.studio}`;
+                        studioSpan.style.cursor = 'pointer'; // 添加手型光标
+                        studioSpan.style.textDecoration = 'underline'; // 添加下划线表示可点击
+                        studioSpan.addEventListener('click', () => {
+                            document.getElementById('filter-studio').value = movie.studio;
+                            renderMediaList(allMediaList); // 重新渲染列表
+                        });
+                        studioElement.appendChild(studioSpan);
+                        movieElement.appendChild(studioElement);
+                     }
+
+                     // 显示演员 (如果存在) 并添加点击事件
+                     if (movie.actors && movie.actors.length > 0) {
+                        const actorsElement = document.createElement('p');
+                        actorsElement.style.fontSize = '0.8em';
+                        actorsElement.style.color = '#666';
+
+                        const actorSpans = movie.actors.map(actor => {
+                            const actorSpan = document.createElement('span');
+                            actorSpan.textContent = actor;
+                            actorSpan.style.cursor = 'pointer';
+                            actorSpan.style.textDecoration = 'underline';
+                            actorSpan.style.marginRight = '5px'; // 演员之间加一点间距
+                            actorSpan.addEventListener('click', () => {
+                                document.getElementById('filter-actor').value = actor;
+                                renderMediaList(allMediaList); // 重新渲染列表
+                            });
+                            return actorSpan;
+                        });
+
+                        const actorsLabel = document.createElement('span');
+                        actorsLabel.textContent = '演员: ';
+                        actorsElement.appendChild(actorsLabel);
+
+                        actorSpans.forEach((span, index) => {
+                            actorsElement.appendChild(span);
+                            if (index < actorSpans.length - 1) {
+                                actorsElement.appendChild(document.createTextNode(', ')); // 添加逗号分隔
+                            }
+                        });
+
+                        movieElement.appendChild(actorsElement);
+                     }
+
+                     // 可以根据需要显示类别等信息
+
+
                     if (movie.coverImageDataUrl) {
                         const coverElement = document.createElement('img');
-                        // 直接使用 Base64 数据 URL
                         coverElement.src = movie.coverImageDataUrl;
                         coverElement.alt = movie.title;
-                        coverElement.style.width = '150px'; // 设置封面图片大小
-                        coverElement.style.height = 'auto';
-                        coverElement.style.cursor = 'pointer'; // 添加手型光标表示可点击
+                        coverElement.style.cursor = 'pointer';
 
-                        // 添加点击事件
                         coverElement.addEventListener('click', () => {
-                            ipcRenderer.send('open-video', movie.videoPath); // 发送消息给主进程打开视频
+                            ipcRenderer.send('open-video', movie.videoPath);
                         });
 
                         movieElement.appendChild(coverElement);
@@ -123,9 +269,10 @@
                     movieCoversDiv.appendChild(movieElement);
                 });
             } else {
-                movieCoversDiv.textContent = '未找到媒体文件。';
+                movieCoversDiv.textContent = '未找到符合条件的媒体文件。';
             }
-        });
+        }
+
 
         // 添加 IPC 监听器来处理主进程发送的消息 (如果需要)
         // ipcRenderer.on('some-message', (event, arg) => {

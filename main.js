@@ -1,3 +1,14 @@
+if (process.env.NODE_ENV === 'development') {
+    try {
+        require('electron-reloader')(module, {
+            // 可选配置项
+            // ignore: /[^src|dist]/
+        });
+    } catch (err) {
+        console.error('Error reloading electron:', err);
+    }
+}
+
 const { app, BrowserWindow, ipcMain, shell } = require('electron')
 const fs = require('fs');
 const path = require('path');
@@ -14,13 +25,64 @@ function isVideoFile(fileName) {
 async function parseNfoFile(nfoPath) {
   try {
     const xml = await fs.promises.readFile(nfoPath, 'utf-8');
-    const parser = new xml2js.Parser();
+    const parser = new xml2js.Parser({ explicitArray: false, ignoreAttrs: true }); // 设置 explicitArray: false 避免数组，ignoreAttrs: true 忽略属性
     const result = await parser.parseStringPromise(xml);
-    // 提取电影标题，根据 Kodi nfo 结构可能不同，这里假设是 <movie><title>...</title></movie>
-    return result.movie ? result.movie.title[0] : path.basename(nfoPath, '.nfo');
+
+    const movieInfo = {
+        title: path.basename(nfoPath, '.nfo'), // 默认使用文件名作为标题
+        year: null,
+        studio: null,
+        actors: [],
+        directors: [],
+        genres: []
+    };
+
+    if (result.movie) {
+        const movieNode = result.movie;
+        if (movieNode.title) movieInfo.title = movieNode.title;
+        if (movieNode.year) movieInfo.year = movieNode.year;
+        if (movieNode.studio) movieInfo.studio = movieNode.studio;
+
+        // 处理演员列表
+        if (movieNode.actor) {
+            if (Array.isArray(movieNode.actor)) {
+                movieInfo.actors = movieNode.actor.map(actor => actor.name).filter(name => name);
+            } else if (movieNode.actor.name) {
+                movieInfo.actors.push(movieNode.actor.name);
+            }
+        }
+
+         // 处理导演列表 (Kodi NFO 中导演标签通常是 <director>)
+        if (movieNode.director) {
+            if (Array.isArray(movieNode.director)) {
+                 movieInfo.directors = movieNode.director.map(director => director).filter(name => name); // director 标签下直接是名字
+            } else {
+                 movieInfo.directors.push(movieNode.director);
+            }
+        }
+
+
+        // 处理类别列表
+        if (movieNode.genre) {
+             if (Array.isArray(movieNode.genre)) {
+                movieInfo.genres = movieNode.genre.map(genre => genre).filter(name => name); // genre 标签下直接是类别名
+            } else {
+                 movieInfo.genres.push(movieNode.genre);
+            }
+        }
+    }
+
+    return movieInfo; // 返回包含更多信息的对象
   } catch (error) {
     console.error("解析 nfo 文件时出错:", nfoPath, error);
-    return path.basename(nfoPath, '.nfo'); // 解析失败时使用文件名作为标题
+    return { // 解析失败时返回默认信息
+        title: path.basename(nfoPath, '.nfo'),
+        year: null,
+        studio: null,
+        actors: [],
+        directors: [],
+        genres: []
+    };
   }
 }
 
@@ -71,7 +133,6 @@ async function scanDirectoryRecursive(directoryPath, mediaList) {
             const fullPath = path.join(directoryPath, dirent.name);
 
             if (dirent.isDirectory()) {
-                // 递归扫描子目录
                 await scanDirectoryRecursive(fullPath, mediaList);
             } else if (dirent.isFile()) {
                 if (isVideoFile(dirent.name)) {
@@ -84,7 +145,7 @@ async function scanDirectoryRecursive(directoryPath, mediaList) {
 
         // 如果找到视频文件和 nfo 文件，则认为是一个电影文件夹
         if (videoFile && nfoFile) {
-            const title = await parseNfoFile(nfoFile);
+            const movieInfo = await parseNfoFile(nfoFile); // 调用修改后的解析函数
             coverImagePath = await findCoverImage(directoryPath); // 查找封面图片路径
             let coverImageDataUrl = null;
 
@@ -92,11 +153,10 @@ async function scanDirectoryRecursive(directoryPath, mediaList) {
                  coverImageDataUrl = await readImageAsBase64(coverImagePath); // 读取图片并转换为 Base64
             }
 
-
             mediaList.push({
-                title: title,
+                ...movieInfo, // 展开解析出的电影信息
                 videoPath: videoFile,
-                coverImageDataUrl: coverImageDataUrl // 存储 Base64 数据 URL
+                coverImageDataUrl: coverImageDataUrl
             });
         }
 
