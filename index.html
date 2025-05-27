@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>媒体资料库</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #movie-covers {
+            display: grid;
+            /* 使用 auto-fit 和 minmax 创建响应式网格 */
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px; /* 卡片之间的间距 */
+            padding: 20px 0;
+            justify-items: center; /* 网格项在各自单元格中居中 */
+        }
+
+        .movie-item {
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            padding: 10px;
+            width: 180px; /* 固定卡片宽度，flexbox 或 grid 会调整 */
+            display: flex; /* 使用 flexbox 垂直居中内容 */
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .movie-item img {
+            width: 100%; /* 图片宽度填充卡片 */
+            height: auto;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .movie-item h3 {
+            font-size: 1em;
+            margin: 0 0 10px 0;
+            color: #555;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis; /* 标题过长时显示省略号 */
+        }
+
+        .movie-item p {
+            font-size: 0.9em;
+            color: #777;
+        }
+
+        /* 响应式设计调整 */
+        @media (max-width: 600px) {
+            #movie-covers {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* 小屏幕下调整最小宽度 */
+                gap: 15px;
+            }
+
+            .movie-item {
+                width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>我的媒体资料库</h1>
+
+    <!-- 这里将显示电影封面 -->
+    <div id="movie-covers">
+
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const path = require('path'); // 需要 path 模块来构建图片路径
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const movieCoversDiv = document.getElementById('movie-covers');
+            const directoryPath = 'd:\\Porn'; // 这里使用你提供的路径
+
+            const mediaList = await ipcRenderer.invoke('scan-directory', directoryPath);
+
+            if (mediaList.length > 0) {
+                mediaList.forEach(movie => {
+                    const movieElement = document.createElement('div');
+                    movieElement.classList.add('movie-item'); // 添加一个 class 用于样式控制
+
+                    const titleElement = document.createElement('h3');
+                    titleElement.textContent = movie.title;
+                    movieElement.appendChild(titleElement);
+
+                    if (movie.coverImageDataUrl) {
+                        const coverElement = document.createElement('img');
+                        // 直接使用 Base64 数据 URL
+                        coverElement.src = movie.coverImageDataUrl;
+                        coverElement.alt = movie.title;
+                        coverElement.style.width = '150px'; // 设置封面图片大小
+                        coverElement.style.height = 'auto';
+                        coverElement.style.cursor = 'pointer'; // 添加手型光标表示可点击
+
+                        // 添加点击事件
+                        coverElement.addEventListener('click', () => {
+                            ipcRenderer.send('open-video', movie.videoPath); // 发送消息给主进程打开视频
+                        });
+
+                        movieElement.appendChild(coverElement);
+                    } else {
+                        const noCoverElement = document.createElement('p');
+                        noCoverElement.textContent = '无封面';
+                        movieElement.appendChild(noCoverElement);
+                    }
+
+                    movieCoversDiv.appendChild(movieElement);
+                });
+            } else {
+                movieCoversDiv.textContent = '未找到媒体文件。';
+            }
+        });
+
+        // 添加 IPC 监听器来处理主进程发送的消息 (如果需要)
+        // ipcRenderer.on('some-message', (event, arg) => {
+        //   console.log(arg);
+        // });
+    </script>
+</body>
+</html> 
