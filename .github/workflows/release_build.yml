@@ -1,0 +1,31 @@
+name: Build and Release Windows App
+
+on:
+  release:
+    types:
+      - created # 在创建新的 Release 时触发
+
+jobs:
+  build-windows:
+    runs-on: windows-latest # 在最新的 Windows 环境上运行
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20 # 你项目使用的 Node.js 版本
+
+      - name: Install dependencies
+        run: npm ci # 使用 npm ci 以确保干净安装
+
+      - name: Build Electron App
+        run: npm run build # 运行 package.json 中定义的 build 脚本
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: idok-windows-build
+          path: dist/*.exe # 上传 dist 目录下生成的 .exe 文件 
