@@ -1,11 +1,15 @@
 {
   "name": "idok",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "electron-builder"
+    "build": "electron-builder",
+    "release": "standard-version",
+    "release:minor": "standard-version --release-as minor",
+    "release:patch": "standard-version --release-as patch",
+    "release:major": "standard-version --release-as major"
   },
   "keywords": [],
   "author": "",
@@ -13,8 +17,9 @@
   "description": "",
   "devDependencies": {
     "electron": "^36.3.1",
+    "electron-builder": "^24.9.1",
     "electron-reloader": "^1.2.3",
-    "electron-builder": "^24.9.1"
+    "standard-version": "^9.5.0"
   },
   "dependencies": {
     "xml2js": "^0.6.2"
