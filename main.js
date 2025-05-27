@@ -10,6 +10,51 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 const { app, BrowserWindow, ipcMain, shell, Menu, MenuItem, dialog } = require('electron')
+const { autoUpdater } = require('electron-updater')
+
+// 设置更新服务器 URL
+autoUpdater.setFeedURL('https://github.com/raawaa/idok/releases/download/latest/')
+
+// 检查更新
+autoUpdater.checkForUpdates()
+
+// 监听更新事件
+autoUpdater.on('checking-for-update', () => {
+    console.log('Checking for update...')
+})
+
+autoUpdater.on('update-available', (info) => {
+    console.log('Update available:', info)
+    // 显示更新通知
+    const win = BrowserWindow.getFocusedWindow()
+    if (win) {
+        win.webContents.send('update-available')
+    }
+})
+
+autoUpdater.on('update-not-available', (info) => {
+    console.log('Update not available:', info)
+})
+
+autoUpdater.on('error', (err) => {
+    console.error('Update error:', err)
+})
+
+autoUpdater.on('download-progress', (progressObj) => {
+    console.log('Download progress:', progressObj)
+    const win = BrowserWindow.getFocusedWindow()
+    if (win) {
+        win.webContents.send('download-progress', progressObj)
+    }
+})
+
+autoUpdater.on('update-downloaded', (info) => {
+    console.log('Update downloaded:', info)
+    const win = BrowserWindow.getFocusedWindow()
+    if (win) {
+        win.webContents.send('update-downloaded')
+    }
+})
 const fs = require('fs');
 const path = require('path');
 const xml2js = require('xml2js'); // 导入 xml2js
