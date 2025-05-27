@@ -291,32 +291,37 @@ ipcMain.handle('open-directory-dialog', async (event) => {
 });
 
 function createWindow () {
-  const win = new BrowserWindow({
-    width: 800,
-    height: 600,
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
-    }
-  })
+    // 从 package.json 读取产品名称
+    const packageJson = require('./package.json');
+    const productName = packageJson.build.productName;
 
-  win.loadFile('index.html')
-  // 在创建窗口时加载设置并开始扫描
-  readSettings().then(settings => {
-      if (settings && settings.directories && settings.directories.length > 0) {
-          // 在 DOMContentLoaded 事件中触发扫描，确保 index.html 已加载
-          win.webContents.on('did-finish-load', () => {
-              win.webContents.send('start-initial-scan', settings.directories);
-          });
-      } else {
-           // 如果没有设置目录，可以在界面上给用户提示
-           console.log("没有配置影片目录，请在设置中添加。");
+    // 创建浏览器窗口
+    const win = new BrowserWindow({
+        width: 1200,
+        height: 800,
+        title: productName, // 设置窗口标题为产品名称
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false
+        }
+    })
+
+    win.loadFile('index.html')
+    // 在创建窗口时加载设置并开始扫描
+    readSettings().then(settings => {
+        if (settings && settings.directories && settings.directories.length > 0) {
+            // 在 DOMContentLoaded 事件中触发扫描，确保 index.html 已加载
             win.webContents.on('did-finish-load', () => {
-                 win.webContents.send('no-directories-configured');
+                win.webContents.send('start-initial-scan', settings.directories);
             });
-      }
-  });
-
+        } else {
+             // 如果没有设置目录，可以在界面上给用户提示
+             console.log("没有配置影片目录，请在设置中添加。");
+              win.webContents.on('did-finish-load', () => {
+                   win.webContents.send('no-directories-configured');
+              });
+        }
+    });
 }
 
 app.whenReady().then(() => {
