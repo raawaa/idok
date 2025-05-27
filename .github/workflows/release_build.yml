@@ -24,6 +24,8 @@ jobs:
 
       - name: Build Electron App
         run: npm run build # 运行 package.json 中定义的 build 脚本
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
