@@ -1,6 +1,7 @@
 name: Build and Release Windows App
 
 on:
+  workflow_dispatch:
   release:
     types:
       - created # 在创建新的 Release 时触发
