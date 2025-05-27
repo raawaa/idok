@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20 # 你项目使用的 Node.js 版本
+          node-version: 22 # 你项目使用的 Node.js 版本
 
       - name: Install dependencies
         run: npm ci # 使用 npm ci 以确保干净安装
