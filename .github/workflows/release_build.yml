@@ -27,9 +27,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
-      - name: Upload Release Asset
+      - name: Upload build artifact (Manual Trigger)
+        uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          name: idok-windows-build
+          path: dist/*.exe
+
+      - name: Upload Release Asset (Release Created)
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'release' && startsWith(github.ref, 'refs/tags/')
         with:
           files: dist/*.exe
         env:
