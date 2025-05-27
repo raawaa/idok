@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>媒体资料库</title>
@@ -20,9 +21,11 @@
             display: grid;
             /* 使用 auto-fit 和 minmax 创建响应式网格 */
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px; /* 卡片之间的间距 */
+            gap: 20px;
+            /* 卡片之间的间距 */
             padding: 20px 0;
-            justify-items: center; /* 网格项在各自单元格中居中 */
+            justify-items: center;
+            /* 网格项在各自单元格中居中 */
         }
 
         .movie-item {
@@ -32,60 +35,77 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             text-align: center;
             padding: 10px;
-            width: 180px; /* 固定卡片宽度，flexbox 或 grid 会调整 */
-            display: flex; /* 使用 flexbox 垂直居中内容 */
+            width: 180px;
+            /* 固定卡片宽度，flexbox 或 grid 会调整 */
+            display: flex;
+            /* 使用 flexbox 垂直居中内容 */
             flex-direction: column;
             /* justify-content: space-between; /* 可以根据需要调整垂直对齐方式 */
-            align-items: center; /* 水平居中内容 */
+            align-items: center;
+            /* 水平居中内容 */
             text-align: center;
             padding: 10px;
             width: 180px;
         }
 
         .movie-item img {
-            width: 100%; /* 图片宽度填充卡片 */
+            width: 100%;
+            /* 图片宽度填充卡片 */
             height: auto;
             border-radius: 4px;
-            margin-bottom: 10px; /* 图片下方留白 */
+            margin-bottom: 10px;
+            /* 图片下方留白 */
         }
 
         .movie-info {
-            width: 100%; /* 信息区域宽度填充卡片 */
-            text-align: left; /* 信息文本靠左对齐 */
-            margin-top: auto; /* 将信息推到底部 */
+            width: 100%;
+            /* 信息区域宽度填充卡片 */
+            text-align: left;
+            /* 信息文本靠左对齐 */
+            margin-top: auto;
+            /* 将信息推到底部 */
         }
 
         .movie-item h3 {
             font-size: 1em;
-            margin: 0 0 5px 0; /* 调整标题下方间距 */
-            color: #333; /* 标题颜色深一点 */
+            margin: 0 0 5px 0;
+            /* 调整标题下方间距 */
+            color: #333;
+            /* 标题颜色深一点 */
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .movie-item p {
-            font-size: 0.8em; /* 信息字体小一点 */
-            color: #555; /* 信息颜色 */
-            margin: 2px 0; /* 调整段落垂直间距 */
-            line-height: 1.4; /* 行高 */
+            font-size: 0.8em;
+            /* 信息字体小一点 */
+            color: #555;
+            /* 信息颜色 */
+            margin: 2px 0;
+            /* 调整段落垂直间距 */
+            line-height: 1.4;
+            /* 行高 */
         }
 
         .movie-item p span {
             /* 可点击文本的样式 */
             cursor: pointer;
             text-decoration: underline;
-            color: #007bff; /* 链接颜色 */
+            color: #007bff;
+            /* 链接颜色 */
         }
 
         .movie-item p span:hover {
-            color: #0056b3; /* 鼠标悬停颜色 */
+            color: #0056b3;
+            /* 鼠标悬停颜色 */
         }
 
         /* 响应式设计调整 */
         @media (max-width: 600px) {
             #movie-covers {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* 小屏幕下调整最小宽度 */
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                /* 小屏幕下调整最小宽度 */
                 gap: 15px;
             }
 
@@ -95,6 +115,7 @@
         }
     </style>
 </head>
+
 <body>
     <h1>我的媒体资料库</h1>
 
@@ -102,7 +123,7 @@
         <label for="sort-by">排序方式:</label>
         <select id="sort-by">
             <option value="title">片名</option>
-            <option value="year">发布年份</option>
+            <option value="releaseDate">发布日期</option>
         </select>
 
         <label for="sort-order" style="margin-left: 10px;">顺序:</label>
@@ -135,8 +156,10 @@
     </div>
 
     <!-- 模态框结构 -->
-    <div id="delete-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000;">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); text-align: center;">
+    <div id="delete-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000;">
+        <div
+            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); text-align: center;">
             <h2>确认删除</h2>
             <p>您确定要删除以下影片目录吗？</p>
             <p id="delete-path" style="font-weight: bold; margin: 10px 0; word-break: break-all;"></p>
@@ -167,19 +190,19 @@
 
             // 在主进程通知可以开始初次扫描时进行
             ipcRenderer.on('start-initial-scan', async (event, directoryPaths) => {
-                 console.log("开始初次扫描...");
+                console.log("开始初次扫描...");
                 // 获取媒体数据
                 allMediaList = await ipcRenderer.invoke('scan-directory', directoryPaths);
-                 console.log("初次扫描完成，找到", allMediaList.length, "个媒体文件。");
+                console.log("初次扫描完成，找到", allMediaList.length, "个媒体文件。");
                 // 初次渲染
                 renderMediaList(allMediaList);
             });
 
-             // 当没有配置目录时显示提示
+            // 当没有配置目录时显示提示
             ipcRenderer.on('no-directories-configured', () => {
                 const movieCoversDiv = document.getElementById('movie-covers');
-                 movieCoversDiv.innerHTML = '<p>请在设置中配置影片目录。</p>';
-             });
+                movieCoversDiv.innerHTML = '<p>请在设置中配置影片目录。</p>';
+            });
 
             // 添加事件监听器
             sortBySelect.addEventListener('change', () => renderMediaList(allMediaList));
@@ -204,20 +227,20 @@
 
             // 监听设置保存成功的消息，然后重新扫描
             ipcRenderer.on('settings-saved-and-rescan', async () => {
-                 console.log("设置已保存，重新扫描...");
-                 // 重新获取设置（包含更新后的目录）并触发扫描
-                 const settings = await ipcRenderer.invoke('get-settings');
-                 if (settings && settings.directories && settings.directories.length > 0) {
-                     allMediaList = await ipcRenderer.invoke('scan-directory', settings.directories);
-                      console.log("重新扫描完成，找到", allMediaList.length, "个媒体文件。");
-                     renderMediaList(allMediaList);
-                 } else {
-                      // 如果保存后目录为空，显示提示
-                      const movieCoversDiv = document.getElementById('movie-covers');
-                      movieCoversDiv.innerHTML = '<p>请在设置中配置影片目录。</p>';
-                      allMediaList = []; // 清空当前列表
-                 }
-             });
+                console.log("设置已保存，重新扫描...");
+                // 重新获取设置（包含更新后的目录）并触发扫描
+                const settings = await ipcRenderer.invoke('get-settings');
+                if (settings && settings.directories && settings.directories.length > 0) {
+                    allMediaList = await ipcRenderer.invoke('scan-directory', settings.directories);
+                    console.log("重新扫描完成，找到", allMediaList.length, "个媒体文件。");
+                    renderMediaList(allMediaList);
+                } else {
+                    // 如果保存后目录为空，显示提示
+                    const movieCoversDiv = document.getElementById('movie-covers');
+                    movieCoversDiv.innerHTML = '<p>请在设置中配置影片目录。</p>';
+                    allMediaList = []; // 清空当前列表
+                }
+            });
 
         });
 
@@ -245,10 +268,10 @@
                 let compareResult = 0;
                 if (sortBy === 'title') {
                     compareResult = a.title.localeCompare(b.title);
-                } else if (sortBy === 'year') {
-                    const yearA = a.year ? parseInt(a.year) : 0;
-                    const yearB = b.year ? parseInt(b.year) : 0;
-                    compareResult = yearA - yearB; // 默认按年份升序
+                } else if (sortBy === 'releaseDate') {
+                    const dateA = a.releaseDateFull ? new Date(a.releaseDateFull) : new Date(0);
+                    const dateB = b.releaseDateFull ? new Date(b.releaseDateFull) : new Date(0);
+                    compareResult = dateA.getTime() - dateB.getTime();
                 }
 
                 // 根据排序顺序调整结果
@@ -303,15 +326,16 @@
                     titleElement.textContent = movie.title;
                     movieInfoDiv.appendChild(titleElement);
 
-                     // 显示年份 (如果存在)
-                     if (movie.year) {
-                        const yearElement = document.createElement('p');
-                        yearElement.textContent = `年份: ${movie.year}`;
-                        movieInfoDiv.appendChild(yearElement);
-                     }
+                    // 显示完整发布日期 (如果存在)
+                    if (movie.releaseDateFull) {
+                        const dateElement = document.createElement('p');
+                        // 简单显示完整日期字符串，你可以根据需要进行格式化
+                        dateElement.textContent = `发布日期: ${movie.releaseDateFull}`;
+                        movieInfoDiv.appendChild(dateElement);
+                    }
 
-                     // 显示片商 (如果存在) 并添加点击事件
-                     if (movie.studio) {
+                    // 显示片商 (如果存在) 并添加点击事件
+                    if (movie.studio) {
                         const studioElement = document.createElement('p');
                         const studioLabel = document.createElement('span');
                         studioLabel.textContent = '片商: ';
@@ -327,10 +351,10 @@
                         });
                         studioElement.appendChild(studioNameSpan);
                         movieInfoDiv.appendChild(studioElement);
-                     }
+                    }
 
-                     // 显示演员 (如果存在) 并添加点击事件
-                     if (movie.actors && movie.actors.length > 0) {
+                    // 显示演员 (如果存在) 并添加点击事件
+                    if (movie.actors && movie.actors.length > 0) {
                         const actorsElement = document.createElement('p');
                         const actorsLabel = document.createElement('span');
                         actorsLabel.textContent = '演员: ';
@@ -357,10 +381,10 @@
                         });
 
                         movieInfoDiv.appendChild(actorsElement);
-                     }
+                    }
 
-                     // 显示类别 (如果存在) 并添加点击事件
-                     if (movie.genres && movie.genres.length > 0) {
+                    // 显示类别 (如果存在) 并添加点击事件
+                    if (movie.genres && movie.genres.length > 0) {
                         const genresElement = document.createElement('p');
                         const genresLabel = document.createElement('span');
                         genresLabel.textContent = '类别: ';
@@ -387,9 +411,9 @@
                         });
 
                         movieInfoDiv.appendChild(genresElement);
-                     }
+                    }
 
-                     // 可以根据需要显示类别等信息
+                    // 可以根据需要显示类别等信息
 
                     movieElement.appendChild(movieInfoDiv); // 将信息区域添加到卡片中
                     movieCoversDiv.appendChild(movieElement);
@@ -439,7 +463,7 @@
         ipcRenderer.on('directory-deleted', (event, deletedDirectory) => {
             console.log(`目录 ${deletedDirectory} 已删除。`);
             // TODO: 重新加载媒体列表或从列表中移除已删除的项
-             // 简单粗暴的方式：重新扫描目录并渲染列表
+            // 简单粗暴的方式：重新扫描目录并渲染列表
             const directoryPath = 'd:\\Porn'; // 确保这里是正确的根目录
             ipcRenderer.invoke('scan-directory', directoryPath).then(updatedMediaList => {
                 allMediaList = updatedMediaList;
@@ -459,4 +483,5 @@
         // });
     </script>
 </body>
-</html> 
+
+</html>

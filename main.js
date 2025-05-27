@@ -56,6 +56,7 @@ async function parseNfoFile(nfoPath) {
     const movieInfo = {
         title: path.basename(nfoPath, '.nfo'), // 默认使用文件名作为标题
         year: null,
+        releaseDateFull: null, // 添加完整日期字段
         studio: null,
         actors: [],
         directors: [],
@@ -65,7 +66,10 @@ async function parseNfoFile(nfoPath) {
     if (result.movie) {
         const movieNode = result.movie;
         if (movieNode.title) movieInfo.title = movieNode.title;
-        if (movieNode.premiered) movieInfo.year = movieNode.premiered.substring(0, 4); // 提取年份部分
+        if (movieNode.premiered) {
+            movieInfo.year = movieNode.premiered.substring(0, 4); // 仍然保留年份字段，方便需要只显示年份的地方
+            movieInfo.releaseDateFull = movieNode.premiered; // 添加完整日期字段
+        }
         if (movieNode.studio) movieInfo.studio = movieNode.studio;
 
         // 处理演员列表
@@ -111,6 +115,7 @@ async function parseNfoFile(nfoPath) {
     return { // 解析失败时返回默认信息
         title: path.basename(nfoPath, '.nfo'),
         year: null,
+        releaseDateFull: null, // 解析失败时也包含完整日期字段
         studio: null,
         actors: [],
         directors: [],
