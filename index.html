@@ -8,6 +8,17 @@
 </head>
 
 <body>
+    <!-- 自定义标题栏 -->
+    <div id="custom-titlebar">
+        <div class="title">媒体资料库</div>
+        <!-- 窗口控制按钮 -->
+        <div class="window-controls">
+            <button id="minimize-btn" class="control-button">—</button>
+            <button id="maximize-restore-btn" class="control-button">+</button>
+            <button id="close-btn" class="control-button">×</button>
+        </div>
+    </div>
+
     <h1>我的媒体资料库</h1>
 
     <div id="controls" style="margin-bottom: 20px; text-align: center;">
@@ -188,6 +199,27 @@
                     allMediaList = []; // 清空当前列表
                 }
             });
+
+            // 在现有脚本中添加窗口控制按钮事件监听器
+            const minimizeBtn = document.getElementById('minimize-btn');
+            const maximizeRestoreBtn = document.getElementById('maximize-restore-btn');
+            const closeBtn = document.getElementById('close-btn');
+
+            if (minimizeBtn) {
+                minimizeBtn.addEventListener('click', () => {
+                    ipcRenderer.send('minimize-window');
+                });
+            }
+            if (maximizeRestoreBtn) {
+                maximizeRestoreBtn.addEventListener('click', () => {
+                    ipcRenderer.send('maximize-restore-window');
+                });
+            }
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    ipcRenderer.send('close-window');
+                });
+            }
 
         });
 

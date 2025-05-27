@@ -1,108 +1,375 @@
-body {
-    font-family: sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: #f4f4f4;
+:root {
+    --bg-color: #f6f6f6;
+    --text-color: #1a1a1a;
+    --card-bg: white;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --accent-color: #007aff;
+    --hover-color: #0056b3;
+    --border-radius: 12px;
 }
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #1e1e1e;
+        --text-color: #f0f0f0;
+        --card-bg: #2c2c2c;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    transition: all 0.3s ease;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 20px; /* 默认 padding */
+    padding-top: 50px; /* 为自定义标题栏和顶部内容留出更多空间 */
+    overflow-y: auto; /* 允许 body 自身出现滚动条 */
+}
+
+#custom-titlebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30px; /* 标题栏高度 */
+    background-color: var(--card-bg); /* 使用卡片背景色或自定义 */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* 分隔线 */
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* 标题和按钮分布在两端 */
+    -webkit-app-region: drag; /* 使该区域可拖动 */
+    z-index: 999; /* 确保标题栏在最顶层 */
+    padding: 0 10px; /* 标题栏左右 padding */
+}
+
+#custom-titlebar .title {
+    font-weight: 500;
+    color: var(--text-color);
+    -webkit-user-select: none; /* 禁止用户选择标题文本 */
+    font-size: 0.9em;
+    -webkit-app-region: no-drag; /* 标题文本本身不可拖动 */
+}
+
+.window-controls {
+    display: flex;
+    align-items: center;
+    -webkit-app-region: no-drag; /* 窗口控制按钮区域不可拖动 */
+}
+
+.control-button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: none;
+    margin-left: 6px; /* 按钮之间的间距 */
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 8px; /* 按钮内文字大小 */
+    color: transparent; /* 默认隐藏文字 */
+    transition: all 0.1s ease;
+    padding: 0;
+    line-height: 1;
+}
+
+.control-button:hover {
+    color: rgba(0, 0, 0, 0.8); /* 鼠标悬停时显示文字 */
+}
+
+@media (prefers-color-scheme: dark) {
+    .control-button:hover {
+        color: rgba(255, 255, 255, 0.8); /* 暗色主题下鼠标悬停时显示文字 */
+    }
+}
+
+#close-btn {
+    background-color: #ff605c; /* 红色 */
+}
+
+#minimize-btn {
+    background-color: #ffbd44; /* 黄色 */
+}
+
+#maximize-restore-btn {
+    background-color: #00ca4e; /* 绿色 */
+}
+
+#close-btn:hover {
+    background-color: #ff605c; 
+}
+
+#minimize-btn:hover {
+    background-color: #ffbd44;
+}
+
+#maximize-restore-btn:hover {
+    background-color: #00ca4e;
+}
+
+/* 根据操作系统调整标题栏样式 */
+.is-windows #custom-titlebar {
+    justify-content: flex-end; /* Windows 下按钮靠右 */
+    padding: 0 10px 0 0;
+}
+
+.is-windows #custom-titlebar .title {
+    /* Windows 下标题通常不居中 */
+    flex-grow: 1; /* 占据剩余空间 */
+    text-align: center;
+    -webkit-app-region: drag; /* Windows 下标题区域也可拖动 */
+    padding-left: 100px; /* 为左侧的默认窗口图标留出空间，根据实际情况调整 */
+}
+
+.is-windows .window-controls {
+     /* Windows 下按钮靠右 */
+}
+
 
 h1 {
     text-align: center;
-    color: #333;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 30px;
+    font-size: 2em;
+    /* 如果使用了自定义标题栏，可以移除此处的 margin-top */
+    margin-top: 0; /* 移除默认 H1 的顶部 margin */
+}
+
+#controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+}
+
+#controls label {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+#controls select, 
+#controls input, 
+#controls button {
+    background-color: var(--bg-color);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.9em;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+#controls button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#controls button:hover {
+    opacity: 0.9;
+}
+
+#controls select, 
+#controls input {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.9em;
+    outline: none;
+    transition: all 0.3s ease;
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--text-color) 50%), 
+                      linear-gradient(135deg, var(--text-color) 50%, transparent 50%);
+    background-position: calc(100% - 20px) calc(1em + 2px), 
+                         calc(100% - 15px) calc(1em + 2px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+}
+
+#controls select:focus, 
+#controls input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
 }
 
 #movie-covers {
     display: grid;
-    /* 使用 auto-fit 和 minmax 创建响应式网格 */
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
-    /* 卡片之间的间距 */
     padding: 20px 0;
     justify-items: center;
-    /* 网格项在各自单元格中居中 */
 }
 
 .movie-item {
-    background-color: #fff;
-    border-radius: 8px;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
     overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--card-shadow);
     text-align: center;
-    padding: 10px;
-    width: 180px;
-    /* 固定卡片宽度，flexbox 或 grid 会调整 */
+    width: 100%;
+    max-width: 250px;
     display: flex;
-    /* 使用 flexbox 垂直居中内容 */
     flex-direction: column;
-    /* justify-content: space-between; /* 可以根据需要调整垂直对齐方式 */
     align-items: center;
-    /* 水平居中内容 */
-    text-align: center;
-    padding: 10px;
-    width: 180px;
+    transform: scale(1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.movie-item:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 }
 
 .movie-item img {
     width: 100%;
-    /* 图片宽度填充卡片 */
     height: auto;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    /* 图片下方留白 */
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    object-fit: cover;
 }
 
 .movie-info {
     width: 100%;
-    /* 信息区域宽度填充卡片 */
     text-align: left;
-    /* 信息文本靠左对齐 */
-    margin-top: auto;
-    /* 将信息推到底部 */
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .movie-item h3 {
     font-size: 1em;
-    margin: 0 0 5px 0;
-    /* 调整标题下方间距 */
-    color: #333;
-    /* 标题颜色深一点 */
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .movie-item p {
-    font-size: 0.8em;
-    /* 信息字体小一点 */
-    color: #555;
-    /* 信息颜色 */
-    margin: 2px 0;
-    /* 调整段落垂直间距 */
-    line-height: 1.4;
-    /* 行高 */
+    font-size: 0.85em;
+    color: var(--text-color);
+    opacity: 0.7;
+    margin-bottom: 5px;
 }
 
 .movie-item p .clickable-text {
-    /* 可点击文本的样式 */
     cursor: pointer;
-    text-decoration: underline;
-    color: #007bff;
-    /* 链接颜色 */
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
 }
 
 .movie-item p .clickable-text:hover {
-    color: #0056b3;
-    /* 鼠标悬停颜色 */
+    color: var(--hover-color);
+    text-decoration: underline;
 }
 
-/* 响应式设计调整 */
+/* 模态框样式 */
+#settings-modal, 
+#delete-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#settings-modal > div, 
+#delete-modal > div {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80%;
+    overflow-y: auto;
+    padding: 30px;
+}
+
+#settings-modal h2, 
+#delete-modal h2 {
+    margin-bottom: 20px;
+    color: var(--text-color);
+}
+
+#settings-modal button, 
+#delete-modal button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 15px;
+    margin: 10px 5px;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+#settings-modal button:hover, 
+#delete-modal button:hover {
+    opacity: 0.9;
+}
+
+/* 美化滚动条 */
+::-webkit-scrollbar {
+    width: 8px; /* 垂直滚动条宽度 */
+    height: 8px; /* 水平滚动条高度 */
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-color); /* 滚动条轨道背景 */
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2); /* 滚动条滑块背景，根据主题调整 */
+    border-radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+    ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2); /* 暗色主题下滑块颜色 */
+    }
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3); /* 滑块悬停颜色 */
+}
+
+@media (prefers-color-scheme: dark) {
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3); /* 暗色主题下滑块悬停颜色 */
+    }
+}
+
+
 @media (max-width: 600px) {
     #movie-covers {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        /* 小屏幕下调整最小宽度 */
-        gap: 15px;
-    }
-
-    .movie-item {
-        width: 150px;
     }
 } 

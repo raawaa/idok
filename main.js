@@ -261,6 +261,32 @@ ipcMain.handle('open-directory-dialog', async (event) => {
     return result;
 });
 
+// IPC handler for window controls
+ipcMain.on('minimize-window', () => {
+    const focusedWindow = BrowserWindow.getFocusedWindow();
+    if (focusedWindow) {
+        focusedWindow.minimize();
+    }
+});
+
+ipcMain.on('maximize-restore-window', () => {
+    const focusedWindow = BrowserWindow.getFocusedWindow();
+    if (focusedWindow) {
+        if (focusedWindow.isMaximized()) {
+            focusedWindow.unmaximize();
+        } else {
+            focusedWindow.maximize();
+        }
+    }
+});
+
+ipcMain.on('close-window', () => {
+    const focusedWindow = BrowserWindow.getFocusedWindow();
+    if (focusedWindow) {
+        focusedWindow.close();
+    }
+});
+
 function createWindow () {
     // 从 package.json 读取产品名称
     const packageJson = require('./package.json');
@@ -272,6 +298,8 @@ function createWindow () {
         height: 800,
         title: productName, // 设置窗口标题为产品名称
         autoHideMenuBar: true, // 自动隐藏菜单栏
+        frame: false, // 移除默认窗口框架
+        titleBarStyle: 'hidden', // 隐藏 macOS 上的原生标题栏，内容会上移
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
