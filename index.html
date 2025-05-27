@@ -61,6 +61,20 @@
         </div>
     </div>
 
+    <!-- 设置模态框结构 -->
+    <div id="settings-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); width: 600px; max-height: 80%; overflow-y: auto;">
+            <h2>设置</h2>
+            <div id="settings-content">
+                <!-- 这里将动态加载设置内容 -->
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button id="save-settings-btn" style="margin-right: 10px;">保存</button>
+                <button id="cancel-settings-btn">取消</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const { ipcRenderer } = require('electron');
         const path = require('path');
@@ -112,8 +126,50 @@
             });
 
             // 添加打开设置按钮事件监听器
-            openSettingsBtn.addEventListener('click', () => {
-                ipcRenderer.send('open-settings-window'); // 发送消息到主进程打开设置窗口
+            openSettingsBtn.addEventListener('click', async () => {
+                // 从主进程获取当前设置
+                const currentSettings = await ipcRenderer.invoke('get-settings');
+                
+                // 动态创建设置表单
+                settingsContent.innerHTML = `
+                    <div>
+                        <h3>媒体库目录</h3>
+                        <div id="directory-list">
+                            ${currentSettings.directories ? currentSettings.directories.map((dir, index) => `
+                                <div class="directory-item" style="display: flex; align-items: center; margin-bottom: 10px;">
+                                    <input type="text" value="${dir}" readonly style="flex-grow: 1; margin-right: 10px;">
+                                    <button class="remove-directory-btn" data-index="${index}">删除</button>
+                                </div>
+                            `).join('') : ''}
+                        </div>
+                        <button id="add-directory-btn">添加目录</button>
+                    </div>
+                `;
+
+                // 添加目录按钮事件
+                document.getElementById('add-directory-btn').addEventListener('click', async () => {
+                    const result = await ipcRenderer.invoke('open-directory-dialog');
+                    if (!result.canceled && result.filePaths.length > 0) {
+                        const newDir = result.filePaths[0];
+                        const directoryList = document.getElementById('directory-list');
+                        directoryList.innerHTML += `
+                            <div class="directory-item" style="display: flex; align-items: center; margin-bottom: 10px;">
+                                <input type="text" value="${newDir}" readonly style="flex-grow: 1; margin-right: 10px;">
+                                <button class="remove-directory-btn" data-index="${directoryList.children.length}">删除</button>
+                            </div>
+                        `;
+                    }
+                });
+
+                // 删除目录按钮事件
+                settingsContent.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('remove-directory-btn')) {
+                        e.target.closest('.directory-item').remove();
+                    }
+                });
+
+                // 显示模态框
+                settingsModal.style.display = 'block';
             });
 
             // 监听设置保存成功的消息，然后重新扫描
@@ -373,6 +429,36 @@
         // ipcRenderer.on('some-message', (event, arg) => {
         //   console.log(arg);
         // });
+
+        // 在现有脚本中添加设置模态框相关逻辑
+        const settingsModal = document.getElementById('settings-modal');
+        const settingsContent = document.getElementById('settings-content');
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+
+        // 保存设置按钮事件
+        saveSettingsBtn.addEventListener('click', () => {
+            const directoryInputs = document.querySelectorAll('#directory-list input');
+            const directories = Array.from(directoryInputs).map(input => input.value);
+
+            // 发送设置到主进程
+            ipcRenderer.send('save-settings', { directories });
+            
+            // 关闭模态框
+            settingsModal.style.display = 'none';
+        });
+
+        // 取消设置按钮事件
+        cancelSettingsBtn.addEventListener('click', () => {
+            settingsModal.style.display = 'none';
+        });
+
+        // 点击背景关闭模态框
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                settingsModal.style.display = 'none';
+            }
+        });
     </script>
 </body>
 

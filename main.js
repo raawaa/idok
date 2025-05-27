@@ -237,35 +237,6 @@ ipcMain.on('open-video', (event, videoPath) => {
   });
 });
 
-// 创建设置窗口函数
-function createSettingsWindow() {
-    const settingsWin = new BrowserWindow({
-        width: 600,
-        height: 400,
-        modal: true, // 设置为模态窗口
-        parent: BrowserWindow.getFocusedWindow(), // 父窗口为主窗口
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false
-        }
-    });
-
-    settingsWin.loadFile('settings.html');
-}
-
-// IPC handler to open settings window
-ipcMain.on('open-settings-window', () => {
-    createSettingsWindow();
-});
-
-// IPC handler to close settings window
-ipcMain.on('close-settings-window', () => {
-    const settingsWin = BrowserWindow.getAllWindows().find(win => win.getURL().includes('settings.html'));
-    if (settingsWin) {
-        settingsWin.close();
-    }
-});
-
 // IPC handler to get settings
 ipcMain.handle('get-settings', async () => {
     return readSettings();
