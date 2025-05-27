@@ -153,20 +153,23 @@ async function readImageAsBase64(imagePath) {
     }
 }
 
-// 修改 scanDirectoryRecursive 以便接受 mediaList 数组进行累加
-async function scanDirectoryRecursive(directoryPath, mediaList) {
+// 修改 scanDirectoryRecursive 使其返回找到的媒体信息
+async function scanDirectoryRecursive(directoryPath) { // 不再接收 mediaList 参数
+    let mediaList = []; // 在函数内部创建列表
     try {
         const files = await fs.promises.readdir(directoryPath, { withFileTypes: true });
 
         let videoFile = null;
         let nfoFile = null;
-        let coverImagePath = null; // 存储封面图片路径，稍后读取内容
+
+        const directoryPromises = []; // 用于存放子目录扫描的 Promise
 
         for (const dirent of files) {
             const fullPath = path.join(directoryPath, dirent.name);
 
             if (dirent.isDirectory()) {
-                await scanDirectoryRecursive(fullPath, mediaList); // 递归扫描子目录
+                // 将子目录的扫描作为一个 Promise 添加到数组
+                directoryPromises.push(scanDirectoryRecursive(fullPath));
             } else if (dirent.isFile()) {
                 if (isVideoFile(dirent.name)) {
                     videoFile = fullPath;
@@ -176,12 +179,11 @@ async function scanDirectoryRecursive(directoryPath, mediaList) {
             }
         }
 
-        // 如果找到视频文件和 nfo 文件，则认为是一个电影文件夹
+        // 如果找到视频文件和 nfo 文件，处理当前目录作为一个影片文件夹
         if (videoFile && nfoFile) {
             const movieInfo = await parseNfoFile(nfoFile); // 调用修改后的解析函数
-            // 影片目录是 nfo 文件所在的目录
-            const movieDirectory = path.dirname(nfoFile);
-            coverImagePath = await findCoverImage(movieDirectory); // 查找封面图片路径在影片目录下
+            const movieDirectory = path.dirname(nfoFile); // 影片目录是 nfo 文件所在的目录
+            const coverImagePath = await findCoverImage(movieDirectory); // 查找封面图片路径在影片目录下
             let coverImageDataUrl = null;
 
             if (coverImagePath) {
@@ -189,24 +191,37 @@ async function scanDirectoryRecursive(directoryPath, mediaList) {
             }
 
             mediaList.push({
-                ...movieInfo, // 展开解析出的电影信息
+                ...movieInfo,
                 videoPath: videoFile,
                 coverImageDataUrl: coverImageDataUrl
             });
         }
 
+        // 等待所有子目录的扫描完成，并将结果合并到当前的 mediaList
+        const subDirectoryMediaLists = await Promise.all(directoryPromises);
+        subDirectoryMediaLists.forEach(list => {
+            mediaList = mediaList.concat(list); // 合并子目录的结果
+        });
+
     } catch (error) {
         console.error("扫描目录时出错:", directoryPath, error);
+        // 发生错误时，返回当前已收集的部分结果（可能为空）
     }
+    return mediaList; // 返回找到的媒体列表
 }
 
-// 修改 scan-directory IPC 处理程序，使其接收目录数组
+// 修改 scan-directory IPC 处理程序，使用 Promise.all 并行处理根目录
 ipcMain.handle('scan-directory', async (event, directoryPaths) => {
-  const mediaList = [];
+  let mediaList = [];
   if (directoryPaths && Array.isArray(directoryPaths)) {
-      for (const dirPath of directoryPaths) {
-          await scanDirectoryRecursive(dirPath, mediaList); // 对每个根目录进行扫描
-      }
+      // 为每个根目录创建一个扫描 Promise
+      const scanPromises = directoryPaths.map(dirPath => scanDirectoryRecursive(dirPath));
+      // 并行执行所有根目录的扫描，并等待所有 Promise 完成
+      const results = await Promise.all(scanPromises);
+      // 合并所有根目录的扫描结果
+      results.forEach(list => {
+          mediaList = mediaList.concat(list);
+      });
   }
   return mediaList;
 });
