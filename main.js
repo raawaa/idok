@@ -14,6 +14,31 @@ const fs = require('fs');
 const path = require('path');
 const xml2js = require('xml2js'); // 导入 xml2js
 
+// 设置文件路径
+const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+
+// 读取设置
+async function readSettings() {
+    try {
+        const data = await fs.promises.readFile(settingsPath, 'utf-8');
+        return JSON.parse(data);
+    } catch (error) {
+        // 如果文件不存在或读取失败，返回默认设置
+        console.error("读取设置文件时出错或文件不存在:", error);
+        return { directories: [] }; // 默认设置：空目录列表
+    }
+}
+
+// 保存设置
+async function saveSettings(settings) {
+    try {
+        await fs.promises.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
+        console.log("设置已保存到", settingsPath);
+    } catch (error) {
+        console.error("保存设置文件时出错:", error);
+    }
+}
+
 // 辅助函数：判断是否是视频文件
 function isVideoFile(fileName) {
   const videoExtensions = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv']; // 可以根据需要添加更多视频格式
@@ -128,7 +153,7 @@ async function readImageAsBase64(imagePath) {
     }
 }
 
-
+// 修改 scanDirectoryRecursive 以便接受 mediaList 数组进行累加
 async function scanDirectoryRecursive(directoryPath, mediaList) {
     try {
         const files = await fs.promises.readdir(directoryPath, { withFileTypes: true });
@@ -141,7 +166,7 @@ async function scanDirectoryRecursive(directoryPath, mediaList) {
             const fullPath = path.join(directoryPath, dirent.name);
 
             if (dirent.isDirectory()) {
-                await scanDirectoryRecursive(fullPath, mediaList);
+                await scanDirectoryRecursive(fullPath, mediaList); // 递归扫描子目录
             } else if (dirent.isFile()) {
                 if (isVideoFile(dirent.name)) {
                     videoFile = fullPath;
@@ -154,7 +179,9 @@ async function scanDirectoryRecursive(directoryPath, mediaList) {
         // 如果找到视频文件和 nfo 文件，则认为是一个电影文件夹
         if (videoFile && nfoFile) {
             const movieInfo = await parseNfoFile(nfoFile); // 调用修改后的解析函数
-            coverImagePath = await findCoverImage(directoryPath); // 查找封面图片路径
+            // 影片目录是 nfo 文件所在的目录
+            const movieDirectory = path.dirname(nfoFile);
+            coverImagePath = await findCoverImage(movieDirectory); // 查找封面图片路径在影片目录下
             let coverImageDataUrl = null;
 
             if (coverImagePath) {
@@ -173,10 +200,14 @@ async function scanDirectoryRecursive(directoryPath, mediaList) {
     }
 }
 
-
-ipcMain.handle('scan-directory', async (event, directoryPath) => {
+// 修改 scan-directory IPC 处理程序，使其接收目录数组
+ipcMain.handle('scan-directory', async (event, directoryPaths) => {
   const mediaList = [];
-  await scanDirectoryRecursive(directoryPath, mediaList);
+  if (directoryPaths && Array.isArray(directoryPaths)) {
+      for (const dirPath of directoryPaths) {
+          await scanDirectoryRecursive(dirPath, mediaList); // 对每个根目录进行扫描
+      }
+  }
   return mediaList;
 });
 
@@ -184,6 +215,59 @@ ipcMain.on('open-video', (event, videoPath) => {
   shell.openPath(videoPath).catch(err => {
     console.error("打开视频文件时出错:", videoPath, err);
   });
+});
+
+// 创建设置窗口函数
+function createSettingsWindow() {
+    const settingsWin = new BrowserWindow({
+        width: 600,
+        height: 400,
+        modal: true, // 设置为模态窗口
+        parent: BrowserWindow.getFocusedWindow(), // 父窗口为主窗口
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false
+        }
+    });
+
+    settingsWin.loadFile('settings.html');
+}
+
+// IPC handler to open settings window
+ipcMain.on('open-settings-window', () => {
+    createSettingsWindow();
+});
+
+// IPC handler to close settings window
+ipcMain.on('close-settings-window', () => {
+    const settingsWin = BrowserWindow.getAllWindows().find(win => win.getURL().includes('settings.html'));
+    if (settingsWin) {
+        settingsWin.close();
+    }
+});
+
+// IPC handler to get settings
+ipcMain.handle('get-settings', async () => {
+    return readSettings();
+});
+
+// IPC handler to save settings
+ipcMain.on('save-settings', async (event, settings) => {
+    await saveSettings(settings);
+    // 保存后可以通知主窗口重新加载数据
+    const mainWindow = BrowserWindow.getAllWindows().find(win => win.getURL().includes('index.html'));
+    if (mainWindow) {
+        // mainWindow.reload(); // 或者发送一个特定的消息让主界面重新扫描
+        mainWindow.webContents.send('settings-saved-and-rescan'); // 发送消息通知主界面重新扫描
+    }
+});
+
+// IPC handler to open directory dialog
+ipcMain.handle('open-directory-dialog', async (event) => {
+    const result = await dialog.showOpenDialog({
+        properties: ['openDirectory']
+    });
+    return result;
 });
 
 function createWindow () {
@@ -197,6 +281,22 @@ function createWindow () {
   })
 
   win.loadFile('index.html')
+  // 在创建窗口时加载设置并开始扫描
+  readSettings().then(settings => {
+      if (settings && settings.directories && settings.directories.length > 0) {
+          // 在 DOMContentLoaded 事件中触发扫描，确保 index.html 已加载
+          win.webContents.on('did-finish-load', () => {
+              win.webContents.send('start-initial-scan', settings.directories);
+          });
+      } else {
+           // 如果没有设置目录，可以在界面上给用户提示
+           console.log("没有配置影片目录，请在设置中添加。");
+            win.webContents.on('did-finish-load', () => {
+                 win.webContents.send('no-directories-configured');
+            });
+      }
+  });
+
 }
 
 app.whenReady().then(() => {
@@ -247,6 +347,16 @@ ipcMain.on('delete-directory', async (event, directoryPath) => {
         console.log("成功删除目录:", directoryPath);
         // 可以发送消息回渲染进程通知删除成功，以便更新列表
         event.sender.send('directory-deleted', directoryPath);
+         // 删除后重新扫描，更新主界面
+        readSettings().then(settings => {
+             if (settings && settings.directories && settings.directories.length > 0) {
+                 const mainWindow = BrowserWindow.getAllWindows().find(win => win.getURL().includes('index.html'));
+                 if (mainWindow) {
+                     mainWindow.webContents.send('start-initial-scan', settings.directories); // 通知主界面重新扫描
+                 }
+             }
+         });
+
     } catch (err) {
         console.error("删除目录时出错:", directoryPath, err);
         // 可以发送消息回渲染进程通知删除失败

@@ -123,6 +123,9 @@
         <!-- 清除过滤按钮 -->
         <button id="clear-filters" style="margin-left: 20px;">清除过滤</button>
 
+        <!-- 设置按钮 -->
+        <button id="open-settings-btn" style="margin-left: 20px;">设置</button>
+
         <!-- 可以根据需要添加更多过滤选项 -->
     </div>
 
@@ -152,7 +155,7 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             const movieCoversDiv = document.getElementById('movie-covers');
-            const directoryPath = 'd:\\Porn'; // 这里使用你提供的路径
+            // const directoryPath = 'd:\\Porn'; // 这里使用你提供的路径
 
             const sortBySelect = document.getElementById('sort-by');
             const sortOrderSelect = document.getElementById('sort-order');
@@ -160,12 +163,23 @@
             const filterStudioInput = document.getElementById('filter-studio');
             const filterGenreInput = document.getElementById('filter-genre'); // 获取类别过滤输入框
             const clearFiltersButton = document.getElementById('clear-filters'); // 获取清除过滤按钮
+            const openSettingsBtn = document.getElementById('open-settings-btn'); // 获取设置按钮
 
-            // 获取媒体数据
-            allMediaList = await ipcRenderer.invoke('scan-directory', directoryPath);
+            // 在主进程通知可以开始初次扫描时进行
+            ipcRenderer.on('start-initial-scan', async (event, directoryPaths) => {
+                 console.log("开始初次扫描...");
+                // 获取媒体数据
+                allMediaList = await ipcRenderer.invoke('scan-directory', directoryPaths);
+                 console.log("初次扫描完成，找到", allMediaList.length, "个媒体文件。");
+                // 初次渲染
+                renderMediaList(allMediaList);
+            });
 
-            // 初次渲染
-            renderMediaList(allMediaList);
+             // 当没有配置目录时显示提示
+            ipcRenderer.on('no-directories-configured', () => {
+                const movieCoversDiv = document.getElementById('movie-covers');
+                 movieCoversDiv.innerHTML = '<p>请在设置中配置影片目录。</p>';
+             });
 
             // 添加事件监听器
             sortBySelect.addEventListener('change', () => renderMediaList(allMediaList));
@@ -182,6 +196,28 @@
                 // 清空其他过滤输入框 (如果添加了)
                 renderMediaList(allMediaList); // 重新渲染列表
             });
+
+            // 添加打开设置按钮事件监听器
+            openSettingsBtn.addEventListener('click', () => {
+                ipcRenderer.send('open-settings-window'); // 发送消息到主进程打开设置窗口
+            });
+
+            // 监听设置保存成功的消息，然后重新扫描
+            ipcRenderer.on('settings-saved-and-rescan', async () => {
+                 console.log("设置已保存，重新扫描...");
+                 // 重新获取设置（包含更新后的目录）并触发扫描
+                 const settings = await ipcRenderer.invoke('get-settings');
+                 if (settings && settings.directories && settings.directories.length > 0) {
+                     allMediaList = await ipcRenderer.invoke('scan-directory', settings.directories);
+                      console.log("重新扫描完成，找到", allMediaList.length, "个媒体文件。");
+                     renderMediaList(allMediaList);
+                 } else {
+                      // 如果保存后目录为空，显示提示
+                      const movieCoversDiv = document.getElementById('movie-covers');
+                      movieCoversDiv.innerHTML = '<p>请在设置中配置影片目录。</p>';
+                      allMediaList = []; // 清空当前列表
+                 }
+             });
 
         });
 

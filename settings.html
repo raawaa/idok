@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>设置</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        #directories-list {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        #directories-list li {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            margin-bottom: 5px;
+            padding: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #directories-list li button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #directories-list li button:hover {
+            background-color: #c82333;
+        }
+        #add-directory-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+         #add-directory-btn:hover {
+            background-color: #218838;
+         }
+        #controls {
+            text-align: center;
+        }
+         #controls button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+         }
+        #save-settings-btn {
+            background-color: #007bff;
+            color: white;
+        }
+         #save-settings-btn:hover {
+            background-color: #0069d9;
+         }
+        #cancel-settings-btn {
+             background-color: #6c757d;
+             color: white;
+        }
+         #cancel-settings-btn:hover {
+            background-color: #5a6268;
+         }
+    </style>
+</head>
+<body>
+    <h1>设置</h1>
+
+    <h2>影片目录</h2>
+    <ul id="directories-list">
+        <!-- 目录列表将在这里动态加载 -->
+    </ul>
+
+    <button id="add-directory-btn">添加目录</button>
+
+    <div id="controls">
+        <button id="save-settings-btn">保存设置</button>
+        <button id="cancel-settings-btn">取消</button>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        const directoriesList = document.getElementById('directories-list');
+        const addDirectoryBtn = document.getElementById('add-directory-btn');
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+
+        let configuredDirectories = [];
+
+        // 加载当前设置
+        ipcRenderer.invoke('get-settings').then(settings => {
+            if (settings && settings.directories) {
+                configuredDirectories = settings.directories;
+                renderDirectoriesList();
+            }
+        });
+
+        // 渲染目录列表
+        function renderDirectoriesList() {
+            directoriesList.innerHTML = '';
+            configuredDirectories.forEach(dir => {
+                const li = document.createElement('li');
+                li.textContent = dir;
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = '移除';
+                removeBtn.addEventListener('click', () => removeDirectory(dir));
+                li.appendChild(removeBtn);
+                directoriesList.appendChild(li);
+            });
+        }
+
+        // 添加目录
+        addDirectoryBtn.addEventListener('click', async () => {
+            const result = await ipcRenderer.invoke('open-directory-dialog');
+            if (result && result.filePaths && result.filePaths.length > 0) {
+                const newDirectory = result.filePaths[0];
+                if (!configuredDirectories.includes(newDirectory)) {
+                    configuredDirectories.push(newDirectory);
+                    renderDirectoriesList();
+                }
+            }
+        });
+
+        // 移除目录
+        function removeDirectory(dirToRemove) {
+            configuredDirectories = configuredDirectories.filter(dir => dir !== dirToRemove);
+            renderDirectoriesList();
+        }
+
+        // 保存设置
+        saveSettingsBtn.addEventListener('click', () => {
+            ipcRenderer.send('save-settings', { directories: configuredDirectories });
+            ipcRenderer.send('close-settings-window'); // 保存后关闭窗口
+             ipcRenderer.send('settings-saved'); // 通知主界面设置已保存
+        });
+
+        // 取消
+        cancelSettingsBtn.addEventListener('click', () => {
+            ipcRenderer.send('close-settings-window'); // 直接关闭窗口
+        });
+
+    </script>
+</body>
+</html> 
