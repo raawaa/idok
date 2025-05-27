@@ -60,28 +60,28 @@ body {
     left: 0;
     right: 0;
     height: 30px;
-    background-color: rgba(240, 240, 240, 0.8);
+    background-color: var(--accent-color) !important; /* 强制使用强调色 */
+    color: white;
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 0 10px;
     -webkit-app-region: drag;
-    /* 使整个标题栏可拖动 */
     z-index: 1000;
+    transition: background-color 0.3s ease;
+}
+
+/* 为标题栏的子元素添加点击事件 */
+#custom-titlebar > * {
+    pointer-events: auto;
 }
 
 #window-controls {
     display: flex;
     -webkit-app-region: no-drag;
-    /* 窗口控制按钮不可拖动 */
-    position: absolute;
-    /* 绝对定位 */
-    right: 10px;
-    /* 靠右，10px 是到边框的距离 */
-    top: 50%;
-    /* 垂直居中 */
-    transform: translateY(-50%);
-    /* 精确垂直居中 */
+    height: 100%;
+    margin-left: auto; /* 将按钮推到右侧 */
+    align-items: center;
+    background-color: transparent;
+    pointer-events: auto; /* 启用按钮的鼠标事件 */
 }
 
 .window-control-btn {
@@ -110,9 +110,59 @@ body {
     -webkit-app-region: drag;
     font-size: 14px;
     font-weight: bold;
-    /* 确保标题在 flex 布局中能够正确居中，即使有绝对定位的元素 */
-    /* text-align: center; 已由父级 justify-content: center 处理 */
-    /* flex-grow: 1; 如果左右还有其他非绝对定位元素，可能需要 */
+    flex-grow: 1;
+    text-align: center;
+    padding-right: 40px; /* 为右侧按钮留出空间 */
+}
+
+/* 主题切换按钮样式 */
+.theme-toggle-btn {
+    position: absolute;
+    right: 100px; /* 放在窗口控制按钮左侧 */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    -webkit-app-region: no-drag;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* 暗色模式下的主题切换按钮 */
+@media (prefers-color-scheme: dark) {
+    .theme-toggle-btn {
+        color: white;
+    }
+    
+    .theme-toggle-btn:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* 强制暗色/亮色模式 */
+body[data-theme='dark'] {
+    --bg-color: #1e1e1e;
+    --text-color: #f0f0f0;
+    --card-bg: #2c2c2c;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+body[data-theme='light'] {
+    --bg-color: #f6f6f6;
+    --text-color: #1a1a1a;
+    --card-bg: white;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -338,6 +388,18 @@ h1 {
     margin: 10px 5px;
     cursor: pointer;
     transition: opacity 0.3s ease;
+}
+
+.theme-toggle-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px 10px;
+    -webkit-app-region: no-drag;
+    pointer-events: auto; /* 确保按钮可以点击 */
+    margin-right: 10px; /* 与窗口控制按钮保持距离 */
 }
 
 #settings-modal button:hover,

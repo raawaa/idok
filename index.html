@@ -10,12 +10,15 @@
 <body>
     <!-- 自定义标题栏 -->
     <div id="custom-titlebar">
+        <div id="app-title">电影管理器</div>
         <div id="window-controls">
             <button id="minimize-btn" class="window-control-btn">-</button>
             <button id="maximize-btn" class="window-control-btn">□</button>
             <button id="close-btn" class="window-control-btn">×</button>
         </div>
-        <div id="app-title">电影管理器</div>
+        <button id="theme-toggle" class="theme-toggle-btn" title="切换主题">
+            <span class="theme-icon">🌙</span>
+        </button>
     </div>
 
     <!-- 添加新的内容容器 -->
@@ -201,6 +204,57 @@
                     allMediaList = []; // 清空当前列表
                 }
             });
+
+            // 主题切换功能
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const themeIcon = document.querySelector('.theme-icon');
+            
+            // 从本地存储加载主题偏好
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.body.setAttribute('data-theme', savedTheme);
+                updateThemeIcon(savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                // 如果没有保存的主题偏好，但系统偏好暗色模式
+                document.body.setAttribute('data-theme', 'dark');
+                updateThemeIcon('dark');
+            }
+            
+            // 监听系统主题变化
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                // 只有用户没有手动选择主题时，才跟随系统主题
+                if (!localStorage.getItem('theme')) {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    document.body.setAttribute('data-theme', newTheme);
+                    updateThemeIcon(newTheme);
+                }
+            });
+            
+            // 主题切换按钮点击事件
+            themeToggleBtn.addEventListener('click', () => {
+                const currentTheme = document.body.getAttribute('data-theme') || 
+                                  (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                // 保存用户选择的主题
+                document.body.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                // 更新图标
+                updateThemeIcon(newTheme);
+            });
+            
+            // 更新主题图标函数
+            function updateThemeIcon(theme) {
+                const themeIcon = document.querySelector('.theme-icon');
+                if (theme === 'dark') {
+                    themeIcon.textContent = '☀️';
+                    themeIcon.title = '切换到亮色主题';
+                } else {
+                    themeIcon.textContent = '🌙';
+                    themeIcon.title = '切换到暗色主题';
+                }
+            }
 
             // 在现有脚本中添加窗口控制按钮事件监听器
             const minimizeBtn = document.getElementById('minimize-btn');
