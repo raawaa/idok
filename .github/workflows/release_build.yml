@@ -6,6 +6,9 @@ on:
     types:
       - created # 在创建新的 Release 时触发
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     runs-on: windows-latest # 在最新的 Windows 环境上运行
