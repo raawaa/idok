@@ -35,28 +35,51 @@
             width: 180px; /* 固定卡片宽度，flexbox 或 grid 会调整 */
             display: flex; /* 使用 flexbox 垂直居中内容 */
             flex-direction: column;
-            justify-content: space-between;
+            /* justify-content: space-between; /* 可以根据需要调整垂直对齐方式 */
+            align-items: center; /* 水平居中内容 */
+            text-align: center;
+            padding: 10px;
+            width: 180px;
         }
 
         .movie-item img {
             width: 100%; /* 图片宽度填充卡片 */
             height: auto;
             border-radius: 4px;
-            margin-bottom: 10px;
+            margin-bottom: 10px; /* 图片下方留白 */
+        }
+
+        .movie-info {
+            width: 100%; /* 信息区域宽度填充卡片 */
+            text-align: left; /* 信息文本靠左对齐 */
+            margin-top: auto; /* 将信息推到底部 */
         }
 
         .movie-item h3 {
             font-size: 1em;
-            margin: 0 0 10px 0;
-            color: #555;
+            margin: 0 0 5px 0; /* 调整标题下方间距 */
+            color: #333; /* 标题颜色深一点 */
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis; /* 标题过长时显示省略号 */
+            text-overflow: ellipsis;
         }
 
         .movie-item p {
-            font-size: 0.9em;
-            color: #777;
+            font-size: 0.8em; /* 信息字体小一点 */
+            color: #555; /* 信息颜色 */
+            margin: 2px 0; /* 调整段落垂直间距 */
+            line-height: 1.4; /* 行高 */
+        }
+
+        .movie-item p span {
+            /* 可点击文本的样式 */
+            cursor: pointer;
+            text-decoration: underline;
+            color: #007bff; /* 链接颜色 */
+        }
+
+        .movie-item p span:hover {
+            color: #0056b3; /* 鼠标悬停颜色 */
         }
 
         /* 响应式设计调整 */
@@ -94,6 +117,9 @@
         <label for="filter-studio" style="margin-left: 20px;">片商:</label>
         <input type="text" id="filter-studio" placeholder="输入片商名">
 
+        <label for="filter-genre" style="margin-left: 20px;">类别:</label>
+        <input type="text" id="filter-genre" placeholder="输入类别名">
+
         <!-- 清除过滤按钮 -->
         <button id="clear-filters" style="margin-left: 20px;">清除过滤</button>
 
@@ -103,6 +129,19 @@
     <!-- 这里将显示电影封面 -->
     <div id="movie-covers">
 
+    </div>
+
+    <!-- 模态框结构 -->
+    <div id="delete-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); text-align: center;">
+            <h2>确认删除</h2>
+            <p>您确定要删除以下影片目录吗？</p>
+            <p id="delete-path" style="font-weight: bold; margin: 10px 0; word-break: break-all;"></p>
+            <div style="margin-top: 20px;">
+                <button id="confirm-delete-btn" style="margin-right: 10px;">确认</button>
+                <button id="cancel-delete-btn">取消</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -119,6 +158,7 @@
             const sortOrderSelect = document.getElementById('sort-order');
             const filterActorInput = document.getElementById('filter-actor');
             const filterStudioInput = document.getElementById('filter-studio');
+            const filterGenreInput = document.getElementById('filter-genre'); // 获取类别过滤输入框
             const clearFiltersButton = document.getElementById('clear-filters'); // 获取清除过滤按钮
 
             // 获取媒体数据
@@ -132,11 +172,13 @@
             sortOrderSelect.addEventListener('change', () => renderMediaList(allMediaList));
             filterActorInput.addEventListener('input', () => renderMediaList(allMediaList));
             filterStudioInput.addEventListener('input', () => renderMediaList(allMediaList));
+            filterGenreInput.addEventListener('input', () => renderMediaList(allMediaList)); // 添加类别过滤输入框事件监听
 
             // 添加清除过滤按钮事件监听器
             clearFiltersButton.addEventListener('click', () => {
                 filterActorInput.value = ''; // 清空演员过滤输入框
                 filterStudioInput.value = ''; // 清空片商过滤输入框
+                filterGenreInput.value = ''; // 清空类别过滤输入框
                 // 清空其他过滤输入框 (如果添加了)
                 renderMediaList(allMediaList); // 重新渲染列表
             });
@@ -150,13 +192,15 @@
             const sortOrder = document.getElementById('sort-order').value; // 获取排序顺序
             const filterActor = document.getElementById('filter-actor').value.toLowerCase();
             const filterStudio = document.getElementById('filter-studio').value.toLowerCase();
+            const filterGenre = document.getElementById('filter-genre').value.toLowerCase(); // 获取类别过滤值
 
             // 过滤
             const filteredList = mediaList.filter(movie => {
                 const matchActor = filterActor === '' || (movie.actors && movie.actors.some(actor => actor.toLowerCase().includes(filterActor)));
                 const matchStudio = filterStudio === '' || (movie.studio && movie.studio.toLowerCase().includes(filterStudio));
+                const matchGenre = filterGenre === '' || (movie.genres && movie.genres.some(genre => genre.toLowerCase().includes(filterGenre))); // 类别过滤逻辑
                 // 可以根据需要添加更多过滤条件
-                return matchActor && matchStudio;
+                return matchActor && matchStudio && matchGenre;
             });
 
 
@@ -186,69 +230,17 @@
                 sortedList.forEach(movie => {
                     const movieElement = document.createElement('div');
                     movieElement.classList.add('movie-item');
+                    // 将影片路径存储在 data 属性中，方便后续使用
+                    movieElement.dataset.videoPath = movie.videoPath;
 
-                    const titleElement = document.createElement('h3');
-                    titleElement.textContent = movie.title;
-                    movieElement.appendChild(titleElement);
+                    // 添加右键点击事件监听器
+                    movieElement.addEventListener('contextmenu', (e) => {
+                        e.preventDefault(); // 阻止默认右键菜单
+                        const videoPath = e.currentTarget.dataset.videoPath;
+                        ipcRenderer.send('show-context-menu', videoPath);
+                    });
 
-                     // 显示年份和片商 (如果存在)
-                     if (movie.year) {
-                        const yearElement = document.createElement('p');
-                        yearElement.textContent = `年份: ${movie.year}`;
-                        movieElement.appendChild(yearElement);
-                     }
-
-                     // 显示片商 (如果存在) 并添加点击事件
-                     if (movie.studio) {
-                        const studioElement = document.createElement('p');
-                        const studioSpan = document.createElement('span');
-                        studioSpan.textContent = `片商: ${movie.studio}`;
-                        studioSpan.style.cursor = 'pointer'; // 添加手型光标
-                        studioSpan.style.textDecoration = 'underline'; // 添加下划线表示可点击
-                        studioSpan.addEventListener('click', () => {
-                            document.getElementById('filter-studio').value = movie.studio;
-                            renderMediaList(allMediaList); // 重新渲染列表
-                        });
-                        studioElement.appendChild(studioSpan);
-                        movieElement.appendChild(studioElement);
-                     }
-
-                     // 显示演员 (如果存在) 并添加点击事件
-                     if (movie.actors && movie.actors.length > 0) {
-                        const actorsElement = document.createElement('p');
-                        actorsElement.style.fontSize = '0.8em';
-                        actorsElement.style.color = '#666';
-
-                        const actorSpans = movie.actors.map(actor => {
-                            const actorSpan = document.createElement('span');
-                            actorSpan.textContent = actor;
-                            actorSpan.style.cursor = 'pointer';
-                            actorSpan.style.textDecoration = 'underline';
-                            actorSpan.style.marginRight = '5px'; // 演员之间加一点间距
-                            actorSpan.addEventListener('click', () => {
-                                document.getElementById('filter-actor').value = actor;
-                                renderMediaList(allMediaList); // 重新渲染列表
-                            });
-                            return actorSpan;
-                        });
-
-                        const actorsLabel = document.createElement('span');
-                        actorsLabel.textContent = '演员: ';
-                        actorsElement.appendChild(actorsLabel);
-
-                        actorSpans.forEach((span, index) => {
-                            actorsElement.appendChild(span);
-                            if (index < actorSpans.length - 1) {
-                                actorsElement.appendChild(document.createTextNode(', ')); // 添加逗号分隔
-                            }
-                        });
-
-                        movieElement.appendChild(actorsElement);
-                     }
-
-                     // 可以根据需要显示类别等信息
-
-
+                    // 封面图片
                     if (movie.coverImageDataUrl) {
                         const coverElement = document.createElement('img');
                         coverElement.src = movie.coverImageDataUrl;
@@ -266,6 +258,104 @@
                         movieElement.appendChild(noCoverElement);
                     }
 
+                    // 影片信息区域
+                    const movieInfoDiv = document.createElement('div');
+                    movieInfoDiv.classList.add('movie-info');
+
+
+                    const titleElement = document.createElement('h3');
+                    titleElement.textContent = movie.title;
+                    movieInfoDiv.appendChild(titleElement);
+
+                     // 显示年份 (如果存在)
+                     if (movie.year) {
+                        const yearElement = document.createElement('p');
+                        yearElement.textContent = `年份: ${movie.year}`;
+                        movieInfoDiv.appendChild(yearElement);
+                     }
+
+                     // 显示片商 (如果存在) 并添加点击事件
+                     if (movie.studio) {
+                        const studioElement = document.createElement('p');
+                        const studioLabel = document.createElement('span');
+                        studioLabel.textContent = '片商: ';
+                        studioElement.appendChild(studioLabel);
+
+                        const studioNameSpan = document.createElement('span'); // 片商名称
+                        studioNameSpan.textContent = movie.studio;
+                        studioNameSpan.style.cursor = 'pointer'; // 添加手型光标
+                        studioNameSpan.style.textDecoration = 'underline'; // 添加下划线表示可点击
+                        studioNameSpan.addEventListener('click', () => {
+                            document.getElementById('filter-studio').value = movie.studio;
+                            renderMediaList(allMediaList); // 重新渲染列表
+                        });
+                        studioElement.appendChild(studioNameSpan);
+                        movieInfoDiv.appendChild(studioElement);
+                     }
+
+                     // 显示演员 (如果存在) 并添加点击事件
+                     if (movie.actors && movie.actors.length > 0) {
+                        const actorsElement = document.createElement('p');
+                        const actorsLabel = document.createElement('span');
+                        actorsLabel.textContent = '演员: ';
+                        actorsElement.appendChild(actorsLabel);
+
+                        const actorSpans = movie.actors.map(actor => {
+                            const actorSpan = document.createElement('span');
+                            actorSpan.textContent = actor;
+                            actorSpan.style.cursor = 'pointer';
+                            actorSpan.style.textDecoration = 'underline';
+                            actorSpan.style.marginRight = '5px';
+                            actorSpan.addEventListener('click', () => {
+                                document.getElementById('filter-actor').value = actor;
+                                renderMediaList(allMediaList); // 重新渲染列表
+                            });
+                            return actorSpan;
+                        });
+
+                        actorSpans.forEach((span, index) => {
+                            actorsElement.appendChild(span);
+                            if (index < actorSpans.length - 1) {
+                                actorsElement.appendChild(document.createTextNode(', ')); // 添加逗号分隔
+                            }
+                        });
+
+                        movieInfoDiv.appendChild(actorsElement);
+                     }
+
+                     // 显示类别 (如果存在) 并添加点击事件
+                     if (movie.genres && movie.genres.length > 0) {
+                        const genresElement = document.createElement('p');
+                        const genresLabel = document.createElement('span');
+                        genresLabel.textContent = '类别: ';
+                        genresElement.appendChild(genresLabel);
+
+                        const genreSpans = movie.genres.map(genre => {
+                            const genreSpan = document.createElement('span');
+                            genreSpan.textContent = genre;
+                            genreSpan.style.cursor = 'pointer';
+                            genreSpan.style.textDecoration = 'underline';
+                            genreSpan.style.marginRight = '5px';
+                            genreSpan.addEventListener('click', () => {
+                                document.getElementById('filter-genre').value = genre; // 将点击的类别填充到过滤框
+                                renderMediaList(allMediaList); // 重新渲染列表
+                            });
+                            return genreSpan;
+                        });
+
+                        genreSpans.forEach((span, index) => {
+                            genresElement.appendChild(span);
+                            if (index < genreSpans.length - 1) {
+                                genresElement.appendChild(document.createTextNode(', ')); // 添加逗号分隔
+                            }
+                        });
+
+                        movieInfoDiv.appendChild(genresElement);
+                     }
+
+                     // 可以根据需要显示类别等信息
+
+                    movieElement.appendChild(movieInfoDiv); // 将信息区域添加到卡片中
                     movieCoversDiv.appendChild(movieElement);
                 });
             } else {
@@ -273,6 +363,59 @@
             }
         }
 
+        // 获取模态框元素
+        const deleteModal = document.getElementById('delete-modal');
+        const deletePathElement = document.getElementById('delete-path');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        let directoryToDelete = null; // 存储待删除的目录路径
+
+        // 监听主进程发送的确认删除消息
+        ipcRenderer.on('confirm-delete', (event, directoryPath) => {
+            directoryToDelete = directoryPath; // 存储目录路径
+            deletePathElement.textContent = directoryPath; // 在模态框中显示路径
+            deleteModal.style.display = 'block'; // 显示模态框
+        });
+
+        // 确认删除按钮点击事件
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (directoryToDelete) {
+                ipcRenderer.send('delete-directory', directoryToDelete); // 发送删除请求到主进程
+                deleteModal.style.display = 'none'; // 隐藏模态框
+                directoryToDelete = null; // 清空待删除目录
+            }
+        });
+
+        // 取消删除按钮点击事件或点击背景关闭模态框
+        cancelDeleteBtn.addEventListener('click', () => {
+            deleteModal.style.display = 'none'; // 隐藏模态框
+            directoryToDelete = null; // 清空待删除目录
+        });
+
+        deleteModal.addEventListener('click', (e) => {
+            if (e.target === deleteModal) { // 点击背景关闭
+                deleteModal.style.display = 'none';
+                directoryToDelete = null;
+            }
+        });
+
+        // 监听主进程发送的删除结果消息 (可选，用于显示提示)
+        ipcRenderer.on('directory-deleted', (event, deletedDirectory) => {
+            console.log(`目录 ${deletedDirectory} 已删除。`);
+            // TODO: 重新加载媒体列表或从列表中移除已删除的项
+             // 简单粗暴的方式：重新扫描目录并渲染列表
+            const directoryPath = 'd:\\Porn'; // 确保这里是正确的根目录
+            ipcRenderer.invoke('scan-directory', directoryPath).then(updatedMediaList => {
+                allMediaList = updatedMediaList;
+                renderMediaList(allMediaList);
+            });
+        });
+
+        ipcRenderer.on('delete-failed', (event, directoryPath, errorMessage) => {
+            console.error(`删除目录 ${directoryPath} 失败: ${errorMessage}`);
+            // TODO: 向用户显示错误提示
+            alert(`删除目录 ${directoryPath} 失败: ${errorMessage}`);
+        });
 
         // 添加 IPC 监听器来处理主进程发送的消息 (如果需要)
         // ipcRenderer.on('some-message', (event, arg) => {

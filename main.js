@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === 'development') {
     }
 }
 
-const { app, BrowserWindow, ipcMain, shell } = require('electron')
+const { app, BrowserWindow, ipcMain, shell, Menu, MenuItem, dialog } = require('electron')
 const fs = require('fs');
 const path = require('path');
 const xml2js = require('xml2js'); // 导入 xml2js
@@ -40,7 +40,7 @@ async function parseNfoFile(nfoPath) {
     if (result.movie) {
         const movieNode = result.movie;
         if (movieNode.title) movieInfo.title = movieNode.title;
-        if (movieNode.year) movieInfo.year = movieNode.year;
+        if (movieNode.premiered) movieInfo.year = movieNode.premiered.substring(0, 4); // 提取年份部分
         if (movieNode.studio) movieInfo.studio = movieNode.studio;
 
         // 处理演员列表
@@ -64,11 +64,19 @@ async function parseNfoFile(nfoPath) {
 
         // 处理类别列表
         if (movieNode.genre) {
+             let genres = [];
              if (Array.isArray(movieNode.genre)) {
-                movieInfo.genres = movieNode.genre.map(genre => genre).filter(name => name); // genre 标签下直接是类别名
+                genres = movieNode.genre.reduce((acc, genre) => {
+                    // 按逗号分割，并去除首尾空格
+                    const splitGenres = genre.split(',').map(g => g.trim()).filter(g => g);
+                    return acc.concat(splitGenres);
+                }, []);
             } else {
-                 movieInfo.genres.push(movieNode.genre);
+                 // 单个 genre 标签，同样按逗号分割处理
+                 genres = movieNode.genre.split(',').map(g => g.trim()).filter(g => g);
             }
+             // 使用 Set 去除重复类别
+             movieInfo.genres = Array.from(new Set(genres));
         }
     }
 
@@ -205,4 +213,43 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
-}) 
+})
+
+// IPC handler for context menu
+ipcMain.on('show-context-menu', (event, videoPath) => {
+    const directoryPath = path.dirname(videoPath);
+    const template = [
+        {
+            label: '在文件管理器中打开目录',
+            click: () => {
+                shell.openPath(directoryPath).catch(err => {
+                    console.error("打开目录时出错:", directoryPath, err);
+                });
+            }
+        },
+        {
+            label: '删除影片目录...',
+            click: async () => {
+                // 发送 IPC 消息到渲染进程，显示确认模态框
+                event.sender.send('confirm-delete', directoryPath);
+            }
+        }
+    ];
+
+    const menu = Menu.buildFromTemplate(template);
+    menu.popup({ window: BrowserWindow.fromWebContents(event.sender) });
+});
+
+// IPC handler for deleting directory after confirmation from renderer
+ipcMain.on('delete-directory', async (event, directoryPath) => {
+    try {
+        await fs.promises.rm(directoryPath, { recursive: true, force: true });
+        console.log("成功删除目录:", directoryPath);
+        // 可以发送消息回渲染进程通知删除成功，以便更新列表
+        event.sender.send('directory-deleted', directoryPath);
+    } catch (err) {
+        console.error("删除目录时出错:", directoryPath, err);
+        // 可以发送消息回渲染进程通知删除失败
+        event.sender.send('delete-failed', directoryPath, err.message);
+    }
+}); 
