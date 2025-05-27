@@ -14,25 +14,3 @@ All notable changes to this project will be documented in this file. See [standa
 ### 🐛 Bug Fixes
 
 * **build:** 修复打包后应用无法启动问题 ([36720e2](https://github.com/raawaa/idok/commit/36720e2f07f4677ffe4b8bdc3759642146a9bfd4))
-
-# Changelog
-
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
-
-## [Unreleased]
-
-### Features
-
-### Bug Fixes
-
-### Chores
-
-### Documentation
-
-### Styles
-
-### Code Refactoring
-
-### Performance Improvements
-
-### Tests
