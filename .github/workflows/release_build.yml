@@ -51,7 +51,7 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         with:
           tag_name: v${{ steps.get-version.outputs.version }}
-          release_name: v${{ steps.get-version.outputs.version }}
+          name: v${{ steps.get-version.outputs.version }}
           body_path: ./CHANGELOG.md
           files: dist/*.exe
         env:

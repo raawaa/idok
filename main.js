@@ -287,24 +287,27 @@ ipcMain.on('close-window', () => {
     }
 });
 
-function createWindow () {
-    // 从 package.json 读取产品名称
-    const packageJson = require('./package.json');
-    const productName = packageJson.build.productName;
-
-    // 创建浏览器窗口
+function createWindow() {
     const win = new BrowserWindow({
         width: 1200,
         height: 800,
-        frame: false, // 移除默认标题栏
-        titleBarStyle: 'hidden', // 隐藏标题栏
         webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: true,
-            contextIsolation: false,
-            enableRemoteModule: true,
-            // 其他现有的 webPreferences 配置
+            contextIsolation: false
+        },
+        autoHideMenuBar: true,
+        frame: false,
+        titleBarStyle: 'hidden',
+        titleBarOverlay: {
+            color: '#2f3241',
+            symbolColor: '#74b1be',
+            height: 30
         }
-    })
+    });
+
+    // Set window title from app name
+    win.setTitle(app.name);
 
     win.loadFile('index.html')
 
