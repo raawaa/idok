@@ -25,7 +25,8 @@
     "win": {
       "target": [
         "nsis"
-      ]
+      ],
+      "artifactName": "${productName}-${version}-windows-x64-setup.${ext}"
     }
   }
 }
