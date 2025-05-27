@@ -88,7 +88,7 @@
             /* 行高 */
         }
 
-        .movie-item p span {
+        .movie-item p .clickable-text {
             /* 可点击文本的样式 */
             cursor: pointer;
             text-decoration: underline;
@@ -96,7 +96,7 @@
             /* 链接颜色 */
         }
 
-        .movie-item p span:hover {
+        .movie-item p .clickable-text:hover {
             color: #0056b3;
             /* 鼠标悬停颜色 */
         }
@@ -343,8 +343,9 @@
 
                         const studioNameSpan = document.createElement('span'); // 片商名称
                         studioNameSpan.textContent = movie.studio;
+                        studioNameSpan.classList.add('clickable-text'); // 添加clickable-text类
                         studioNameSpan.style.cursor = 'pointer'; // 添加手型光标
-                        studioNameSpan.style.textDecoration = 'underline'; // 添加下划线表示可点击
+                        studioNameSpan.style.textDecoration = 'underline'; // 下划线现在由CSS控制
                         studioNameSpan.addEventListener('click', () => {
                             document.getElementById('filter-studio').value = movie.studio;
                             renderMediaList(allMediaList); // 重新渲染列表
@@ -363,8 +364,8 @@
                         const actorSpans = movie.actors.map(actor => {
                             const actorSpan = document.createElement('span');
                             actorSpan.textContent = actor;
+                            actorSpan.classList.add('clickable-text'); // 添加clickable-text类
                             actorSpan.style.cursor = 'pointer';
-                            actorSpan.style.textDecoration = 'underline';
                             actorSpan.style.marginRight = '5px';
                             actorSpan.addEventListener('click', () => {
                                 document.getElementById('filter-actor').value = actor;
@@ -393,8 +394,8 @@
                         const genreSpans = movie.genres.map(genre => {
                             const genreSpan = document.createElement('span');
                             genreSpan.textContent = genre;
+                            genreSpan.classList.add('clickable-text'); // 添加clickable-text类
                             genreSpan.style.cursor = 'pointer';
-                            genreSpan.style.textDecoration = 'underline';
                             genreSpan.style.marginRight = '5px';
                             genreSpan.addEventListener('click', () => {
                                 document.getElementById('filter-genre').value = genre; // 将点击的类别填充到过滤框
