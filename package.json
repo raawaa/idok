@@ -4,7 +4,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "electron-builder"
   },
   "keywords": [],
   "author": "",
@@ -12,9 +13,19 @@
   "description": "",
   "devDependencies": {
     "electron": "^36.3.1",
-    "electron-reloader": "^1.2.3"
+    "electron-reloader": "^1.2.3",
+    "electron-builder": "^24.9.1"
   },
   "dependencies": {
     "xml2js": "^0.6.2"
+  },
+  "build": {
+    "appId": "com.yourcompany.idok",
+    "productName": "IDOK",
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    }
   }
 }
