@@ -28,4 +28,5 @@ Thumbs.db
 .env.production
 
 # vscode
-.vscode/ 
+.vscode/
+.windsurf/
