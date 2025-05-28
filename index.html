@@ -343,9 +343,9 @@
                     });
 
                     // 封面图片
-                    if (movie.coverImageDataUrl) {
+                    if (movie.coverImagePath) { // 检查是否存在图片路径
                         const coverElement = document.createElement('img');
-                        coverElement.src = movie.coverImageDataUrl;
+                        coverElement.src = movie.coverImagePath; // 直接使用图片路径
                         coverElement.alt = movie.title;
                         coverElement.style.cursor = 'pointer';
 

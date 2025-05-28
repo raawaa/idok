@@ -32,7 +32,9 @@ jobs:
 
       - name: Get version
         id: get-version
-        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+        run: |
+          $PACKAGE_VERSION = node -p "require('./package.json').version"
+          echo "version=$PACKAGE_VERSION" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Build Electron App
         run: npm run build # 运行 package.json 中定义的 build 脚本
@@ -47,12 +49,11 @@ jobs:
           path: dist/*.exe
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2.2.2
+        if: github.ref_type == 'tag'
         with:
-          tag_name: v${{ steps.get-version.outputs.version }}
-          name: "idok v${{ steps.get-version.outputs.version }} 发布"
-          body_path: ./CHANGELOG.md
+          name: idok v${{ steps.get-version.outputs.version }} 发布
+          body_path: CHANGELOG.md
           files: dist/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

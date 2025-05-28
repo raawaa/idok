@@ -13,6 +13,7 @@ const { app, BrowserWindow, ipcMain, shell, Menu, MenuItem, dialog } = require('
 const fs = require('fs');
 const path = require('path');
 const xml2js = require('xml2js'); // 导入 xml2js
+const url = require('url'); // 导入 url 模块
 
 // 设置文件路径
 const settingsPath = path.join(app.getPath('userData'), 'settings.json');
@@ -140,23 +141,23 @@ async function findCoverImage(directoryPath) {
 }
 
 // 辅助函数：读取图片并转换为 Base64
-async function readImageAsBase64(imagePath) {
-    try {
-        const data = await fs.promises.readFile(imagePath);
-        const base64Data = data.toString('base64');
-        const ext = path.extname(imagePath).toLowerCase();
-        let mimeType = 'image/jpeg'; // 默认 jpeg
-        if (ext === '.png') {
-            mimeType = 'image/png';
-        } else if (ext === '.gif') {
-            mimeType = 'image/gif';
-        }
-        return `data:${mimeType};base64,${base64Data}`;
-    } catch (error) {
-        console.error("读取图片文件时出错:", imagePath, error);
-        return null;
-    }
-}
+// async function readImageAsBase64(imagePath) {
+//     try {
+//         const data = await fs.promises.readFile(imagePath);
+//         const base64Data = data.toString('base64');
+//         const ext = path.extname(imagePath).toLowerCase();
+//         let mimeType = 'image/jpeg'; // 默认 jpeg
+//         if (ext === '.png') {
+//             mimeType = 'image/png';
+//         } else if (ext === '.gif') {
+//             mimeType = 'image/gif';
+//         }
+//         return `data:${mimeType};base64,${base64Data}`;
+//     } catch (error) {
+//         console.error("读取图片文件时出错:", imagePath, error);
+//         return null;
+//     }
+// }
 
 // 修改 scanDirectoryRecursive 使其返回找到的媒体信息
 async function scanDirectoryRecursive(directoryPath) { // 不再接收 mediaList 参数
@@ -189,16 +190,17 @@ async function scanDirectoryRecursive(directoryPath) { // 不再接收 mediaList
             const movieInfo = await parseNfoFile(nfoFile); // 调用修改后的解析函数
             const movieDirectory = path.dirname(nfoFile); // 影片目录是 nfo 文件所在的目录
             const coverImagePath = await findCoverImage(movieDirectory); // 查找封面图片路径在影片目录下
-            let coverImageDataUrl = null;
+            // let coverImageDataUrl = null; // 不再需要存储 base64 数据
 
-            if (coverImagePath) {
-                 coverImageDataUrl = await readImageAsBase64(coverImagePath); // 读取图片并转换为 Base64
-            }
+            // if (coverImagePath) {
+            //      coverImageDataUrl = await readImageAsBase64(coverImagePath); // 读取图片并转换为 Base64
+            // }
 
             mediaList.push({
                 ...movieInfo,
                 videoPath: videoFile,
-                coverImageDataUrl: coverImageDataUrl
+                // coverImageDataUrl: coverImageDataUrl // 不再添加 base64 数据
+                coverImagePath: coverImagePath ? url.pathToFileURL(coverImagePath).toString() : null // 转换为 file:// URL
             });
         }
 
