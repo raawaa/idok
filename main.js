@@ -298,12 +298,7 @@ function createWindow() {
         },
         autoHideMenuBar: true,
         frame: false,
-        titleBarStyle: 'hidden',
-        titleBarOverlay: {
-            color: '#2f3241',
-            symbolColor: '#74b1be',
-            height: 30
-        }
+        titleBarStyle: 'hidden'
     });
 
     // Set window title from app name

@@ -74,16 +74,19 @@ body {
     pointer-events: auto;
 }
 
+/* 窗口控制按钮容器 */
 #window-controls {
     display: flex;
     -webkit-app-region: no-drag;
     height: 100%;
-    margin-left: auto; /* 将按钮推到右侧 */
+    margin-left: auto;
     align-items: center;
     background-color: transparent;
-    pointer-events: auto; /* 启用按钮的鼠标事件 */
+    pointer-events: auto;
+    padding: 0 8px;
 }
 
+/* 窗口控制按钮样式 */
 .window-control-btn {
     width: 30px;
     height: 30px;
@@ -96,10 +99,13 @@ body {
     align-items: center;
     justify-content: center;
     transition: background-color 0.3s;
+    padding: 0;
+    margin: 0;
+    border-radius: 4px;
 }
 
 .window-control-btn:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 #close-btn:hover {
