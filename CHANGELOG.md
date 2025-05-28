@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.4](https://github.com/raawaa/idok/compare/v0.1.3...v0.1.4) (2025-05-28)
+
+
+### 🔧 其他改动
+
+* 优化 GitHub Release 配置 ([131264b](https://github.com/raawaa/idok/commit/131264b757889696f7367dafed31841555945d4d))
+
 ### [0.1.3](https://github.com/raawaa/idok/compare/v0.1.2...v0.1.3) (2025-05-28)
 
 
