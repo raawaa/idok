@@ -342,6 +342,14 @@
                         ipcRenderer.send('show-context-menu', videoPath);
                     });
 
+                    // 加载指示器元素 (初始隐藏)
+                    const loadingSpinner = document.createElement('div');
+                    loadingSpinner.classList.add('loading-spinner'); // 添加CSS类
+                    loadingSpinner.style.display = 'none'; // 初始隐藏
+                    // 您需要在 style.css 中为 .loading-spinner 添加样式来实现旋转动画和居中
+
+                    movieElement.appendChild(loadingSpinner);
+
                     // 封面图片
                     if (movie.coverImagePath) { // 检查是否存在图片路径
                         const coverElement = document.createElement('img');
@@ -484,6 +492,22 @@
         // 确认删除按钮点击事件
         confirmDeleteBtn.addEventListener('click', () => {
             if (directoryToDelete) {
+                // 在发送删除请求前显示加载指示器
+                const movieItems = document.querySelectorAll('.movie-item');
+                movieItems.forEach(item => {
+                    // 检查当前影片项的视频路径是否在待删除的目录中
+                    // 注意：这里假设每个影片目录只包含一个视频文件，且视频文件名与目录名相关或可从中推断出目录。
+                    // 更准确的做法可能是存储目录路径在 dataset 中，或者通过其他方式关联。
+                    // 暂时通过查找 videoPath 的 dirname 来匹配 directoryToDelete
+                    const videoPath = item.dataset.videoPath;
+                    if (videoPath && path.dirname(videoPath) === directoryToDelete) {
+                        const spinner = item.querySelector('.loading-spinner');
+                        if (spinner) {
+                            spinner.style.display = 'flex'; // 使用 flex 使 spinner 居中 (假设您的CSS会这样处理)
+                        }
+                    }
+                });
+
                 ipcRenderer.send('delete-directory', directoryToDelete); // 发送删除请求到主进程
                 deleteModal.style.display = 'none'; // 隐藏模态框
                 directoryToDelete = null; // 清空待删除目录

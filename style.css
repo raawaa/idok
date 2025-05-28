@@ -461,3 +461,49 @@ h1 {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     }
 }
+
+/* style.css */
+
+/* 为影片卡片添加相对定位，以便绝对定位的 spinner 正确显示 */
+.movie-item {
+    position: relative;
+    /* 保持原有的其他样式 */
+}
+
+/* 加载指示器样式 */
+.loading-spinner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
+    display: flex; /* 使用 flexbox 居中内容 */
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    /* 移除直接应用在容器上的圆圈和动画样式 */
+    /* border: 4px solid rgba(255, 255, 255, 0.3); */
+    /* border-top: 4px solid #fff; */
+    /* border-radius: 50%; */
+    /* animation: spin 1s linear infinite; */
+    /* box-sizing: border-box; */
+}
+
+.loading-spinner::before {
+    content: ''; /* 伪元素需要 content */
+    display: block; /* 使伪元素可以设置尺寸 */
+    width: 40px; /* 设置圆圈的尺寸 */
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.3); /* 圆圈样式 */
+    border-top: 4px solid #fff; /* 旋转部分的颜色 */
+    border-radius: 50%; /* 使其成为圆形 */
+    animation: spin 1s linear infinite; /* 应用旋转动画 */
+    box-sizing: border-box; /* 使 padding 和 border 包含在元素的 width 和 height 内 */
+}
+
+/* 旋转动画 */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
