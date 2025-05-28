@@ -66,7 +66,7 @@
             <div
                 style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); text-align: center;">
                 <h2>确认删除</h2>
-                <p>您确定要删除以下影片目录吗？</p>
+                <p>您确定要删除以下影片目录至回收站吗？</p>
                 <p id="delete-path" style="font-weight: bold; margin: 10px 0; word-break: break-all;"></p>
                 <div style="margin-top: 20px;">
                     <button id="confirm-delete-btn" style="margin-right: 10px;">确认</button>
@@ -504,21 +504,41 @@
         });
 
         // 监听主进程发送的删除结果消息 (可选，用于显示提示)
-        ipcRenderer.on('directory-deleted', (event, deletedDirectory) => {
-            console.log(`目录 ${deletedDirectory} 已删除。`);
-            // TODO: 重新加载媒体列表或从列表中移除已删除的项
-            // 简单粗暴的方式：重新扫描目录并渲染列表
-            const directoryPath = 'd:\\Porn'; // 确保这里是正确的根目录
-            ipcRenderer.invoke('scan-directory', directoryPath).then(updatedMediaList => {
-                allMediaList = updatedMediaList;
-                renderMediaList(allMediaList);
+        // ipcRenderer.on('directory-deleted', (event, deletedDirectory) => {
+        //     console.log(`目录 ${deletedDirectory} 已删除。`);
+        //     // TODO: 重新加载媒体列表或从列表中移除已删除的项
+        //     // 简单粗暴的方式：重新扫描目录并渲染列表
+        //     const directoryPath = 'd:\\Porn'; // 确保这里是正确的根目录
+        //     ipcRenderer.invoke('scan-directory', directoryPath).then(updatedMediaList => {
+        //         allMediaList = updatedMediaList;
+        //         renderMediaList(allMediaList);
+        //     });
+        // });
+
+        // 监听主进程发送的移动到回收站结果消息
+        ipcRenderer.on('directory-trashed', (event, trashedDirectory) => {
+            console.log(`目录 ${trashedDirectory} 已移动到回收站。`);
+            // 重新扫描并更新列表
+            readSettings().then(settings => {
+                if (settings && settings.directories && settings.directories.length > 0) {
+                    ipcRenderer.invoke('scan-directory', settings.directories).then(updatedMediaList => {
+                        allMediaList = updatedMediaList;
+                        renderMediaList(allMediaList);
+                    });
+                } else {
+                    // 如果删除后目录为空，清空列表并显示提示
+                    const movieCoversDiv = document.getElementById('movie-covers');
+                    movieCoversDiv.innerHTML = '<p>请在设置中配置影片目录。</p>';
+                    allMediaList = []; // 清空当前列表
+                }
             });
         });
 
-        ipcRenderer.on('delete-failed', (event, directoryPath, errorMessage) => {
-            console.error(`删除目录 ${directoryPath} 失败: ${errorMessage}`);
-            // TODO: 向用户显示错误提示
-            alert(`删除目录 ${directoryPath} 失败: ${errorMessage}`);
+        // 监听主进程发送的移动到回收站失败消息
+        ipcRenderer.on('trash-failed', (event, directoryPath, errorMessage) => {
+            console.error(`将目录 ${directoryPath} 移动到回收站失败: ${errorMessage}`);
+            // 向用户显示错误提示
+            alert(`将目录 ${directoryPath} 移动到回收站失败: ${errorMessage}`);
         });
 
         // 添加 IPC 监听器来处理主进程发送的消息 (如果需要)

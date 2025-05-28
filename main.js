@@ -383,23 +383,32 @@ ipcMain.on('show-context-menu', (event, videoPath) => {
 // IPC handler for deleting directory after confirmation from renderer
 ipcMain.on('delete-directory', async (event, directoryPath) => {
     try {
-        await fs.promises.rm(directoryPath, { recursive: true, force: true });
-        console.log("成功删除目录:", directoryPath);
+        // await fs.promises.rm(directoryPath, { recursive: true, force: true }); // 替换为移动到回收站
+        await shell.trashItem(directoryPath);
+        console.log("成功将目录移动到回收站:", directoryPath);
         // 可以发送消息回渲染进程通知删除成功，以便更新列表
-        event.sender.send('directory-deleted', directoryPath);
+        event.sender.send('directory-trashed', directoryPath); // 修改事件名称以反映操作
          // 删除后重新扫描，更新主界面
         readSettings().then(settings => {
              if (settings && settings.directories && settings.directories.length > 0) {
                  const mainWindow = BrowserWindow.getAllWindows().find(win => win.getURL().includes('index.html'));
                  if (mainWindow) {
                      mainWindow.webContents.send('start-initial-scan', settings.directories); // 通知主界面重新扫描
+                 } else {
+                    console.error("未找到主窗口进行重新扫描通知");
+                 }
+             } else {
+                 // 如果删除后目录为空，清空列表并显示提示
+                 const mainWindow = BrowserWindow.getAllWindows().find(win => win.getURL().includes('index.html'));
+                 if (mainWindow) {
+                     mainWindow.webContents.send('no-directories-configured');
                  }
              }
          });
 
     } catch (err) {
-        console.error("删除目录时出错:", directoryPath, err);
+        console.error("将目录移动到回收站时出错:", directoryPath, err);
         // 可以发送消息回渲染进程通知删除失败
-        event.sender.send('delete-failed', directoryPath, err.message);
+        event.sender.send('trash-failed', directoryPath, err.message); // 修改事件名称以反映操作
     }
 }); 
