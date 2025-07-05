@@ -1,5 +1,5 @@
 const { ipcRenderer } = require('electron');
-const path = require('path');
+
 
 let allMediaList = []; // 存储所有媒体数据的原始列表
 
