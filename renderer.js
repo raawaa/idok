@@ -463,17 +463,3 @@ function populateDropdowns(mediaList) {
         genreSelect.appendChild(option);
     });
 }
-ipcRenderer.on('settings-saved-and-rescan', async () => {
-    console.log("设置已保存，重新扫描...");
-    const settings = await ipcRenderer.invoke('get-settings');
-    if (settings && settings.directories && settings.directories.length > 0) {
-        allMediaList = await ipcRenderer.invoke('scan-directory', settings.directories);
-        console.log("重新扫描完成，找到", allMediaList.length, "个媒体文件。");
-        populateDropdowns(allMediaList);
-        renderMediaList(allMediaList);
-    } else {
-        const movieCoversDiv = document.getElementById('movie-covers');
-        movieCoversDiv.innerHTML = '<p>请在设置中配置影片目录。</p>';
-        allMediaList = [];
-    }
-});
