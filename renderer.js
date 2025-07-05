@@ -207,56 +207,79 @@ async function openSettingsDialog() {
     const settingsModal = document.getElementById('settings-modal');
     const settingsContent = document.getElementById('settings-content');
 
-    settingsContent.innerHTML = `
-        <div>
-            <h3>媒体库目录</h3>
-            <div id="directory-list">
-                ${currentSettings.directories ? currentSettings.directories.map((dir, index) => `
-                    <div class="directory-item" style="display: flex; align-items: center; margin-bottom: 10px;">
-                        <input type="text" value="${dir}" readonly style="flex-grow: 1; margin-right: 10px;">
-                        <button class="remove-directory-btn" data-index="${index}">删除</button>
-                    </div>
-                `).join('') : ''}
-            </div>
-            <button id="add-directory-btn">添加目录</button>
-        </div>
-    `;
-
-    // 添加目录按钮事件
-    document.getElementById('add-directory-btn').addEventListener('click', async () => {
-        const result = await ipcRenderer.invoke('open-directory-dialog');
-        if (!result.canceled && result.filePaths.length > 0) {
-            const newDir = result.filePaths[0];
-            const directoryList = document.getElementById('directory-list');
-            directoryList.innerHTML += `
-                <div class="directory-item" style="display: flex; align-items: center; margin-bottom: 10px;">
-                    <input type="text" value="${newDir}" readonly style="flex-grow: 1; margin-right: 10px;">
-                    <button class="remove-directory-btn" data-index="${directoryList.children.length}">删除</button>
-                </div>
-            `;
-        }
+    // 使用HTML模板而非字符串拼接
+    const template = document.getElementById('directory-settings-template');
+    settingsContent.innerHTML = template.innerHTML;
+    
+    const directoryList = document.getElementById('directory-list');
+    // 清空现有目录项（保留模板结构）
+    directoryList.innerHTML = '';
+    
+    // 填充目录数据
+    (currentSettings.directories || []).forEach((dir, index) => {
+        const dirItem = document.createElement('div');
+        dirItem.className = 'directory-item';
+        dirItem.dataset.index = index;
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = dir;
+        input.readOnly = true;
+        input.className = 'directory-path';
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-directory-btn';
+        removeBtn.textContent = '删除';
+        
+        dirItem.appendChild(input);
+        dirItem.appendChild(removeBtn);
+        directoryList.appendChild(dirItem);
     });
 
-    // 删除目录按钮事件
-    settingsContent.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-directory-btn')) {
+    // 使用事件委托统一管理设置对话框中的按钮事件
+    settingsModal.addEventListener('click', async (e) => {
+        // 添加目录按钮点击事件
+        if (e.target.id === 'add-directory-btn') {
+            const result = await ipcRenderer.invoke('open-directory-dialog');
+            if (!result.canceled && result.filePaths.length > 0) {
+                const newDir = result.filePaths[0];
+                const directoryList = document.getElementById('directory-list');
+                
+                const dirItem = document.createElement('div');
+                dirItem.className = 'directory-item';
+                dirItem.dataset.index = directoryList.children.length;
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = newDir;
+                input.readOnly = true;
+                input.className = 'directory-path';
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-directory-btn';
+                removeBtn.textContent = '删除';
+                
+                dirItem.appendChild(input);
+                dirItem.appendChild(removeBtn);
+                directoryList.appendChild(dirItem);
+            }
+        }
+        // 删除目录按钮点击事件
+        else if (e.target.classList.contains('remove-directory-btn')) {
             e.target.closest('.directory-item').remove();
         }
-    });
-
-    // 绑定设置模态框按钮事件
-    document.getElementById('save-settings-btn').addEventListener('click', () => {
-        // 获取所有目录输入框
-        const dirInputs = document.querySelectorAll('#directory-list input[type="text"]');
-        const directories = Array.from(dirInputs).map(input => input.value);
-
-        // 保存设置
-        ipcRenderer.invoke('save-settings', { directories });
-        settingsModal.style.display = 'none';
-    });
-
-    document.getElementById('cancel-settings-btn').addEventListener('click', () => {
-        settingsModal.style.display = 'none';
+        // 保存设置按钮点击事件
+        else if (e.target.id === 'save-settings-btn') {
+            const dirInputs = document.querySelectorAll('#directory-list input[type="text"]');
+            const directories = Array.from(dirInputs).map(input => input.value);
+            
+            ipcRenderer.invoke('save-settings', { directories });
+            settingsModal.style.display = 'none';
+        }
+        // 取消设置按钮点击事件
+        else if (e.target.id === 'cancel-settings-btn') {
+            settingsModal.style.display = 'none';
+        }
     });
 
     // 显示模态框
