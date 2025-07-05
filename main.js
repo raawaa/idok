@@ -245,13 +245,18 @@ ipcMain.handle('get-settings', async () => {
 });
 
 // IPC handler to save settings
-ipcMain.on('save-settings', async (event, settings) => {
-    await saveSettings(settings);
-    // 保存后可以通知主窗口重新加载数据
-    const mainWindow = BrowserWindow.getAllWindows().find(win => win.getURL().includes('index.html'));
-    if (mainWindow) {
-        // mainWindow.reload(); // 或者发送一个特定的消息让主界面重新扫描
-        mainWindow.webContents.send('settings-saved-and-rescan'); // 发送消息通知主界面重新扫描
+ipcMain.handle('save-settings', async (event, settings) => {
+    try {
+        await saveSettings(settings);
+        // 保存后可以通知主窗口重新加载数据
+        const mainWindow = BrowserWindow.getAllWindows().find(win => win.getURL().includes('index.html'));
+        if (mainWindow) {
+            mainWindow.webContents.send('settings-saved-and-rescan'); // 发送消息通知主界面重新扫描
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('保存设置失败:', error);
+        return { success: false, error: error.message };
     }
 });
 
@@ -411,4 +416,4 @@ ipcMain.on('delete-directory', async (event, directoryPath) => {
         // 可以发送消息回渲染进程通知删除失败
         event.sender.send('trash-failed', directoryPath, err.message); // 修改事件名称以反映操作
     }
-}); 
+});
