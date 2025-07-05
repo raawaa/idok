@@ -60,9 +60,9 @@ function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, fil
     // 监听排序和过滤事件
     sortBySelect.addEventListener('change', () => renderMediaList(allMediaList));
     sortOrderSelect.addEventListener('change', () => renderMediaList(allMediaList));
-    filterActorInput.addEventListener('input', () => renderMediaList(allMediaList));
-    filterStudioInput.addEventListener('input', () => renderMediaList(allMediaList));
-    filterGenreInput.addEventListener('input', () => renderMediaList(allMediaList));
+    filterActorInput.addEventListener('change', () => renderMediaList(allMediaList));
+    filterStudioInput.addEventListener('change', () => renderMediaList(allMediaList));
+    filterGenreInput.addEventListener('change', () => renderMediaList(allMediaList));
 
     // 清除过滤按钮事件
     clearFiltersButton.addEventListener('click', () => {
@@ -80,6 +80,7 @@ function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, fil
         console.log("开始初次扫描...");
         allMediaList = await ipcRenderer.invoke('scan-directory', directoryPaths);
         console.log("初次扫描完成，找到", allMediaList.length, "个媒体文件。");
+        populateDropdowns(allMediaList);
         renderMediaList(allMediaList);
     });
 
@@ -94,6 +95,7 @@ function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, fil
         if (settings && settings.directories && settings.directories.length > 0) {
             allMediaList = await ipcRenderer.invoke('scan-directory', settings.directories);
             console.log("重新扫描完成，找到", allMediaList.length, "个媒体文件。");
+            populateDropdowns(allMediaList);
             renderMediaList(allMediaList);
         } else {
             const movieCoversDiv = document.getElementById('movie-covers');
@@ -371,3 +373,107 @@ function renderMediaList(mediaList) {
 
 // 初始化应用
 initializeApp();
+
+/**
+ * 从媒体列表中提取唯一的演员列表
+ * @param {Array} mediaList - 媒体数据列表
+ * @returns {Array} 唯一的演员数组
+ */
+function getUniqueActors(mediaList) {
+    const actors = new Set();
+    mediaList.forEach(media => {
+        if (media.actors && Array.isArray(media.actors)) {
+            media.actors.forEach(actor => actors.add(actor));
+        }
+    });
+    return Array.from(actors).sort();
+}
+
+/**
+ * 从媒体列表中提取唯一的片商列表
+ * @param {Array} mediaList - 媒体数据列表
+ * @returns {Array} 唯一的片商数组
+ */
+function getUniqueStudios(mediaList) {
+    const studios = new Set();
+    mediaList.forEach(media => {
+        if (media.studio) {
+            studios.add(media.studio);
+        }
+    });
+    return Array.from(studios).sort();
+}
+
+/**
+ * 从媒体列表中提取唯一的类别列表
+ * @param {Array} mediaList - 媒体数据列表
+ * @returns {Array} 唯一的类别数组
+ */
+function getUniqueGenres(mediaList) {
+    const genres = new Set();
+    mediaList.forEach(media => {
+        if (media.genres && Array.isArray(media.genres)) {
+            media.genres.forEach(genre => genres.add(genre));
+        }
+    });
+    return Array.from(genres).sort();
+}
+
+/**
+ * 填充下拉菜单选项
+ * @param {Array} mediaList - 媒体数据列表
+ */
+function populateDropdowns(mediaList) {
+    const actorSelect = document.getElementById('filter-actor');
+    const studioSelect = document.getElementById('filter-studio');
+    const genreSelect = document.getElementById('filter-genre');
+
+    // 清空现有选项，保留第一个"全部"选项
+    while (actorSelect.options.length > 1) {
+        actorSelect.remove(1);
+    }
+    while (studioSelect.options.length > 1) {
+        studioSelect.remove(1);
+    }
+    while (genreSelect.options.length > 1) {
+        genreSelect.remove(1);
+    }
+
+    // 添加演员选项
+    getUniqueActors(mediaList).forEach(actor => {
+        const option = document.createElement('option');
+        option.value = actor;
+        option.textContent = actor;
+        actorSelect.appendChild(option);
+    });
+
+    // 添加片商选项
+    getUniqueStudios(mediaList).forEach(studio => {
+        const option = document.createElement('option');
+        option.value = studio;
+        option.textContent = studio;
+        studioSelect.appendChild(option);
+    });
+
+    // 添加类别选项
+    getUniqueGenres(mediaList).forEach(genre => {
+        const option = document.createElement('option');
+        option.value = genre;
+        option.textContent = genre;
+        genreSelect.appendChild(option);
+    });
+}
+ipcRenderer.on('settings-saved-and-rescan', async () => {
+    console.log("设置已保存，重新扫描...");
+    const settings = await ipcRenderer.invoke('get-settings');
+    if (settings && settings.directories && settings.directories.length > 0) {
+        allMediaList = await ipcRenderer.invoke('scan-directory', settings.directories);
+        console.log("重新扫描完成，找到", allMediaList.length, "个媒体文件。");
+        populateDropdowns(allMediaList);
+        renderMediaList(allMediaList);
+    } else {
+        const movieCoversDiv = document.getElementById('movie-covers');
+        movieCoversDiv.innerHTML = '<p>请在设置中配置影片目录。</p>';
+        allMediaList = [];
+    }
+});
