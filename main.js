@@ -42,7 +42,7 @@ async function saveSettings(settings) {
 
 // 辅助函数：判断是否是视频文件
 function isVideoFile(fileName) {
-  const videoExtensions = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv']; // 可以根据需要添加更多视频格式
+  const videoExtensions = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.m4v', '.mpeg', '.mpg', '.m2ts', '.ts', '.webm', '.vob', '.ogv', '.3gp', '.3g2']; // 可以根据需要添加更多视频格式
   const ext = path.extname(fileName).toLowerCase();
   return videoExtensions.includes(ext);
 }
