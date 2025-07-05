@@ -22,7 +22,7 @@ idok 是一个基于 Electron 构建的本地 AV 影片资料库管理工具。�
 
 ## 安装指南 ⬇️
 
-请前往 https://github.com/raawaa/idok/releases 下载最新版本的二进制安装包。 下载最新版本的二进制安装包。
+请前往 https://github.com/raawaa/idok/releases 下载最新版本的二进制安装包。 
 
 ## 使用方法 ▶️
 
