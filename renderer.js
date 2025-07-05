@@ -27,6 +27,14 @@ function initializeApp() {
 
         // 初始化窗口控制按钮
         initWindowControls();
+
+        // 监听应用信息事件并更新标题
+        ipcRenderer.on('app-info', (event, appInfo) => {
+            const appTitleElement = document.getElementById('app-title');
+            if (appTitleElement) {
+                appTitleElement.textContent = `${appInfo.name} v${appInfo.version}`;
+            }
+        });
     });
 }
 

@@ -9,7 +9,9 @@ if (process.env.NODE_ENV === 'development') {
     }
 }
 
-const { app, BrowserWindow, ipcMain, shell, Menu, MenuItem, dialog } = require('electron')
+const { app, BrowserWindow, ipcMain, shell, Menu, MenuItem, dialog } = require('electron');
+const packageJson = require('./package.json');
+const appVersion = packageJson.version;
 const fs = require('fs');
 const path = require('path');
 const xml2js = require('xml2js'); // 导入 xml2js
@@ -309,9 +311,14 @@ function createWindow() {
     });
 
     // Set window title from app name
-    win.setTitle(app.name);
+    win.setTitle(`${app.name} v${appVersion}`);
 
-    win.loadFile('index.html')
+    win.loadFile('index.html').then(() => {
+    win.webContents.send('app-info', {
+        name: app.name,
+        version: appVersion
+    });
+})
 
     // 开发者工具
     if (process.env.NODE_ENV === 'development') {
