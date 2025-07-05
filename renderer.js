@@ -41,6 +41,22 @@ function initializeApp() {
  * @param {HTMLButtonElement} openSettingsBtn - 打开设置按钮
  */
 function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, filterStudioInput, filterGenreInput, clearFiltersButton, openSettingsBtn) {
+    // 监听主进程发送的确认删除事件
+    ipcRenderer.on('confirm-delete', (event, directoryPath) => {
+        const isConfirmed = confirm(`确定要删除影片目录及其所有内容吗？\n${directoryPath}`);
+        if (isConfirmed) {
+            ipcRenderer.send('delete-directory', directoryPath);
+        }
+    });
+
+    // 监听目录删除结果事件
+    ipcRenderer.on('directory-trashed', (event, directoryPath) => {
+        alert(`影片目录已移至回收站:\n${directoryPath}`);
+    });
+
+    ipcRenderer.on('trash-failed', (event, directoryPath, errorMessage) => {
+        alert(`删除失败:\n${errorMessage}`);
+    });
     // 监听排序和过滤事件
     sortBySelect.addEventListener('change', () => renderMediaList(allMediaList));
     sortOrderSelect.addEventListener('change', () => renderMediaList(allMediaList));
