@@ -272,6 +272,61 @@ h1 {
     box-shadow: var(--card-shadow);
 }
 
+/* 搜索框容器样式 */
+.search-container {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 300px;
+}
+
+#search-input {
+    width: 100%;
+    padding: 8px 30px 8px 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 0.9em;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+#search-input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-color);
+    opacity: 0.5;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.clear-search-btn:hover {
+    opacity: 0.8;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.clear-search-btn:active {
+    transform: translateY(-50%) scale(0.9);
+}
+
 #controls label {
     font-weight: 500;
     color: var(--text-color);
@@ -590,13 +645,15 @@ h1 {
     position: absolute;
     top: 10px;
     right: 10px;
-    width: 24px;
+    width: auto;
+    min-width: 36px;
     height: 24px;
+    padding: 0 6px;
     border: none;
-    border-radius: 50%;
+    border-radius: 12px;
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
-    font-size: 14px;
+    font-size: 12px;
     cursor: pointer;
     display: flex;
     align-items: center;

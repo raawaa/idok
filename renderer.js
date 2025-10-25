@@ -163,6 +163,44 @@ function initializeApp() {
  * @param {HTMLButtonElement} openSettingsBtn - 打开设置按钮
  */
 function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, filterStudioInput, filterGenreInput, clearFiltersButton, openSettingsBtn) {
+    // 获取搜索框元素
+    const searchInput = document.getElementById('search-input');
+    const clearSearchBtn = document.getElementById('clear-search-btn');
+    
+    // 全局键盘事件监听 - 实现即时搜索
+    document.addEventListener('keydown', (event) => {
+        // 如果焦点已经在搜索框上，不处理
+        if (document.activeElement === searchInput) {
+            return;
+        }
+        
+        // 如果焦点在输入框、文本区域或内容可编辑元素上，不处理
+        const activeElement = document.activeElement;
+        const isInputFocused = activeElement && (
+            activeElement.tagName === 'INPUT' || 
+            activeElement.tagName === 'TEXTAREA' || 
+            activeElement.contentEditable === 'true'
+        );
+        
+        if (isInputFocused) {
+            return;
+        }
+        
+        // 如果按下的键是字母、数字或空格，则将焦点转移到搜索框并输入字符
+        if (event.key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
+            // 阻止默认行为，避免在其他地方输入
+            event.preventDefault();
+            
+            // 清除当前搜索内容并输入新字符
+            searchInput.value = event.key;
+            searchInput.focus();
+            
+            // 触发input事件以开始搜索
+            const inputEvent = new Event('input', { bubbles: true });
+            searchInput.dispatchEvent(inputEvent);
+        }
+    });
+    
     // 监听主进程发送的确认删除事件
     ipcRenderer.on('confirm-delete', (event, directoryPath) => {
         showDeleteModal(directoryPath);
@@ -176,6 +214,32 @@ function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, fil
     ipcRenderer.on('trash-failed', (event, directoryPath, errorMessage) => {
         showMessage(`删除失败:\n${errorMessage}`, 'error');
     });
+    
+    // 搜索框输入事件 - 使用防抖来优化性能
+    let searchTimeout;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            renderMediaList(allMediaList);
+        }, 300); // 300ms 防抖延迟
+    });
+    
+    // 搜索框ESC键事件 - 清空搜索内容并失去焦点
+    searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && searchInput.value.trim() !== '') {
+            event.preventDefault();
+            searchInput.value = '';
+            searchInput.blur();
+            renderMediaList(allMediaList);
+        }
+    });
+    
+    // 清除搜索按钮事件
+    clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        renderMediaList(allMediaList);
+    });
+    
     // 监听排序和过滤事件
     sortBySelect.addEventListener('change', () => renderMediaList(allMediaList));
     sortOrderSelect.addEventListener('change', () => renderMediaList(allMediaList));
@@ -188,6 +252,7 @@ function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, fil
         filterActorInput.value = '';
         filterStudioInput.value = '';
         filterGenreInput.value = '';
+        searchInput.value = ''; // 同时清除搜索框
         renderMediaList(allMediaList);
     });
 
@@ -601,13 +666,19 @@ function renderMediaList(mediaList) {
     const filterActor = document.getElementById('filter-actor').value.toLowerCase();
     const filterStudio = document.getElementById('filter-studio').value.toLowerCase();
     const filterGenre = document.getElementById('filter-genre').value.toLowerCase();
+    const searchInput = document.getElementById('search-input').value.toLowerCase().trim();
 
     // 过滤
     const filteredList = mediaList.filter(movie => {
+        // 搜索过滤 - 搜索片名和番号
+        const matchSearch = searchInput === '' || 
+            (movie.title && movie.title.toLowerCase().includes(searchInput)) ||
+            (movie.id && movie.id.toLowerCase().includes(searchInput));
+            
         const matchActor = filterActor === '' || (movie.actors && movie.actors.some(actor => actor.toLowerCase().includes(filterActor)));
         const matchStudio = filterStudio === '' || (movie.studio && movie.studio.toLowerCase().includes(filterStudio));
         const matchGenre = filterGenre === '' || (movie.genres && movie.genres.some(genre => genre.toLowerCase().includes(filterGenre)));
-        return matchActor && matchStudio && matchGenre;
+        return matchSearch && matchActor && matchStudio && matchGenre;
     });
 
     // 排序
@@ -709,7 +780,7 @@ function renderMediaList(mediaList) {
             // 添加info按钮
             const infoButton = document.createElement('button');
             infoButton.classList.add('info-button');
-            infoButton.textContent = 'ℹ️';
+            infoButton.textContent = '信息';
             infoButton.title = '查看详细信息';
             infoButton.addEventListener('click', (e) => {
                 e.stopPropagation();
