@@ -4,6 +4,119 @@ const { ipcRenderer } = require('electron');
 let allMediaList = []; // 存储所有媒体数据的原始列表
 
 /**
+ * 显示消息提示
+ * @param {string} message - 消息内容
+ * @param {string} type - 消息类型 ('error', 'warning', 'success', 'info')
+ * @param {number} duration - 显示时长(毫秒)，默认为5000
+ */
+function showMessage(message, type = 'info', duration = 5000) {
+    // 创建消息容器（如果不存在）
+    let messageContainer = document.getElementById('message-container');
+    if (!messageContainer) {
+        messageContainer = document.createElement('div');
+        messageContainer.id = 'message-container';
+        document.body.appendChild(messageContainer);
+    }
+    
+    // 创建消息元素
+    const messageElement = document.createElement('div');
+    messageElement.className = `${type}-message`;
+    
+    // 添加图标
+    const iconElement = document.createElement('span');
+    iconElement.className = 'error-icon';
+    let icon = '';
+    switch(type) {
+        case 'error': icon = '❌'; break;
+        case 'warning': icon = '⚠️'; break;
+        case 'success': icon = '✅'; break;
+        case 'info': icon = 'ℹ️'; break;
+        default: icon = 'ℹ️';
+    }
+    iconElement.textContent = icon;
+    
+    // 添加文本
+    const textElement = document.createElement('span');
+    textElement.className = 'error-text';
+    textElement.textContent = message;
+    
+    // 添加关闭按钮
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.textContent = '×';
+    closeBtn.addEventListener('click', () => {
+        messageElement.classList.remove('show');
+        setTimeout(() => {
+            if (messageElement.parentNode) {
+                messageElement.parentNode.removeChild(messageElement);
+            }
+        }, 300);
+    });
+    
+    // 组装消息元素
+    messageElement.appendChild(iconElement);
+    messageElement.appendChild(textElement);
+    messageElement.appendChild(closeBtn);
+    
+    // 添加到容器
+    messageContainer.appendChild(messageElement);
+    
+    // 显示动画
+    setTimeout(() => {
+        messageElement.classList.add('show');
+    }, 10);
+    
+    // 自动隐藏
+    if (duration > 0) {
+        setTimeout(() => {
+            if (messageElement.parentNode) {
+                messageElement.classList.remove('show');
+                setTimeout(() => {
+                    if (messageElement.parentNode) {
+                        messageElement.parentNode.removeChild(messageElement);
+                    }
+                }, 300);
+            }
+        }, duration);
+    }
+}
+
+/**
+ * 显示删除确认模态框
+ * @param {string} directoryPath - 要删除的目录路径
+ */
+function showDeleteModal(directoryPath) {
+    const deleteModal = document.getElementById('delete-modal');
+    const deletePathElement = document.getElementById('delete-path');
+    const confirmBtn = document.getElementById('confirm-delete-btn');
+    const cancelBtn = document.getElementById('cancel-delete-btn');
+    
+    // 设置要删除的路径
+    deletePathElement.textContent = directoryPath;
+    
+    // 显示模态框
+    deleteModal.style.display = 'block';
+    
+    // 确认删除按钮事件
+    const handleConfirm = () => {
+        ipcRenderer.send('delete-directory', directoryPath);
+        deleteModal.style.display = 'none';
+        confirmBtn.removeEventListener('click', handleConfirm);
+        cancelBtn.removeEventListener('click', handleCancel);
+    };
+    
+    // 取消删除按钮事件
+    const handleCancel = () => {
+        deleteModal.style.display = 'none';
+        confirmBtn.removeEventListener('click', handleConfirm);
+        cancelBtn.removeEventListener('click', handleCancel);
+    };
+    
+    confirmBtn.addEventListener('click', handleConfirm);
+    cancelBtn.addEventListener('click', handleCancel);
+}
+
+/**
  * 初始化应用程序
  * 监听DOM加载完成事件，设置事件监听器和初始化界面
  */
@@ -51,19 +164,16 @@ function initializeApp() {
 function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, filterStudioInput, filterGenreInput, clearFiltersButton, openSettingsBtn) {
     // 监听主进程发送的确认删除事件
     ipcRenderer.on('confirm-delete', (event, directoryPath) => {
-        const isConfirmed = confirm(`确定要删除影片目录及其所有内容吗？\n${directoryPath}`);
-        if (isConfirmed) {
-            ipcRenderer.send('delete-directory', directoryPath);
-        }
+        showDeleteModal(directoryPath);
     });
 
     // 监听目录删除结果事件
     ipcRenderer.on('directory-trashed', (event, directoryPath) => {
-        alert(`影片目录已移至回收站:\n${directoryPath}`);
+        showMessage(`影片目录已移至回收站:\n${directoryPath}`, 'success');
     });
 
     ipcRenderer.on('trash-failed', (event, directoryPath, errorMessage) => {
-        alert(`删除失败:\n${errorMessage}`);
+        showMessage(`删除失败:\n${errorMessage}`, 'error');
     });
     // 监听排序和过滤事件
     sortBySelect.addEventListener('change', () => renderMediaList(allMediaList));
@@ -86,29 +196,43 @@ function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, fil
     // 监听主进程事件
     ipcRenderer.on('start-initial-scan', async (event, directoryPaths) => {
         console.log("开始初次扫描...");
-        allMediaList = await ipcRenderer.invoke('scan-directory', directoryPaths);
-        console.log("初次扫描完成，找到", allMediaList.length, "个媒体文件。");
-        populateDropdowns(allMediaList);
-        renderMediaList(allMediaList);
+        try {
+            allMediaList = await ipcRenderer.invoke('scan-directory', directoryPaths);
+            console.log("初次扫描完成，找到", allMediaList.length, "个媒体文件。");
+            populateDropdowns(allMediaList);
+            renderMediaList(allMediaList);
+            showMessage(`扫描完成，找到 ${allMediaList.length} 个媒体文件`, 'success', 3000);
+        } catch (error) {
+            console.error("扫描目录时出错:", error);
+            showMessage(`扫描目录时出错: ${error.message}`, 'error');
+        }
     });
 
     ipcRenderer.on('no-directories-configured', () => {
         const movieCoversDiv = document.getElementById('movie-covers');
         movieCoversDiv.innerHTML = '<p>请在设置中配置影片目录。</p>';
+        showMessage('尚未配置影片目录，请打开设置添加目录', 'warning');
     });
 
     ipcRenderer.on('settings-saved-and-rescan', async () => {
         console.log("设置已保存，重新扫描...");
-        const settings = await ipcRenderer.invoke('get-settings');
-        if (settings && settings.directories && settings.directories.length > 0) {
-            allMediaList = await ipcRenderer.invoke('scan-directory', settings.directories);
-            console.log("重新扫描完成，找到", allMediaList.length, "个媒体文件。");
-            populateDropdowns(allMediaList);
-            renderMediaList(allMediaList);
-        } else {
-            const movieCoversDiv = document.getElementById('movie-covers');
-            movieCoversDiv.innerHTML = '<p>请在设置中配置影片目录。</p>';
-            allMediaList = [];
+        try {
+            const settings = await ipcRenderer.invoke('get-settings');
+            if (settings && settings.directories && settings.directories.length > 0) {
+                allMediaList = await ipcRenderer.invoke('scan-directory', settings.directories);
+                console.log("重新扫描完成，找到", allMediaList.length, "个媒体文件。");
+                populateDropdowns(allMediaList);
+                renderMediaList(allMediaList);
+                showMessage(`重新扫描完成，找到 ${allMediaList.length} 个媒体文件`, 'success', 3000);
+            } else {
+                const movieCoversDiv = document.getElementById('movie-covers');
+                movieCoversDiv.innerHTML = '<p>请在设置中配置影片目录。</p>';
+                allMediaList = [];
+                showMessage('尚未配置影片目录，请打开设置添加目录', 'warning');
+            }
+        } catch (error) {
+            console.error("重新扫描目录时出错:", error);
+            showMessage(`重新扫描目录时出错: ${error.message}`, 'error');
         }
     });
 }
@@ -196,6 +320,16 @@ function initWindowControls() {
     ipcRenderer.on('window-maximized', (event, isMaximized) => {
         maximizeBtn.textContent = isMaximized ? '❐' : '□';
     });
+
+    // 监听视频打开失败事件
+    ipcRenderer.on('video-open-failed', (event, videoPath, errorMessage) => {
+        showMessage(`无法打开视频文件:\n${videoPath}\n错误: ${errorMessage}`, 'error');
+    });
+
+    // 监听视频打开成功事件
+    ipcRenderer.on('video-opened', (event, videoPath) => {
+        showMessage(`已打开视频: ${videoPath}`, 'success', 3000);
+    });
 }
 
 /**
@@ -273,8 +407,14 @@ async function openSettingsDialog() {
             const dirInputs = document.querySelectorAll('#directory-list input[type="text"]');
             const directories = Array.from(dirInputs).map(input => input.value);
             
-            ipcRenderer.invoke('save-settings', { directories });
-            settingsModal.style.display = 'none';
+            try {
+                await ipcRenderer.invoke('save-settings', { directories });
+                settingsModal.style.display = 'none';
+                showMessage('设置已保存', 'success', 3000);
+            } catch (error) {
+                console.error("保存设置时出错:", error);
+                showMessage(`保存设置时出错: ${error.message}`, 'error');
+            }
         }
         // 取消设置按钮点击事件
         else if (e.target.id === 'cancel-settings-btn') {
@@ -349,6 +489,14 @@ function renderMediaList(mediaList) {
                 coverElement.src = movie.coverImagePath;
                 coverElement.alt = movie.title;
                 coverElement.style.cursor = 'pointer';
+
+                // 添加图片加载错误处理
+                coverElement.addEventListener('error', () => {
+                    coverElement.style.display = 'none';
+                    const noCoverElement = document.createElement('p');
+                    noCoverElement.textContent = '封面加载失败';
+                    movieElement.appendChild(noCoverElement);
+                });
 
                 coverElement.addEventListener('click', () => {
                     ipcRenderer.send('open-video', movie.videoPath);

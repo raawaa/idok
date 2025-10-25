@@ -67,6 +67,7 @@ body {
     -webkit-app-region: drag;
     z-index: 1000;
     transition: background-color 0.3s ease;
+    padding: 0 8px;
 }
 
 /* 为标题栏的子元素添加点击事件 */
@@ -83,7 +84,6 @@ body {
     align-items: center;
     background-color: transparent;
     pointer-events: auto;
-    padding: 0 8px;
 }
 
 /* 窗口控制按钮样式 */
@@ -118,15 +118,15 @@ body {
     font-weight: bold;
     flex-grow: 1;
     text-align: center;
-    padding-right: 40px; /* 为右侧按钮留出空间 */
+    padding: 0 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* 主题切换按钮样式 */
 .theme-toggle-btn {
-    position: absolute;
-    right: 100px; /* 放在窗口控制按钮左侧 */
-    top: 50%;
-    transform: translateY(-50%);
+    -webkit-app-region: no-drag;
     width: 30px;
     height: 30px;
     background: transparent;
@@ -137,8 +137,8 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 16px;
-    -webkit-app-region: no-drag;
     transition: all 0.3s ease;
+    margin-right: 5px;
 }
 
 .theme-toggle-btn:hover {
@@ -201,6 +201,7 @@ h1 {
     /* 移除默认 H1 的顶部 margin */
 }
 
+/* 控件容器样式 */
 #controls {
     display: flex;
     flex-wrap: wrap;
@@ -211,6 +212,8 @@ h1 {
     /* 移除顶部 margin */
     margin-left: 10px;
     margin-right: 10px;
+    margin-bottom: 20px;
+    text-align: center;
     background-color: var(--card-bg);
     padding: 20px;
     /* 保持垂直 padding */
@@ -225,6 +228,91 @@ h1 {
 #controls label {
     font-weight: 500;
     color: var(--text-color);
+}
+
+#controls label[style*="margin-left"] {
+    margin-left: 20px;
+}
+
+#controls button[style*="margin-left"] {
+    margin-left: 20px;
+}
+
+/* 删除确认模态框样式 */
+#delete-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+#delete-modal > div {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    color: var(--text-color);
+    min-width: 300px;
+    max-width: 500px;
+}
+
+#delete-modal h2 {
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+#delete-modal p {
+    margin-bottom: 10px;
+}
+
+#delete-path {
+    font-weight: bold;
+    margin: 15px 0;
+    word-break: break-all;
+    color: var(--accent-color);
+}
+
+#delete-modal > div > div {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+#delete-modal button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+#confirm-delete-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+#confirm-delete-btn:hover {
+    background-color: #c82333;
+}
+
+#cancel-delete-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+#cancel-delete-btn:hover {
+    background-color: #5a6268;
 }
 
 #controls select,
@@ -250,30 +338,117 @@ h1 {
     opacity: 0.9;
 }
 
-#controls select,
-#controls input {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 0.9em;
-    outline: none;
-    transition: all 0.3s ease;
-    appearance: none;
-    background-image: linear-gradient(45deg, transparent 50%, var(--text-color) 50%),
-        linear-gradient(135deg, var(--text-color) 50%, transparent 50%);
-    background-position: calc(100% - 20px) calc(1em + 2px),
-        calc(100% - 15px) calc(1em + 2px);
-    background-size: 5px 5px, 5px 5px;
-    background-repeat: no-repeat;
+/* 过滤控件样式 */
+#filter-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+    align-items: center;
 }
 
-#controls select:focus,
-#controls input:focus {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 150px;
+    flex: 1;
 }
+
+.filter-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-group select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 14px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.filter-group select:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    outline: none;
+}
+
+/* 排序控件 */
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.sort-controls label {
+    font-weight: 600;
+    color: #666;
+    white-space: nowrap;
+}
+
+.sort-controls select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 14px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.sort-controls select:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    outline: none;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    #filter-controls {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .filter-group {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .sort-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .sort-controls label {
+        margin-bottom: 5px;
+    }
+}
+
+@media (max-width: 480px) {
+    #filter-controls {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .sort-controls {
+        padding: 8px 10px;
+    }
+}
+
+
 
 #movie-covers {
     display: grid;
@@ -353,45 +528,51 @@ h1 {
 
 /* 调整滚动条样式，使其在 #content-container 中生效 */
 #content-container::-webkit-scrollbar {
-    width: 6px;
-    /* 减小滚动条宽度 */
-    height: 6px;
-    /* 水平滚动条高度 */
+    width: 8px;
+    height: 8px;
 }
 
 #content-container::-webkit-scrollbar-track {
-    background: transparent; /* 轨道背景透明 */
-    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
 }
 
-/* 新：滚动条滑块默认透明，实现自动隐藏效果 */
 #content-container::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2); /* 亮色主题下，滑块的基础颜色 */
-    border-radius: 3px;
-    opacity: 0; /* 默认完全透明 */
-    transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out; /* 为透明度和背景色添加过渡 */
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
 }
 
-/* 当鼠标悬停在内容容器上时，滑块渐显 */
-#content-container:hover::-webkit-scrollbar-thumb {
-    opacity: 1;
-}
-
-/* 当鼠标直接悬停在已显示的滑块上时，滑块颜色变化（更深/更亮） */
 #content-container::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.4); /* 亮色主题下，悬停时颜色加深 */
+    background-color: rgba(0, 0, 0, 0.4);
 }
 
+/* 暗色主题下的滚动条 */
 @media (prefers-color-scheme: dark) {
-    /* 新：暗色主题下，当鼠标悬停在内容容器上时，滑块变得可见 */
-    #content-container:hover::-webkit-scrollbar-thumb {
-        background-color: rgba(255, 255, 255, 0.2); /* 暗色主题下的滑块颜色 */
+    #content-container::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
     }
-
-    /* 新：暗色主题下，当鼠标直接悬停在滑块上时，滑块颜色加深 */
+    
+    #content-container::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+    
     #content-container::-webkit-scrollbar-thumb:hover {
-        background-color: rgba(255, 255, 255, 0.4); /* 暗色主题下，滑块悬停时更明显 */
+        background-color: rgba(255, 255, 255, 0.4);
     }
+}
+
+/* 强制主题下的滚动条 */
+body[data-theme='dark'] #content-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.4);
 }
 
 @media (max-width: 600px) {
@@ -415,29 +596,24 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
-    display: flex; /* 使用 flexbox 居中内容 */
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
     justify-content: center;
     align-items: center;
     z-index: 10;
-    /* 移除直接应用在容器上的圆圈和动画样式 */
-    /* border: 4px solid rgba(255, 255, 255, 0.3); */
-    /* border-top: 4px solid #fff; */
-    /* border-radius: 50%; */
-    /* animation: spin 1s linear infinite; */
-    /* box-sizing: border-box; */
+    border-radius: var(--border-radius);
 }
 
 .loading-spinner::before {
-    content: ''; /* 伪元素需要 content */
-    display: block; /* 使伪元素可以设置尺寸 */
-    width: 40px; /* 设置圆圈的尺寸 */
-    height: 40px;
-    border: 4px solid rgba(255, 255, 255, 0.3); /* 圆圈样式 */
-    border-top: 4px solid #fff; /* 旋转部分的颜色 */
-    border-radius: 50%; /* 使其成为圆形 */
-    animation: spin 1s linear infinite; /* 应用旋转动画 */
-    box-sizing: border-box; /* 使 padding 和 border 包含在元素的 width 和 height 内 */
+    content: '';
+    display: block;
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    box-sizing: border-box;
 }
 
 /* 旋转动画 */
@@ -562,6 +738,76 @@ h1 {
 
 .remove-directory-btn:hover {
     background-color: #c82333;
+}
+
+/* 错误提示样式 */
+.error-message {
+    position: fixed;
+    top: 40px;
+    right: 20px;
+    background-color: #dc3545;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    max-width: 300px;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.error-message.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.error-message .error-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.error-message .error-text {
+    flex-grow: 1;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.error-message .close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 10px;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.error-message .close-btn:hover {
+    opacity: 1;
+}
+
+/* 警告提示样式 */
+.warning-message {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+/* 成功提示样式 */
+.success-message {
+    background-color: #28a745;
+    color: white;
+}
+
+/* 信息提示样式 */
+.info-message {
+    background-color: #17a2b8;
+    color: white;
 }
 
 /* 暗色模式适配 */

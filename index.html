@@ -19,44 +19,46 @@
             <button id="maximize-btn" class="window-control-btn">□</button>
             <button id="close-btn" class="window-control-btn">×</button>
         </div>
-
     </div>
 
     <!-- 添加新的内容容器 -->
     <div id="content-container">
-        <div id="controls" style="margin-bottom: 20px; text-align: center;">
+        <!-- 错误提示容器 -->
+        <div id="message-container"></div>
+        
+        <div id="controls">
             <label for="sort-by">排序方式:</label>
             <select id="sort-by">
                 <option value="title">片名</option>
                 <option value="releaseDate">发布日期</option>
             </select>
 
-            <label for="sort-order" style="margin-left: 10px;">顺序:</label>
+            <label for="sort-order">顺序:</label>
             <select id="sort-order">
                 <option value="asc">升序</option>
                 <option value="desc">降序</option>
             </select>
 
-            <label for="filter-actor" style="margin-left: 20px;">演员:</label>
+            <label for="filter-actor">演员:</label>
             <select id="filter-actor">
                 <option value="">全部演员</option>
             </select>
 
-            <label for="filter-studio" style="margin-left: 20px;">片商:</label>
+            <label for="filter-studio">片商:</label>
             <select id="filter-studio">
                 <option value="">全部片商</option>
             </select>
 
-            <label for="filter-genre" style="margin-left: 20px;">类别:</label>
+            <label for="filter-genre">类别:</label>
             <select id="filter-genre">
                 <option value="">全部类别</option>
             </select>
 
             <!-- 清除过滤按钮 -->
-            <button id="clear-filters" style="margin-left: 20px;">清除过滤</button>
+            <button id="clear-filters">清除过滤</button>
 
             <!-- 设置按钮 -->
-            <button id="open-settings-btn" style="margin-left: 20px;">设置</button>
+            <button id="open-settings-btn">设置</button>
 
             <!-- 可以根据需要添加更多过滤选项 -->
         </div>
@@ -67,15 +69,13 @@
         </div>
 
         <!-- 模态框结构 -->
-        <div id="delete-modal"
-            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000;">
-            <div
-                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); text-align: center;">
+        <div id="delete-modal">
+            <div>
                 <h2>确认删除</h2>
                 <p>您确定要删除以下影片目录至回收站吗？</p>
-                <p id="delete-path" style="font-weight: bold; margin: 10px 0; word-break: break-all;"></p>
-                <div style="margin-top: 20px;">
-                    <button id="confirm-delete-btn" style="margin-right: 10px;">确认</button>
+                <p id="delete-path"></p>
+                <div>
+                    <button id="confirm-delete-btn">确认</button>
                     <button id="cancel-delete-btn">取消</button>
                 </div>
             </div>
