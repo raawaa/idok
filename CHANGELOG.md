@@ -1,4 +1,29 @@
 # 更新历史：
+## [0.2.0](https://github.com/raawaa/idok/compare/v0.1.5...v0.2.0) (2025-10-25)
+
+
+### 📝 文档
+
+* 移除README.md中重复的下载说明 ([e143160](https://github.com/raawaa/idok/commit/e143160ce00ed30873c3d619ce91320d6e5710c1))
+
+
+### ♻️ 代码重构
+
+* 移除未使用的path模块导入 ([f0690bc](https://github.com/raawaa/idok/commit/f0690bc33165b61e02e0a6f9644712b55a9bf77a))
+* **renderer:** 移除未使用的设置保存和重新扫描逻辑 ([11ed18a](https://github.com/raawaa/idok/commit/11ed18a42db62dcee01938e3707001066088db5a))
+* **settings:** 使用模板和事件委托重构目录设置界面 ([af89ec0](https://github.com/raawaa/idok/commit/af89ec004a3e8010c2843cc15b15f3e9f726b86c))
+
+
+### ✨ 新增功能
+
+* **窗口标题:** 添加应用版本号显示功能 ([7bbbb17](https://github.com/raawaa/idok/commit/7bbbb17acd076fc79466d28ec6b2f0c9fe1ee8b3))
+* **打开视频所在目录:** 添加打开视频文件所在目录功能 ([7e2b3ca](https://github.com/raawaa/idok/commit/7e2b3caba1421b702ec5bc7887ae3bef7b5c8add))
+* **电影详情:** 添加电影详细信息模态框及交互功能 ([5411d02](https://github.com/raawaa/idok/commit/5411d0252a489b819423115b959d1736cd9249fb))
+* **过滤器:** 将文本输入框改为下拉选择框并实现动态填充 ([c731d05](https://github.com/raawaa/idok/commit/c731d05f2a5368205295cb115ac6e9f239c79b52))
+* 扩展支持的视频格式列表 ([b38171a](https://github.com/raawaa/idok/commit/b38171a477f6113b4d06ccab39a7da16f1a8b1d0))
+* **主题切换:** 将主题切换按钮改为现代化滑动开关样式 ([01f0248](https://github.com/raawaa/idok/commit/01f024865d80387ebaabff3d96148c9002186d53))
+* **ui:** 添加消息提示系统和改进删除确认对话框 ([c2849c3](https://github.com/raawaa/idok/commit/c2849c3d2e7d6aa015be6503194c6e6f6c0ff26b))
+
 ### [0.1.5](https://github.com/raawaa/idok/compare/v0.1.4...v0.1.5) (2025-07-05)
 
 
