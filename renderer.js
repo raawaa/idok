@@ -522,6 +522,17 @@ function renderMediaList(mediaList) {
                 movieInfoDiv.appendChild(studioElement);
             }
 
+            // 添加info按钮
+            const infoButton = document.createElement('button');
+            infoButton.classList.add('info-button');
+            infoButton.textContent = 'ℹ️';
+            infoButton.title = '查看详细信息';
+            infoButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showMovieDetails(movie);
+            });
+            movieInfoDiv.appendChild(infoButton);
+
             movieElement.appendChild(movieInfoDiv);
             movieCoversDiv.appendChild(movieElement);
         });
@@ -576,6 +587,124 @@ function getUniqueGenres(mediaList) {
         }
     });
     return Array.from(genres).sort();
+}
+
+/**
+ * 显示影片详细信息模态框
+ * @param {Object} movie - 影片信息对象
+ */
+function showMovieDetails(movie) {
+    // 获取模态框元素
+    const modal = document.getElementById('movie-details-modal');
+    
+    // 填充模态框内容
+    document.getElementById('movie-details-title').textContent = movie.title;
+    
+    document.getElementById('movie-details-date').textContent = movie.releaseDateFull || '无';
+    
+    // 为片商添加可点击功能
+    const studioElement = document.getElementById('movie-details-studio');
+    if (movie.studio) {
+        studioElement.innerHTML = '';
+        const studioSpan = document.createElement('span');
+        studioSpan.textContent = movie.studio;
+        studioSpan.classList.add('clickable-detail');
+        studioSpan.addEventListener('click', () => {
+            modal.style.display = 'none';
+            document.getElementById('filter-studio').value = movie.studio;
+            renderMediaList(allMediaList);
+        });
+        studioElement.appendChild(studioSpan);
+    } else {
+        studioElement.textContent = '无';
+    }
+    
+    // 为演员添加可点击功能
+    const actorsElement = document.getElementById('movie-details-actors');
+    if (movie.actors && movie.actors.length > 0) {
+        actorsElement.innerHTML = '';
+        movie.actors.forEach((actor, index) => {
+            const actorSpan = document.createElement('span');
+            actorSpan.textContent = actor;
+            actorSpan.classList.add('clickable-detail');
+            actorSpan.addEventListener('click', () => {
+                modal.style.display = 'none';
+                document.getElementById('filter-actor').value = actor;
+                renderMediaList(allMediaList);
+            });
+            actorsElement.appendChild(actorSpan);
+            // 添加分隔符
+            if (index < movie.actors.length - 1) {
+                actorsElement.appendChild(document.createTextNode(', '));
+            }
+        });
+    } else {
+        actorsElement.textContent = '无';
+    }
+    
+    // 为导演添加可点击功能
+    const directorsElement = document.getElementById('movie-details-directors');
+    if (movie.directors && movie.directors.length > 0) {
+        directorsElement.innerHTML = '';
+        movie.directors.forEach((director, index) => {
+            const directorSpan = document.createElement('span');
+            directorSpan.textContent = director;
+            directorSpan.classList.add('clickable-detail');
+            directorSpan.addEventListener('click', () => {
+                modal.style.display = 'none';
+                // 这里可以添加导演筛选功能，如果需要的话
+                // 目前我们只关闭模态框
+                console.log('导演筛选功能待实现:', director);
+            });
+            directorsElement.appendChild(directorSpan);
+            // 添加分隔符
+            if (index < movie.directors.length - 1) {
+                directorsElement.appendChild(document.createTextNode(', '));
+            }
+        });
+    } else {
+        directorsElement.textContent = '无';
+    }
+    
+    // 为类别添加可点击功能
+    const genresElement = document.getElementById('movie-details-genres');
+    if (movie.genres && movie.genres.length > 0) {
+        genresElement.innerHTML = '';
+        movie.genres.forEach((genre, index) => {
+            const genreSpan = document.createElement('span');
+            genreSpan.textContent = genre;
+            genreSpan.classList.add('clickable-detail');
+            genreSpan.addEventListener('click', () => {
+                modal.style.display = 'none';
+                document.getElementById('filter-genre').value = genre;
+                renderMediaList(allMediaList);
+            });
+            genresElement.appendChild(genreSpan);
+            // 添加分隔符
+            if (index < movie.genres.length - 1) {
+                genresElement.appendChild(document.createTextNode(', '));
+            }
+        });
+    } else {
+        genresElement.textContent = '无';
+    }
+    
+    document.getElementById('movie-details-path').textContent = movie.videoPath || '无';
+
+    // 显示模态框
+    modal.style.display = 'block';
+
+    // 添加关闭按钮事件
+    document.getElementById('close-details-btn').addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    // 点击模态框外部关闭
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
 }
 
 /**

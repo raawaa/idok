@@ -528,6 +528,7 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative; /* 为info按钮提供定位上下文 */
     /* transform: scale(1); */ /* 移除默认的 scale */
     transition: /* transform 0.3s ease, */ box-shadow 0.3s ease; /* 只保留 box-shadow 的过渡 */
 }
@@ -582,6 +583,31 @@ h1 {
 .movie-item p .clickable-text:hover {
     color: var(--hover-color);
     text-decoration: underline;
+}
+
+/* Info按钮样式 */
+.info-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.info-button:hover {
+    background-color: var(--accent-color);
+    transform: scale(1.1);
 }
 
 /* 调整滚动条样式，使其在 #content-container 中生效 */
@@ -709,6 +735,48 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
 .modal-actions {
     margin-top: 20px;
     text-align: right;
+}
+
+/* 影片详细信息模态框样式 */
+.movie-details-content {
+    margin-top: 15px;
+}
+
+.detail-row {
+    display: flex;
+    margin-bottom: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.detail-label {
+    font-weight: bold;
+    width: 100px;
+    color: var(--text-color);
+}
+
+.detail-value {
+    flex: 1;
+    color: var(--text-color);
+    opacity: 0.9;
+}
+
+/* 详细信息模态框中可点击元素样式 */
+.clickable-detail {
+    cursor: pointer;
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    border-bottom: 1px dashed var(--accent-color);
+    padding: 2px 4px;
+}
+
+.clickable-detail:hover {
+    color: var(--hover-color);
+    text-decoration: underline;
+    background-color: rgba(74, 144, 226, 0.1);
+    border-radius: 3px;
 }
 
 /* 按钮样式 */
