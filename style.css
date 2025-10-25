@@ -936,47 +936,118 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
     color: white;
 }
 
-/* 暗色模式适配 */
+/* 播放器设置样式 */
+.player-setting-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.player-select-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+.setting-label {
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 5px;
+    display: block;
+}
+
+.player-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    font-size: 14px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    flex: 1;
+}
+
+.custom-player-btn {
+    padding: 8px 12px;
+    white-space: nowrap;
+    font-size: 14px;
+    border-radius: 4px;
+    background-color: var(--accent-color);
+    color: white;
+    border: 1px solid var(--accent-color);
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.custom-player-btn:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.player-select:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+    outline: none;
+}
+
+.player-status {
+    margin-top: 5px;
+    font-size: 12px;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+.player-status.success {
+    color: #28a745;
+    opacity: 1;
+}
+
+.player-status.error {
+    color: #dc3545;
+    opacity: 1;
+}
+
+.setting-description {
+    font-size: 12px;
+    color: var(--text-color);
+    opacity: 0.7;
+    margin-top: 10px;
+    line-height: 1.4;
+}
+
+/* 暗色模式下的播放器设置样式 */
 @media (prefers-color-scheme: dark) {
-    .directory-item {
-        background-color: #3a3a3a;
-        border-color: #555;
-    }
-    
-    .directory-item input[type="text"] {
+    .player-select {
         background-color: #2c2c2c;
         border-color: #555;
         color: #f0f0f0;
     }
     
-    .directory-item input[type="text"]:read-only {
-        background-color: #3a3a3a;
-    }
-    
-    /* 暗色主题下选择器样式 */
-    #controls select,
-    .filter-group select,
-    .sort-controls select {
+    .player-select option {
         background-color: #2c2c2c;
         color: #f0f0f0;
-        border-color: #555;
     }
-    
-    /* 暗色主题下选择器选项样式 */
-#controls select option,
-.filter-group select option,
-.sort-controls select option {
+}
+
+/* 强制主题下的播放器设置样式 */
+body[data-theme='dark'] .player-select {
+    background-color: #2c2c2c;
+    border-color: #555;
+    color: #f0f0f0;
+}
+
+body[data-theme='dark'] .player-select option {
     background-color: #2c2c2c;
     color: #f0f0f0;
 }
-    
     /* 暗色主题下选择器聚焦样式 */
-    #controls select:focus,
-    .filter-group select:focus,
-    .sort-controls select:focus {
-        border-color: #4a90e2;
-        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-    }
+#controls select:focus,
+.filter-group select:focus,
+.sort-controls select:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
 
 body[data-theme='dark'] .directory-item {

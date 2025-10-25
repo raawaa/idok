@@ -1,4 +1,5 @@
 const { ipcRenderer } = require('electron');
+const path = require('path');
 
 
 let allMediaList = []; // 存储所有媒体数据的原始列表
@@ -315,6 +316,32 @@ function initWindowControls() {
     ipcRenderer.on('video-directory-open-failed', (event, videoPath, errorMessage) => {
         showMessage(`无法打开视频文件所在目录:\n${videoPath}\n错误: ${errorMessage}`, 'error');
     });
+
+    // 监听视频播放成功事件
+ipcRenderer.on('video-opened', (event, videoPath) => {
+    showMessage('视频已开始播放', 'success', 2000);
+});
+
+// 监听视频播放失败事件
+ipcRenderer.on('video-open-failed', (event, videoPath, errorMessage) => {
+    console.error('视频播放失败:', videoPath, errorMessage);
+    showMessage(`视频播放失败: ${errorMessage}`, 'error', 5000);
+});
+
+// 监听右键菜单命令
+ipcRenderer.on('context-menu-command', (event, command, videoPath) => {
+    switch(command) {
+        case 'play':
+            ipcRenderer.send('open-video', videoPath);
+            break;
+        case 'open-folder':
+            ipcRenderer.send('open-video-directory', videoPath);
+            break;
+        case 'delete':
+            showDeleteModal(videoPath);
+            break;
+    }
+});
 }
 
 /**
@@ -327,8 +354,13 @@ async function openSettingsDialog() {
     const settingsContent = document.getElementById('settings-content');
 
     // 使用HTML模板而非字符串拼接
-    const template = document.getElementById('directory-settings-template');
-    settingsContent.innerHTML = template.innerHTML;
+    const directoryTemplate = document.getElementById('directory-settings-template');
+    const playerTemplate = document.getElementById('player-settings-template');
+    
+    // 清空并重新填充设置内容
+    settingsContent.innerHTML = '';
+    settingsContent.appendChild(directoryTemplate.cloneNode(true));
+    settingsContent.appendChild(playerTemplate.cloneNode(true));
     
     const directoryList = document.getElementById('directory-list');
     // 清空现有目录项（保留模板结构）
@@ -355,8 +387,73 @@ async function openSettingsDialog() {
         directoryList.appendChild(dirItem);
     });
 
+    // 获取已安装的播放器列表
+    try {
+        const result = await ipcRenderer.invoke('get-installed-players');
+        if (result.success && result.players && result.players.length > 0) {
+            const playerSelect = document.getElementById('default-player-select');
+            playerSelect.innerHTML = '<option value="">使用系统默认播放器</option>';
+            
+            result.players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = JSON.stringify(player);
+                option.textContent = player.name;
+                playerSelect.appendChild(option);
+            });
+            
+            // 设置当前选择的播放器
+            if (currentSettings.defaultPlayer) {
+                const currentPlayer = result.players.find(p => 
+                    p.executable === currentSettings.defaultPlayer.executable && 
+                    p.path === currentSettings.defaultPlayer.path
+                );
+                
+                if (currentPlayer) {
+                    playerSelect.value = JSON.stringify(currentPlayer);
+                } else if (currentSettings.customPlayer && 
+                          currentSettings.customPlayer.executable === currentSettings.defaultPlayer.executable && 
+                          currentSettings.customPlayer.path === currentSettings.defaultPlayer.path) {
+                    // 如果是自定义播放器，添加到列表并选中
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify(currentSettings.customPlayer);
+                    option.textContent = `${currentSettings.customPlayer.name} (自定义)`;
+                    option.selected = true;
+                    playerSelect.appendChild(option);
+                }
+            }
+            
+            // 更新播放器状态显示
+            updatePlayerStatus(currentSettings.defaultPlayer);
+        } else {
+            // 没有找到播放器
+            const playerSelect = document.getElementById('default-player-select');
+            playerSelect.innerHTML = '<option value="">未找到可用播放器</option>';
+            playerSelect.disabled = true;
+            
+            const playerStatus = document.getElementById('player-status');
+            if (playerStatus) {
+                playerStatus.textContent = '未检测到系统中的播放器';
+                playerStatus.className = 'player-status error';
+            }
+        }
+    } catch (error) {
+        console.error('获取播放器列表失败:', error);
+        const playerStatus = document.getElementById('player-status');
+        if (playerStatus) {
+            playerStatus.textContent = '获取播放器列表失败';
+            playerStatus.className = 'player-status error';
+        }
+    }
+
+    // 移除之前的事件监听器，避免重复添加
+    const newSettingsModal = settingsModal.cloneNode(true);
+    settingsModal.parentNode.replaceChild(newSettingsModal, settingsModal);
+    
+    // 使用新克隆的元素重新获取引用
+    const modalElement = document.getElementById('settings-modal');
+    
     // 使用事件委托统一管理设置对话框中的按钮事件
-    settingsModal.addEventListener('click', async (e) => {
+    modalElement.addEventListener('click', async (e) => {
         // 添加目录按钮点击事件
         if (e.target.id === 'add-directory-btn') {
             const result = await ipcRenderer.invoke('open-directory-dialog');
@@ -383,6 +480,35 @@ async function openSettingsDialog() {
                 directoryList.appendChild(dirItem);
             }
         }
+        // 自定义播放器按钮点击事件
+        else if (e.target.id === 'custom-player-btn') {
+            const result = await ipcRenderer.invoke('open-player-dialog');
+            if (!result.canceled && result.filePaths.length > 0) {
+                const playerPath = result.filePaths[0];
+                const playerName = path.basename(playerPath, '.exe');
+                
+                // 添加到播放器选择列表
+                const playerSelect = document.getElementById('default-player-select');
+                const option = document.createElement('option');
+                option.value = JSON.stringify({
+                    name: playerName,
+                    executable: path.basename(playerPath),
+                    path: playerPath
+                });
+                option.textContent = `${playerName} (自定义)`;
+                option.selected = true;
+                playerSelect.appendChild(option);
+                
+                // 更新播放器状态显示
+                updatePlayerStatus({
+                    name: playerName,
+                    executable: path.basename(playerPath),
+                    path: playerPath
+                });
+                
+                showMessage(`已添加自定义播放器: ${playerName}`, 'success', 3000);
+            }
+        }
         // 删除目录按钮点击事件
         else if (e.target.classList.contains('remove-directory-btn')) {
             e.target.closest('.directory-item').remove();
@@ -392,9 +518,27 @@ async function openSettingsDialog() {
             const dirInputs = document.querySelectorAll('#directory-list input[type="text"]');
             const directories = Array.from(dirInputs).map(input => input.value);
             
+            // 获取选择的播放器
+            const playerSelect = document.getElementById('default-player-select');
+            let defaultPlayer = null;
+            let customPlayer = null;
+            
+            if (playerSelect.value) {
+                try {
+                    defaultPlayer = JSON.parse(playerSelect.value);
+                    
+                    // 如果是自定义播放器，则保存到customPlayer字段
+                    if (playerSelect.options[playerSelect.selectedIndex].textContent.includes('(自定义)')) {
+                        customPlayer = defaultPlayer;
+                    }
+                } catch (error) {
+                    console.error('解析播放器设置失败:', error);
+                }
+            }
+            
             try {
-                await ipcRenderer.invoke('save-settings', { directories });
-                settingsModal.style.display = 'none';
+                await ipcRenderer.invoke('save-settings', { directories, defaultPlayer, customPlayer });
+                modalElement.style.display = 'none';
                 showMessage('设置已保存', 'success', 3000);
             } catch (error) {
                 console.error("保存设置时出错:", error);
@@ -403,12 +547,47 @@ async function openSettingsDialog() {
         }
         // 取消设置按钮点击事件
         else if (e.target.id === 'cancel-settings-btn') {
-            settingsModal.style.display = 'none';
+            modalElement.style.display = 'none';
         }
     });
+    
+    // 播放器选择器变化事件
+    const playerSelect = document.getElementById('default-player-select');
+    if (playerSelect) {
+        playerSelect.addEventListener('change', (e) => {
+            let selectedPlayer = null;
+            
+            if (e.target.value) {
+                try {
+                    selectedPlayer = JSON.parse(e.target.value);
+                } catch (error) {
+                    console.error('解析播放器设置失败:', error);
+                }
+            }
+            
+            updatePlayerStatus(selectedPlayer);
+        });
+    }
 
     // 显示模态框
-    settingsModal.style.display = 'block';
+    modalElement.style.display = 'block';
+}
+
+/**
+ * 更新播放器状态显示
+ * @param {Object} player - 播放器对象
+ */
+function updatePlayerStatus(player) {
+    const playerStatus = document.getElementById('player-status');
+    if (!playerStatus) return;
+    
+    if (player && player.name) {
+        playerStatus.textContent = `当前选择: ${player.name}`;
+        playerStatus.className = 'player-status success';
+    } else {
+        playerStatus.textContent = '使用系统默认播放器';
+        playerStatus.className = 'player-status';
+    }
 }
 
 /**

@@ -137,6 +137,26 @@
             </div>
             <button id="add-directory-btn" class="btn add-directory-btn">添加目录</button>
         </div>
+        
+                <!-- 播放器设置模板 -->
+                <div id="player-settings-template" class="settings-section">
+            <h3 class="settings-heading">默认播放器</h3>
+            <div class="player-setting-container">
+                <label for="default-player-select" class="setting-label">选择默认播放器:</label>
+                <div class="player-select-container">
+                    <select id="default-player-select" class="player-select">
+                        <option value="">系统默认播放器</option>
+                        <!-- 可用播放器选项将通过JavaScript动态添加 -->
+                    </select>
+                    <button id="custom-player-btn" class="btn btn-secondary custom-player-btn">自定义播放器</button>
+                </div>
+                <div id="player-status" class="player-status"></div>
+            </div>
+            <div class="setting-description">
+                选择用于播放视频的默认播放器。如果未选择，将使用系统默认播放器。
+                点击"自定义播放器"按钮可以选择未检测到的播放器程序。
+            </div>
+        </div>
             </div>
             <div class="modal-actions">
                 <button id="save-settings-btn" class="btn btn-primary">保存</button>
