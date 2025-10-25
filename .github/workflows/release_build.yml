@@ -55,5 +55,7 @@ jobs:
           name: idok v${{ steps.get-version.outputs.version }} 发布
           body_path: CHANGELOG.md
           files: dist/*.exe
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
