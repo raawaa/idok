@@ -124,35 +124,82 @@ body {
     text-overflow: ellipsis;
 }
 
-/* 主题切换按钮样式 */
-.theme-toggle-btn {
+/* 现代化主题切换按钮样式 */
+.theme-toggle-container {
     -webkit-app-region: no-drag;
-    width: 30px;
-    height: 30px;
-    background: transparent;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    transition: all 0.3s ease;
-    margin-right: 5px;
+    margin-right: 10px;
 }
 
-.theme-toggle-btn:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+.theme-toggle-label {
+    font-size: 12px;
+    font-weight: 500;
+    margin-right: 8px;
+    color: white;
+    white-space: nowrap;
+    cursor: default;
+    user-select: none;
+}
+
+.theme-toggle-btn {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+    margin: 0;
+}
+
+.theme-toggle-btn input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.theme-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .3s;
+    border-radius: 34px;
+}
+
+.theme-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+.theme-toggle-btn input:checked + .theme-toggle-slider {
+    background-color: var(--accent-color);
+}
+
+.theme-toggle-btn input:checked + .theme-toggle-slider:before {
+    transform: translateX(18px);
+}
+
+.theme-toggle-btn:hover .theme-toggle-slider {
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
 }
 
 /* 暗色模式下的主题切换按钮 */
 @media (prefers-color-scheme: dark) {
-    .theme-toggle-btn {
-        color: white;
+    .theme-toggle-slider {
+        background-color: #555;
     }
     
-    .theme-toggle-btn:hover {
-        background-color: rgba(255, 255, 255, 0.1);
+    .theme-toggle-btn:hover .theme-toggle-slider {
+        box-shadow: 0 0 5px rgba(255,255,255,0.1);
     }
 }
 
@@ -325,6 +372,7 @@ h1 {
     font-size: 0.9em;
     outline: none;
     transition: all 0.3s ease;
+    color: var(--text-color); /* 确保文字颜色跟随主题 */
 }
 
 #controls button {
@@ -336,6 +384,14 @@ h1 {
 
 #controls button:hover {
     opacity: 0.9;
+}
+
+/* 选择器选项样式 */
+#controls select option,
+.filter-group select option,
+.sort-controls select option {
+    background-color: var(--bg-color);
+    color: var(--text-color);
 }
 
 /* 过滤控件样式 */
@@ -370,7 +426,8 @@ h1 {
     padding: 8px 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    background-color: white;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     font-size: 14px;
     transition: border-color 0.3s, box-shadow 0.3s;
 }
@@ -402,7 +459,8 @@ h1 {
     padding: 8px 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    background-color: white;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     font-size: 14px;
     transition: border-color 0.3s, box-shadow 0.3s;
 }
@@ -826,6 +884,31 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
     .directory-item input[type="text"]:read-only {
         background-color: #3a3a3a;
     }
+    
+    /* 暗色主题下选择器样式 */
+    #controls select,
+    .filter-group select,
+    .sort-controls select {
+        background-color: #2c2c2c;
+        color: #f0f0f0;
+        border-color: #555;
+    }
+    
+    /* 暗色主题下选择器选项样式 */
+#controls select option,
+.filter-group select option,
+.sort-controls select option {
+    background-color: #2c2c2c;
+    color: #f0f0f0;
+}
+    
+    /* 暗色主题下选择器聚焦样式 */
+    #controls select:focus,
+    .filter-group select:focus,
+    .sort-controls select:focus {
+        border-color: #4a90e2;
+        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    }
 }
 
 body[data-theme='dark'] .directory-item {
@@ -841,4 +924,54 @@ body[data-theme='dark'] .directory-item input[type="text"] {
 
 body[data-theme='dark'] .directory-item input[type="text"]:read-only {
     background-color: #3a3a3a;
+}
+
+/* 强制暗色主题下选择器样式 */
+body[data-theme='dark'] #controls select,
+body[data-theme='dark'] .filter-group select,
+body[data-theme='dark'] .sort-controls select {
+    background-color: #2c2c2c;
+    color: #f0f0f0;
+    border-color: #555;
+}
+
+/* 强制暗色主题下选择器选项样式 */
+body[data-theme='dark'] #controls select option,
+body[data-theme='dark'] .filter-group select option,
+body[data-theme='dark'] .sort-controls select option {
+    background-color: #2c2c2c;
+    color: #f0f0f0;
+}
+
+/* 强制暗色主题下选择器聚焦样式 */
+body[data-theme='dark'] #controls select:focus,
+body[data-theme='dark'] .filter-group select:focus,
+body[data-theme='dark'] .sort-controls select:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* 强制亮色主题下选择器样式 */
+body[data-theme='light'] #controls select,
+body[data-theme='light'] .filter-group select,
+body[data-theme='light'] .sort-controls select {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* 强制亮色主题下选择器选项样式 */
+body[data-theme='light'] #controls select option,
+body[data-theme='light'] .filter-group select option,
+body[data-theme='light'] .sort-controls select option {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* 强制亮色主题下选择器聚焦样式 */
+body[data-theme='light'] #controls select:focus,
+body[data-theme='light'] .filter-group select:focus,
+body[data-theme='light'] .sort-controls select:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }

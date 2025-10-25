@@ -242,17 +242,16 @@ function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, fil
  * 从本地存储加载主题偏好，设置主题切换按钮事件
  */
 function initThemeSettings() {
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    const themeIcon = document.querySelector('.theme-icon');
+    const themeToggleCheckbox = document.getElementById('theme-toggle');
 
     // 从本地存储加载主题偏好
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
         document.body.setAttribute('data-theme', savedTheme);
-        updateThemeIcon(savedTheme);
+        themeToggleCheckbox.checked = savedTheme === 'dark';
     } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.body.setAttribute('data-theme', 'dark');
-        updateThemeIcon('dark');
+        themeToggleCheckbox.checked = true;
     }
 
     // 监听系统主题变化
@@ -260,35 +259,16 @@ function initThemeSettings() {
         if (!localStorage.getItem('theme')) {
             const newTheme = e.matches ? 'dark' : 'light';
             document.body.setAttribute('data-theme', newTheme);
-            updateThemeIcon(newTheme);
+            themeToggleCheckbox.checked = e.matches;
         }
     });
 
     // 主题切换按钮点击事件
-    themeToggleBtn.addEventListener('click', () => {
-        const currentTheme = document.body.getAttribute('data-theme') ||
-            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
+    themeToggleCheckbox.addEventListener('change', () => {
+        const newTheme = themeToggleCheckbox.checked ? 'dark' : 'light';
         document.body.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
-        updateThemeIcon(newTheme);
     });
-}
-
-/**
- * 更新主题图标
- * @param {string} theme - 当前主题模式('dark'或'light')
- */
-function updateThemeIcon(theme) {
-    const themeIcon = document.querySelector('.theme-icon');
-    if (theme === 'dark') {
-        themeIcon.textContent = '☀️';
-        themeIcon.title = '切换到亮色主题';
-    } else {
-        themeIcon.textContent = '🌙';
-        themeIcon.title = '切换到暗色主题';
-    }
 }
 
 /**

@@ -11,9 +11,13 @@
     <!-- 自定义标题栏 -->
     <div id="custom-titlebar">
         <div id="app-title">电影管理器</div>
-        <button id="theme-toggle" class="theme-toggle-btn" title="切换主题">
-            <span class="theme-icon">🌙</span>
-        </button>
+        <div class="theme-toggle-container">
+            <span class="theme-toggle-label" title="切换亮色/暗色主题">主题</span>
+            <label class="theme-toggle-btn" title="切换亮色/暗色主题">
+                <input type="checkbox" id="theme-toggle">
+                <span class="theme-toggle-slider"></span>
+            </label>
+        </div>
         <div id="window-controls">
             <button id="minimize-btn" class="window-control-btn">-</button>
             <button id="maximize-btn" class="window-control-btn">□</button>
