@@ -718,6 +718,14 @@ function createWindow() {
         win.webContents.send('window-maximized', false)
     })
 
+    win.on('focus', () => {
+        win.webContents.send('window-focused', true)
+    })
+
+    win.on('blur', () => {
+        win.webContents.send('window-focused', false)
+    })
+
     // 在创建窗口时加载设置并开始扫描
     readSettings().then(settings => {
         if (settings && settings.directories && settings.directories.length > 0) {

@@ -163,14 +163,39 @@ function initializeApp() {
  * @param {HTMLButtonElement} openSettingsBtn - 打开设置按钮
  */
 function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, filterStudioInput, filterGenreInput, clearFiltersButton, openSettingsBtn) {
-    // 获取搜索框元素
-    const searchInput = document.getElementById('search-input');
-    const clearSearchBtn = document.getElementById('clear-search-btn');
+    // 获取标题栏搜索框元素
+    const titlebarSearchInput = document.getElementById('titlebar-search-input');
+    const titlebarClearSearchBtn = document.getElementById('titlebar-clear-search-btn');
+    
+    // 标题栏搜索框输入事件 - 使用防抖来优化性能
+    let searchTimeout;
+    titlebarSearchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            renderMediaList(allMediaList);
+        }, 300); // 300ms 防抖延迟
+    });
+    
+    // 标题栏搜索框ESC键事件 - 清空搜索内容并失去焦点
+    titlebarSearchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && titlebarSearchInput.value.trim() !== '') {
+            event.preventDefault();
+            titlebarSearchInput.value = '';
+            titlebarSearchInput.blur();
+            renderMediaList(allMediaList);
+        }
+    });
+    
+    // 标题栏清除搜索按钮事件
+    titlebarClearSearchBtn.addEventListener('click', () => {
+        titlebarSearchInput.value = '';
+        renderMediaList(allMediaList);
+    });
     
     // 全局键盘事件监听 - 实现即时搜索
     document.addEventListener('keydown', (event) => {
         // 如果焦点已经在搜索框上，不处理
-        if (document.activeElement === searchInput) {
+        if (document.activeElement === titlebarSearchInput) {
             return;
         }
         
@@ -192,12 +217,12 @@ function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, fil
             event.preventDefault();
             
             // 清除当前搜索内容并输入新字符
-            searchInput.value = event.key;
-            searchInput.focus();
+            titlebarSearchInput.value = event.key;
+            titlebarSearchInput.focus();
             
             // 触发input事件以开始搜索
             const inputEvent = new Event('input', { bubbles: true });
-            searchInput.dispatchEvent(inputEvent);
+            titlebarSearchInput.dispatchEvent(inputEvent);
         }
     });
     
@@ -215,31 +240,6 @@ function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, fil
         showMessage(`删除失败:\n${errorMessage}`, 'error');
     });
     
-    // 搜索框输入事件 - 使用防抖来优化性能
-    let searchTimeout;
-    searchInput.addEventListener('input', () => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            renderMediaList(allMediaList);
-        }, 300); // 300ms 防抖延迟
-    });
-    
-    // 搜索框ESC键事件 - 清空搜索内容并失去焦点
-    searchInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && searchInput.value.trim() !== '') {
-            event.preventDefault();
-            searchInput.value = '';
-            searchInput.blur();
-            renderMediaList(allMediaList);
-        }
-    });
-    
-    // 清除搜索按钮事件
-    clearSearchBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        renderMediaList(allMediaList);
-    });
-    
     // 监听排序和过滤事件
     sortBySelect.addEventListener('change', () => renderMediaList(allMediaList));
     sortOrderSelect.addEventListener('change', () => renderMediaList(allMediaList));
@@ -252,7 +252,7 @@ function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, fil
         filterActorInput.value = '';
         filterStudioInput.value = '';
         filterGenreInput.value = '';
-        searchInput.value = ''; // 同时清除搜索框
+        titlebarSearchInput.value = ''; // 同时清除搜索框
         renderMediaList(allMediaList);
     });
 
@@ -365,6 +365,16 @@ function initWindowControls() {
     // 监听窗口最大化状态变化
     ipcRenderer.on('window-maximized', (event, isMaximized) => {
         maximizeBtn.textContent = isMaximized ? '❐' : '□';
+    });
+
+    // 监听窗口焦点状态变化
+    ipcRenderer.on('window-focused', (event, isFocused) => {
+        const titlebar = document.getElementById('custom-titlebar');
+        if (isFocused) {
+            titlebar.classList.remove('blurred');
+        } else {
+            titlebar.classList.add('blurred');
+        }
     });
 
     // 监听视频打开失败事件
@@ -666,14 +676,14 @@ function renderMediaList(mediaList) {
     const filterActor = document.getElementById('filter-actor').value.toLowerCase();
     const filterStudio = document.getElementById('filter-studio').value.toLowerCase();
     const filterGenre = document.getElementById('filter-genre').value.toLowerCase();
-    const searchInput = document.getElementById('search-input').value.toLowerCase().trim();
+    const titlebarSearchInput = document.getElementById('titlebar-search-input').value.toLowerCase().trim();
 
     // 过滤
     const filteredList = mediaList.filter(movie => {
         // 搜索过滤 - 搜索片名和番号
-        const matchSearch = searchInput === '' || 
-            (movie.title && movie.title.toLowerCase().includes(searchInput)) ||
-            (movie.id && movie.id.toLowerCase().includes(searchInput));
+        const matchSearch = titlebarSearchInput === '' || 
+            (movie.title && movie.title.toLowerCase().includes(titlebarSearchInput)) ||
+            (movie.id && movie.id.toLowerCase().includes(titlebarSearchInput));
             
         const matchActor = filterActor === '' || (movie.actors && movie.actors.some(actor => actor.toLowerCase().includes(filterActor)));
         const matchStudio = filterStudio === '' || (movie.studio && movie.studio.toLowerCase().includes(filterStudio));
