@@ -310,6 +310,11 @@ function initWindowControls() {
     ipcRenderer.on('video-opened', (event, videoPath) => {
         showMessage(`已打开视频: ${videoPath}`, 'success', 3000);
     });
+
+    // 监听打开视频文件所在目录失败事件
+    ipcRenderer.on('video-directory-open-failed', (event, videoPath, errorMessage) => {
+        showMessage(`无法打开视频文件所在目录:\n${videoPath}\n错误: ${errorMessage}`, 'error');
+    });
 }
 
 /**
@@ -689,7 +694,23 @@ function showMovieDetails(movie) {
         genresElement.textContent = '无';
     }
     
-    document.getElementById('movie-details-path').textContent = movie.videoPath || '无';
+    // 为视频路径添加可点击功能
+    const pathElement = document.getElementById('movie-details-path');
+    if (movie.videoPath) {
+        pathElement.innerHTML = '';
+        const pathSpan = document.createElement('span');
+        pathSpan.textContent = movie.videoPath;
+        pathSpan.classList.add('clickable-detail');
+        pathSpan.title = '点击打开文件所在目录';
+        pathSpan.addEventListener('click', () => {
+            // 发送IPC消息到主进程打开文件所在目录
+            ipcRenderer.send('open-video-directory', movie.videoPath);
+            modal.style.display = 'none';
+        });
+        pathElement.appendChild(pathSpan);
+    } else {
+        pathElement.textContent = '无';
+    }
 
     // 显示模态框
     modal.style.display = 'block';

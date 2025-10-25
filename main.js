@@ -241,6 +241,16 @@ ipcMain.on('open-video', (event, videoPath) => {
   });
 });
 
+// IPC handler for opening video directory
+ipcMain.on('open-video-directory', (event, videoPath) => {
+  const directoryPath = path.dirname(videoPath);
+  shell.openPath(directoryPath).catch(err => {
+    console.error("打开视频文件所在目录时出错:", directoryPath, err);
+    // 发送错误消息到渲染进程
+    event.sender.send('video-directory-open-failed', videoPath, err.message);
+  });
+});
+
 // IPC handler to get settings
 ipcMain.handle('get-settings', async () => {
     return readSettings();
