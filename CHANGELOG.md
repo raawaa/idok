@@ -1,4 +1,12 @@
 # 更新历史：
+## [0.3.0](https://github.com/raawaa/idok/compare/v0.2.1...v0.3.0) (2025-10-25)
+
+
+### ✨ 新增功能
+
+* **播放器:** 添加默认播放器选择和自定义播放器功能 ([0cadbf2](https://github.com/raawaa/idok/commit/0cadbf240276da81758623debaa94fcd232bf975))
+* **搜索:** 添加全局搜索功能及样式优化 ([53a19ec](https://github.com/raawaa/idok/commit/53a19ec142997d4e9dc1bfbb0bed88376f55a62a))
+
 ### [0.2.1](https://github.com/raawaa/idok/compare/v0.2.0...v0.2.1) (2025-10-25)
 
 
