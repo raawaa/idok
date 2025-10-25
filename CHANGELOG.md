@@ -1,4 +1,11 @@
 # 更新历史：
+### [0.2.1](https://github.com/raawaa/idok/compare/v0.2.0...v0.2.1) (2025-10-25)
+
+
+### 🐛 Bug 修复
+
+* **release:** 添加draft:false配置以避免发布草稿版本 ([0b1ae72](https://github.com/raawaa/idok/commit/0b1ae72b9b1a7e2b9899906dddf09415e6d39645))
+
 ## [0.2.0](https://github.com/raawaa/idok/compare/v0.1.5...v0.2.0) (2025-10-25)
 
 
