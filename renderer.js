@@ -163,68 +163,6 @@ function initializeApp() {
  * @param {HTMLButtonElement} openSettingsBtn - 打开设置按钮
  */
 function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, filterStudioInput, filterGenreInput, clearFiltersButton, openSettingsBtn) {
-    // 获取标题栏搜索框元素
-    const titlebarSearchInput = document.getElementById('titlebar-search-input');
-    const titlebarClearSearchBtn = document.getElementById('titlebar-clear-search-btn');
-    
-    // 标题栏搜索框输入事件 - 使用防抖来优化性能
-    let searchTimeout;
-    titlebarSearchInput.addEventListener('input', () => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            renderMediaList(allMediaList);
-        }, 300); // 300ms 防抖延迟
-    });
-    
-    // 标题栏搜索框ESC键事件 - 清空搜索内容并失去焦点
-    titlebarSearchInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && titlebarSearchInput.value.trim() !== '') {
-            event.preventDefault();
-            titlebarSearchInput.value = '';
-            titlebarSearchInput.blur();
-            renderMediaList(allMediaList);
-        }
-    });
-    
-    // 标题栏清除搜索按钮事件
-    titlebarClearSearchBtn.addEventListener('click', () => {
-        titlebarSearchInput.value = '';
-        renderMediaList(allMediaList);
-    });
-    
-    // 全局键盘事件监听 - 实现即时搜索
-    document.addEventListener('keydown', (event) => {
-        // 如果焦点已经在搜索框上，不处理
-        if (document.activeElement === titlebarSearchInput) {
-            return;
-        }
-        
-        // 如果焦点在输入框、文本区域或内容可编辑元素上，不处理
-        const activeElement = document.activeElement;
-        const isInputFocused = activeElement && (
-            activeElement.tagName === 'INPUT' || 
-            activeElement.tagName === 'TEXTAREA' || 
-            activeElement.contentEditable === 'true'
-        );
-        
-        if (isInputFocused) {
-            return;
-        }
-        
-        // 如果按下的键是字母、数字或空格，则将焦点转移到搜索框并输入字符
-        if (event.key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
-            // 阻止默认行为，避免在其他地方输入
-            event.preventDefault();
-            
-            // 清除当前搜索内容并输入新字符
-            titlebarSearchInput.value = event.key;
-            titlebarSearchInput.focus();
-            
-            // 触发input事件以开始搜索
-            const inputEvent = new Event('input', { bubbles: true });
-            titlebarSearchInput.dispatchEvent(inputEvent);
-        }
-    });
     
     // 监听主进程发送的确认删除事件
     ipcRenderer.on('confirm-delete', (event, directoryPath) => {
@@ -342,40 +280,6 @@ function initThemeSettings() {
  * 设置最小化、最大化和关闭按钮的事件监听
  */
 function initWindowControls() {
-    const minimizeBtn = document.getElementById('minimize-btn');
-    const maximizeBtn = document.getElementById('maximize-btn');
-    const closeBtn = document.getElementById('close-btn');
-
-    if (minimizeBtn) {
-        minimizeBtn.addEventListener('click', () => {
-            ipcRenderer.send('minimize-window');
-        });
-    }
-    if (maximizeBtn) {
-        maximizeBtn.addEventListener('click', () => {
-            ipcRenderer.send('maximize-restore-window');
-        });
-    }
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            ipcRenderer.send('close-window');
-        });
-    }
-
-    // 监听窗口最大化状态变化
-    ipcRenderer.on('window-maximized', (event, isMaximized) => {
-        maximizeBtn.textContent = isMaximized ? '❐' : '□';
-    });
-
-    // 监听窗口焦点状态变化
-    ipcRenderer.on('window-focused', (event, isFocused) => {
-        const titlebar = document.getElementById('custom-titlebar');
-        if (isFocused) {
-            titlebar.classList.remove('blurred');
-        } else {
-            titlebar.classList.add('blurred');
-        }
-    });
 
     // 监听视频打开失败事件
     ipcRenderer.on('video-open-failed', (event, videoPath, errorMessage) => {
@@ -676,19 +580,13 @@ function renderMediaList(mediaList) {
     const filterActor = document.getElementById('filter-actor').value.toLowerCase();
     const filterStudio = document.getElementById('filter-studio').value.toLowerCase();
     const filterGenre = document.getElementById('filter-genre').value.toLowerCase();
-    const titlebarSearchInput = document.getElementById('titlebar-search-input').value.toLowerCase().trim();
 
     // 过滤
     const filteredList = mediaList.filter(movie => {
-        // 搜索过滤 - 搜索片名和番号
-        const matchSearch = titlebarSearchInput === '' || 
-            (movie.title && movie.title.toLowerCase().includes(titlebarSearchInput)) ||
-            (movie.id && movie.id.toLowerCase().includes(titlebarSearchInput));
-            
         const matchActor = filterActor === '' || (movie.actors && movie.actors.some(actor => actor.toLowerCase().includes(filterActor)));
         const matchStudio = filterStudio === '' || (movie.studio && movie.studio.toLowerCase().includes(filterStudio));
         const matchGenre = filterGenre === '' || (movie.genres && movie.genres.some(genre => genre.toLowerCase().includes(filterGenre)));
-        return matchSearch && matchActor && matchStudio && matchGenre;
+        return matchActor && matchStudio && matchGenre;
     });
 
     // 排序

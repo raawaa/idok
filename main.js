@@ -689,9 +689,7 @@ function createWindow() {
             nodeIntegration: true,
             contextIsolation: false
         },
-        autoHideMenuBar: true,
-        frame: false,
-        titleBarStyle: 'hidden'
+        autoHideMenuBar: true
     });
 
     // Set window title from app name
