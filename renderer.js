@@ -1,5 +1,6 @@
-const { ipcRenderer } = require('electron');
-const path = require('path');
+console.log('renderer.js 开始执行');
+
+// 使用electronAPI进行IPC通信（通过preload.js暴露）
 
 
 let allMediaList = []; // 存储所有媒体数据的原始列表
@@ -100,7 +101,7 @@ function showDeleteModal(directoryPath) {
     
     // 确认删除按钮事件
     const handleConfirm = () => {
-        ipcRenderer.send('delete-directory', directoryPath);
+        window.electronAPI.send('delete-directory', directoryPath);
         deleteModal.style.display = 'none';
         confirmBtn.removeEventListener('click', handleConfirm);
         cancelBtn.removeEventListener('click', handleCancel);
@@ -119,38 +120,163 @@ function showDeleteModal(directoryPath) {
 
 /**
  * 初始化应用程序
- * 监听DOM加载完成事件，设置事件监听器和初始化界面
+ * 设置事件监听器和初始化界面
  */
 function initializeApp() {
-    document.addEventListener('DOMContentLoaded', async () => {
-        const movieCoversDiv = document.getElementById('movie-covers');
-
-        const sortBySelect = document.getElementById('sort-by');
-        const sortOrderSelect = document.getElementById('sort-order');
-        const filterActorInput = document.getElementById('filter-actor');
-        const filterStudioInput = document.getElementById('filter-studio');
-        const filterGenreInput = document.getElementById('filter-genre');
-        const clearFiltersButton = document.getElementById('clear-filters');
-        const openSettingsBtn = document.getElementById('open-settings-btn');
-
+    console.log('initializeApp 被调用');
+    
+    // 确保 DOM 完全加载
+    const ensureDOMReady = (callback) => {
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            console.log('DOM 已加载完成，执行回调');
+            setTimeout(callback, 0);
+        } else {
+            console.log('等待 DOM 加载完成...');
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('DOMContentLoaded 事件触发，执行回调');
+                callback();
+            });
+        }
+    };
+    
+    // 初始化应用
+    const initApp = () => {
+        console.log('开始初始化应用...');
+        
+        // 获取所有需要的 DOM 元素
+        const elements = {
+            movieCoversDiv: document.getElementById('movie-covers'),
+            sortBySelect: document.getElementById('sort-by'),
+            sortOrderSelect: document.getElementById('sort-order'),
+            filterActorInput: document.getElementById('filter-actor'),
+            filterStudioInput: document.getElementById('filter-studio'),
+            filterGenreInput: document.getElementById('filter-genre'),
+            clearFiltersButton: document.getElementById('clear-filters'),
+            openSettingsBtn: document.getElementById('open-settings-btn'),
+            controlsElement: document.getElementById('controls')
+        };
+        
+        console.log('获取到的元素:', elements);
+        
+        // 检查关键元素是否存在
+        if (!elements.movieCoversDiv) {
+            console.error('错误: 未找到 movie-covers 元素');
+        }
+        
+        if (!elements.controlsElement) {
+            console.error('错误: 未找到 controls 元素');
+        }
+        
         // 初始化事件监听器
-        initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, filterStudioInput, filterGenreInput, clearFiltersButton, openSettingsBtn);
+        if (elements.sortBySelect && elements.sortOrderSelect && elements.filterActorInput && 
+            elements.filterStudioInput && elements.filterGenreInput && 
+            elements.clearFiltersButton && elements.openSettingsBtn) {
+            
+            console.log('初始化事件监听器...');
+            initEventListeners(
+                elements.sortBySelect, 
+                elements.sortOrderSelect, 
+                elements.filterActorInput, 
+                elements.filterStudioInput, 
+                elements.filterGenreInput, 
+                elements.clearFiltersButton, 
+                elements.openSettingsBtn
+            );
+        } else {
+            console.error('部分元素未找到，无法初始化事件监听器');
+        }
 
         // 初始化主题设置
+        console.log('初始化主题设置...');
         initThemeSettings();
 
         // 初始化窗口控制按钮
+        console.log('初始化窗口控制...');
         initWindowControls();
 
         // 监听应用信息事件并更新标题
-        ipcRenderer.on('app-info', (event, appInfo) => {
+        console.log('设置应用信息监听...');
+        window.electronAPI.on('app-info', (appInfo) => {
+            console.log('收到应用信息:', appInfo);
             const appTitleElement = document.getElementById('app-title');
             if (appTitleElement) {
                 appTitleElement.textContent = `${appInfo.name} v${appInfo.version}`;
+            } else {
+                console.error('未找到 app-title 元素');
             }
         });
-    });
+        
+        // 设置 movie covers padding
+        console.log('准备设置 movie covers padding...');
+        const setupPadding = () => {
+            console.log('调用 setupMovieCoversPadding...');
+            const cleanup = setupMovieCoversPadding();
+            
+            if (typeof cleanup === 'function') {
+                console.log('setupMovieCoversPadding 执行成功，返回了清理函数');
+                
+                // 延迟检查 padding 是否已应用
+                setTimeout(() => {
+                    const movieCovers = document.getElementById('movie-covers');
+                    if (movieCovers) {
+                        const paddingTop = getComputedStyle(movieCovers).paddingTop;
+                        console.log('当前 movie-covers 的 padding-top:', paddingTop);
+                        
+                        if (paddingTop === '0px') {
+                            console.warn('警告: movie-covers 的 padding-top 仍为 0，尝试重新设置...');
+                            // 如果 padding 仍未应用，直接设置样式
+                            const controls = document.getElementById('controls');
+                            if (controls) {
+                                const controlsHeight = controls.offsetHeight;
+                                const newPadding = `${controlsHeight + 10}px`;
+                                console.log(`直接设置 padding-top: ${newPadding}`);
+                                movieCovers.style.paddingTop = newPadding;
+                            }
+                        }
+                    }
+                }, 500);
+                
+                // 添加一个更长的延迟检查
+                setTimeout(() => {
+                    const movieCovers = document.getElementById('movie-covers');
+                    if (movieCovers) {
+                        console.log('最终 movie-covers 的 padding-top:', getComputedStyle(movieCovers).paddingTop);
+                    }
+                }, 2000);
+                
+            } else {
+                console.error('setupMovieCoversPadding 未返回清理函数，可能执行失败');
+                
+                // 如果 setupMovieCoversPadding 失败，尝试直接设置 padding
+                const movieCovers = document.getElementById('movie-covers');
+                const controls = document.getElementById('controls');
+                
+                if (movieCovers && controls) {
+                    const controlsHeight = controls.offsetHeight;
+                    const newPadding = `${controlsHeight + 10}px`;
+                    console.log(`直接设置 padding-top: ${newPadding}`);
+                    movieCovers.style.paddingTop = newPadding;
+                }
+            }
+        };
+        
+        // 立即尝试设置 padding
+        setupPadding();
+        
+        // 延迟 500ms 后再次尝试，确保所有内容都已加载
+        setTimeout(setupPadding, 500);
+        
+        // 延迟 1 秒后再次尝试
+        setTimeout(setupPadding, 1000);
+    };
+    
+    // 确保 DOM 完全加载后初始化应用
+    ensureDOMReady(initApp);
 }
+
+// 在文件底部调用 initializeApp 来启动应用
+console.log('renderer.js 加载完成，准备初始化应用...');
+initializeApp();
 
 /**
  * 初始化各种事件监听器
@@ -165,16 +291,16 @@ function initializeApp() {
 function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, filterStudioInput, filterGenreInput, clearFiltersButton, openSettingsBtn) {
     
     // 监听主进程发送的确认删除事件
-    ipcRenderer.on('confirm-delete', (event, directoryPath) => {
+    window.electronAPI.on('confirm-delete', (directoryPath) => {
         showDeleteModal(directoryPath);
     });
 
     // 监听目录删除结果事件
-    ipcRenderer.on('directory-trashed', (event, directoryPath) => {
+    window.electronAPI.on('directory-trashed', (directoryPath) => {
         showMessage(`影片目录已移至回收站:\n${directoryPath}`, 'success');
     });
 
-    ipcRenderer.on('trash-failed', (event, directoryPath, errorMessage) => {
+    window.electronAPI.on('trash-failed', (directoryPath, errorMessage) => {
         showMessage(`删除失败:\n${errorMessage}`, 'error');
     });
     
@@ -198,10 +324,10 @@ function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, fil
     openSettingsBtn.addEventListener('click', openSettingsDialog);
 
     // 监听主进程事件
-    ipcRenderer.on('start-initial-scan', async (event, directoryPaths) => {
+    window.electronAPI.on('start-initial-scan', async (directoryPaths) => {
         console.log("开始初次扫描...");
         try {
-            allMediaList = await ipcRenderer.invoke('scan-directory', directoryPaths);
+            allMediaList = await window.electronAPI.invoke('scan-directory', directoryPaths);
             console.log("初次扫描完成，找到", allMediaList.length, "个媒体文件。");
             populateDropdowns(allMediaList);
             renderMediaList(allMediaList);
@@ -212,18 +338,18 @@ function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, fil
         }
     });
 
-    ipcRenderer.on('no-directories-configured', () => {
+    window.electronAPI.on('no-directories-configured', () => {
         const movieCoversDiv = document.getElementById('movie-covers');
         movieCoversDiv.innerHTML = '<p>请在设置中配置影片目录。</p>';
         showMessage('尚未配置影片目录，请打开设置添加目录', 'warning');
     });
 
-    ipcRenderer.on('settings-saved-and-rescan', async () => {
+    window.electronAPI.on('settings-saved-and-rescan', async () => {
         console.log("设置已保存，重新扫描...");
         try {
-            const settings = await ipcRenderer.invoke('get-settings');
+            const settings = await window.electronAPI.invoke('get-settings');
             if (settings && settings.directories && settings.directories.length > 0) {
-                allMediaList = await ipcRenderer.invoke('scan-directory', settings.directories);
+                allMediaList = await window.electronAPI.invoke('scan-directory', settings.directories);
                 console.log("重新扫描完成，找到", allMediaList.length, "个媒体文件。");
                 populateDropdowns(allMediaList);
                 renderMediaList(allMediaList);
@@ -246,33 +372,64 @@ function initEventListeners(sortBySelect, sortOrderSelect, filterActorInput, fil
  * 从本地存储加载主题偏好，设置主题切换按钮事件
  */
 function initThemeSettings() {
+    console.log('初始化主题设置...');
     const themeToggleCheckbox = document.getElementById('theme-toggle');
-
-    // 从本地存储加载主题偏好
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-        document.body.setAttribute('data-theme', savedTheme);
-        themeToggleCheckbox.checked = savedTheme === 'dark';
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.setAttribute('data-theme', 'dark');
-        themeToggleCheckbox.checked = true;
+    
+    // 如果主题切换按钮不存在，则使用默认主题
+    if (!themeToggleCheckbox) {
+        console.warn('未找到主题切换按钮，使用默认主题设置');
+        const defaultTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.body.setAttribute('data-theme', defaultTheme);
+        return;
     }
 
-    // 监听系统主题变化
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-        if (!localStorage.getItem('theme')) {
-            const newTheme = e.matches ? 'dark' : 'light';
-            document.body.setAttribute('data-theme', newTheme);
-            themeToggleCheckbox.checked = e.matches;
+    try {
+        // 从本地存储加载主题偏好
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.body.setAttribute('data-theme', savedTheme);
+            themeToggleCheckbox.checked = savedTheme === 'dark';
+        } else if (window.matchMedia) {
+            const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = isDarkMode ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', theme);
+            themeToggleCheckbox.checked = isDarkMode;
         }
-    });
 
-    // 主题切换按钮点击事件
-    themeToggleCheckbox.addEventListener('change', () => {
-        const newTheme = themeToggleCheckbox.checked ? 'dark' : 'light';
-        document.body.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-    });
+        // 监听系统主题变化
+        const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleSystemThemeChange = (e) => {
+            if (!localStorage.getItem('theme')) {
+                const newTheme = e.matches ? 'dark' : 'light';
+                document.body.setAttribute('data-theme', newTheme);
+                if (themeToggleCheckbox) {
+                    themeToggleCheckbox.checked = e.matches;
+                }
+            }
+        };
+        
+        // 添加事件监听器
+        if (darkModeMediaQuery.addEventListener) {
+            darkModeMediaQuery.addEventListener('change', handleSystemThemeChange);
+        } else if (darkModeMediaQuery.addListener) { // 兼容旧版浏览器
+            darkModeMediaQuery.addListener(handleSystemThemeChange);
+        }
+
+        // 主题切换按钮点击事件
+        themeToggleCheckbox.addEventListener('change', () => {
+            const newTheme = themeToggleCheckbox.checked ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+            try {
+                localStorage.setItem('theme', newTheme);
+            } catch (e) {
+                console.error('无法保存主题设置到本地存储:', e);
+            }
+        });
+        
+        console.log('主题设置初始化完成');
+    } catch (error) {
+        console.error('初始化主题设置时出错:', error);
+    }
 }
 
 /**
@@ -280,55 +437,54 @@ function initThemeSettings() {
  * 设置最小化、最大化和关闭按钮的事件监听
  */
 function initWindowControls() {
+    console.log('初始化窗口控制...');
+    
+    try {
+        // 监听视频打开失败事件
+        window.electronAPI.on('video-open-failed', (videoPath, errorMessage) => {
+            console.error('视频播放失败:', videoPath, errorMessage);
+            showMessage(`视频播放失败: ${errorMessage}`, 'error', 5000);
+        });
 
-    // 监听视频打开失败事件
-    ipcRenderer.on('video-open-failed', (event, videoPath, errorMessage) => {
-        showMessage(`无法打开视频文件:\n${videoPath}\n错误: ${errorMessage}`, 'error');
-    });
+        // 监听视频打开成功事件
+        window.electronAPI.on('video-opened', (videoPath) => {
+            console.log('视频已开始播放:', videoPath);
+            showMessage('视频已开始播放', 'success', 2000);
+        });
 
-    // 监听视频打开成功事件
-    ipcRenderer.on('video-opened', (event, videoPath) => {
-        showMessage(`已打开视频: ${videoPath}`, 'success', 3000);
-    });
-
-    // 监听打开视频文件所在目录失败事件
-    ipcRenderer.on('video-directory-open-failed', (event, videoPath, errorMessage) => {
-        showMessage(`无法打开视频文件所在目录:\n${videoPath}\n错误: ${errorMessage}`, 'error');
-    });
-
-    // 监听视频播放成功事件
-ipcRenderer.on('video-opened', (event, videoPath) => {
-    showMessage('视频已开始播放', 'success', 2000);
-});
-
-// 监听视频播放失败事件
-ipcRenderer.on('video-open-failed', (event, videoPath, errorMessage) => {
-    console.error('视频播放失败:', videoPath, errorMessage);
-    showMessage(`视频播放失败: ${errorMessage}`, 'error', 5000);
-});
+        // 监听打开视频文件所在目录失败事件
+        window.electronAPI.on('video-directory-open-failed', (videoPath, errorMessage) => {
+            console.error('无法打开视频文件所在目录:', videoPath, errorMessage);
+            showMessage(`无法打开视频文件所在目录: ${errorMessage}`, 'error');
+        });
+        
+        console.log('窗口控制初始化完成');
+    } catch (error) {
+        console.error('初始化窗口控制时出错:', error);
+    }
+}
 
 // 监听右键菜单命令
-ipcRenderer.on('context-menu-command', (event, command, videoPath) => {
+window.electronAPI.on('context-menu-command', (command, videoPath) => {
     switch(command) {
         case 'play':
-            ipcRenderer.send('open-video', videoPath);
+            window.electronAPI.send('open-video', videoPath);
             break;
         case 'open-folder':
-            ipcRenderer.send('open-video-directory', videoPath);
+            window.electronAPI.send('open-video-directory', videoPath);
             break;
         case 'delete':
             showDeleteModal(videoPath);
             break;
     }
 });
-}
 
 /**
  * 打开设置对话框
  * 从主进程获取当前设置并动态创建设置表单
  */
 async function openSettingsDialog() {
-    const currentSettings = await ipcRenderer.invoke('get-settings');
+    const currentSettings = await window.electronAPI.invoke('get-settings');
     const settingsModal = document.getElementById('settings-modal');
     const settingsContent = document.getElementById('settings-content');
 
@@ -435,7 +591,7 @@ async function openSettingsDialog() {
     modalElement.addEventListener('click', async (e) => {
         // 添加目录按钮点击事件
         if (e.target.id === 'add-directory-btn') {
-            const result = await ipcRenderer.invoke('open-directory-dialog');
+            const result = await window.electronAPI.invoke('open-directory-dialog');
             if (!result.canceled && result.filePaths.length > 0) {
                 const newDir = result.filePaths[0];
                 const directoryList = document.getElementById('directory-list');
@@ -461,17 +617,17 @@ async function openSettingsDialog() {
         }
         // 自定义播放器按钮点击事件
         else if (e.target.id === 'custom-player-btn') {
-            const result = await ipcRenderer.invoke('open-player-dialog');
+            const result = await window.electronAPI.invoke('open-player-dialog');
             if (!result.canceled && result.filePaths.length > 0) {
                 const playerPath = result.filePaths[0];
-                const playerName = path.basename(playerPath, '.exe');
+                const playerName = window.electronAPI.pathBasename(playerPath, '.exe');
                 
                 // 添加到播放器选择列表
                 const playerSelect = document.getElementById('default-player-select');
                 const option = document.createElement('option');
                 option.value = JSON.stringify({
                     name: playerName,
-                    executable: path.basename(playerPath),
+                    executable: window.electronAPI.pathBasename(playerPath),
                     path: playerPath
                 });
                 option.textContent = `${playerName} (自定义)`;
@@ -481,7 +637,7 @@ async function openSettingsDialog() {
                 // 更新播放器状态显示
                 updatePlayerStatus({
                     name: playerName,
-                    executable: path.basename(playerPath),
+                    executable: window.electronAPI.pathBasename(playerPath),
                     path: playerPath
                 });
                 
@@ -516,7 +672,7 @@ async function openSettingsDialog() {
             }
             
             try {
-                await ipcRenderer.invoke('save-settings', { directories, defaultPlayer, customPlayer });
+                await window.electronAPI.invoke('save-settings', { directories, defaultPlayer, customPlayer });
                 modalElement.style.display = 'none';
                 showMessage('设置已保存', 'success', 3000);
             } catch (error) {
@@ -617,7 +773,7 @@ function renderMediaList(mediaList) {
             movieElement.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 const videoPath = e.currentTarget.dataset.videoPath;
-                ipcRenderer.send('show-context-menu', videoPath);
+                window.electronAPI.send('show-context-menu', videoPath);
             });
 
             // 加载指示器
@@ -642,7 +798,7 @@ function renderMediaList(mediaList) {
                 });
 
                 coverElement.addEventListener('click', () => {
-                    ipcRenderer.send('open-video', movie.videoPath);
+                    window.electronAPI.send('open-video', movie.videoPath);
                 });
 
                 movieElement.appendChild(coverElement);
@@ -691,21 +847,136 @@ function renderMediaList(mediaList) {
             infoButton.textContent = '信息';
             infoButton.title = '查看详细信息';
             infoButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                showMovieDetails(movie);
-            });
-            movieInfoDiv.appendChild(infoButton);
-
-            movieElement.appendChild(movieInfoDiv);
-            movieCoversDiv.appendChild(movieElement);
+            e.stopPropagation();
+            showMovieDetails(movie);
         });
-    } else {
-        movieCoversDiv.innerHTML = '<p>没有找到匹配的媒体文件。</p>';
-    }
+        movieInfoDiv.appendChild(infoButton);
+
+        movieElement.appendChild(movieInfoDiv);
+        movieCoversDiv.appendChild(movieElement);
+    });
+} else {
+    movieCoversDiv.innerHTML = '<p>没有找到匹配的媒体文件。</p>';
+}
 }
 
-// 初始化应用
-initializeApp();
+/**
+ * 使用 ResizeObserver 动态调整 #movie-covers 的 padding-top
+ * 确保内容始终在 controls 元素下方 10px 处开始
+ * @returns {Function} 清理函数，用于在组件卸载时调用
+ */
+function setupMovieCoversPadding() {
+    console.log('setupMovieCoversPadding 被调用');
+    
+    // 确保 DOM 完全加载
+    const ensureElements = () => {
+        const controlsElement = document.getElementById('controls');
+        const movieCovers = document.getElementById('movie-covers');
+        
+        if (!controlsElement || !movieCovers) {
+            console.log('元素尚未加载完成，等待 100ms 后重试...');
+            setTimeout(ensureElements, 100);
+            return null;
+        }
+        
+        return { controlsElement, movieCovers };
+    };
+    
+    const elements = ensureElements();
+    if (!elements) return () => {};
+    
+    const { controlsElement, movieCovers } = elements;
+    console.log('找到 controls 和 movie-covers 元素');
+
+    // 立即设置初始 padding 为 0，避免初始加载时的闪烁
+    movieCovers.style.setProperty('padding-top', '0', 'important');
+    
+    // 添加一个类名用于调试
+    movieCovers.classList.add('movie-covers-padding-adjusted');
+
+    // 更新 padding 的函数
+    const updatePadding = () => {
+        const controlsHeight = controlsElement.offsetHeight;
+        const newPadding = `${controlsHeight + 20}px`;
+        console.log(`更新 padding-top: ${newPadding}`);
+        
+        // 直接设置样式
+        movieCovers.style.setProperty('padding-top', newPadding, 'important');
+    };
+
+    // 检查是否支持 ResizeObserver
+    if (typeof ResizeObserver !== 'undefined') {
+        console.log('使用 ResizeObserver 监听 controls 高度变化');
+        
+        let animationFrameId;
+        const resizeObserver = new ResizeObserver((entries) => {
+            console.log('检测到 controls 尺寸变化');
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            animationFrameId = requestAnimationFrame(updatePadding);
+        });
+
+        // 监听 controls 元素的大小变化
+        resizeObserver.observe(controlsElement, { box: 'border-box' });
+        
+        // 初始设置
+        updatePadding();
+        
+        // 添加一个定时器，确保在加载后再次更新
+        const updateAfterLoad = () => {
+            console.log('执行延迟更新...');
+            updatePadding();
+        };
+        
+        // 延迟 500ms 后再次更新，确保所有内容都已加载
+        setTimeout(updateAfterLoad, 500);
+        
+        // 返回清理函数
+        return () => {
+            console.log('清理 ResizeObserver');
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            resizeObserver.disconnect();
+        };
+    } else {
+        console.warn('浏览器不支持 ResizeObserver，使用回退方案');
+        
+        // 回退方案：使用 window.resize 事件
+        let animationFrameId;
+        const handleResize = () => {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            animationFrameId = requestAnimationFrame(updatePadding);
+        };
+
+        // 添加事件监听
+        window.addEventListener('resize', handleResize);
+        
+        // 初始设置
+        updatePadding();
+        
+        // 添加一个定时器，确保在加载后再次更新
+        const updateAfterLoad = () => {
+            console.log('执行延迟更新...');
+            updatePadding();
+        };
+        
+        // 延迟 500ms 后再次更新，确保所有内容都已加载
+        setTimeout(updateAfterLoad, 500);
+
+        // 返回清理函数
+        return () => {
+            console.log('清理 resize 事件监听');
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            window.removeEventListener('resize', handleResize);
+        };
+    }
+}
 
 /**
  * 从媒体列表中提取唯一的演员列表
@@ -862,7 +1133,7 @@ function showMovieDetails(movie) {
         pathSpan.title = '点击打开文件所在目录';
         pathSpan.addEventListener('click', () => {
             // 发送IPC消息到主进程打开文件所在目录
-            ipcRenderer.send('open-video-directory', movie.videoPath);
+            window.electronAPI.send('open-video-directory', movie.videoPath);
             modal.style.display = 'none';
         });
         pathElement.appendChild(pathSpan);

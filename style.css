@@ -123,7 +123,9 @@ h1 {
     margin-right: 10px;
     margin-bottom: 20px;
     text-align: center;
-    background-color: var(--card-bg);
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     padding: 20px;
     /* 保持垂直 padding */
     padding-left: 20px;
@@ -131,7 +133,23 @@ h1 {
     padding-right: 20px;
     /* 添加右侧 padding */
     border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    /* 添加一些顶部边距避免紧贴浏览器边缘 */
+    margin-top: 10px;
+    /* 添加左右边距保持与内容一致 */
+    margin-left: 0;
+    margin-right: 0;
+    /* 添加最大宽度以匹配内容容器 */
+    max-width: calc(100% - 40px);
+    /* 居中对齐 */
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 #controls label {
@@ -377,6 +395,7 @@ h1 {
     padding: 20px;
     /* 添加水平和垂直 padding */
     justify-items: center;
+    /* 初始 padding-top 由 JavaScript 动态设置 */
 }
 
 .movie-item {
