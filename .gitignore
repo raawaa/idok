@@ -30,3 +30,7 @@ Thumbs.db
 # vscode
 .vscode/
 .windsurf/
+
+# 项目规则自动生成的过程性MD文件
+project_doing.md
+task_detail.md

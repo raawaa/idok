@@ -1,9 +1,11 @@
 {
   "name": "idok",
   "version": "0.3.0",
-  "main": "main.js",
+  "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
+    "dev": "nodemon",
+    "dev:verbose": "concurrently \"nodemon --watch src --ext js,json,html,css --exec 'echo \"🔄 重新启动Electron...\" && electron .'\" \"echo \"🔥 热重载已启动，修改文件将自动重新加载\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "electron-builder",
     "release": "standard-version",
@@ -16,12 +18,16 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "electron": "^36.3.1",
     "electron-builder": "^24.9.1",
     "electron-reloader": "^1.2.3",
+    "nodemon": "^3.1.10",
     "standard-version": "^9.5.0"
   },
   "dependencies": {
+    "lucide": "^0.552.0",
+    "opencc-js": "^1.0.5",
     "xml2js": "^0.6.2"
   },
   "build": {

@@ -21,7 +21,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    transition: all 0.3s ease;
+    /* 移除全局过渡效果，避免主题切换时的性能问题 */
 }
 
 body {
@@ -30,28 +30,27 @@ body {
     color: var(--text-color);
     line-height: 1.6;
     padding: 0;
-    /* 默认 padding */
-    padding-top: 30px;
-    /* 为自定义标题栏和顶部内容留出更多空间 */
-    padding-right: 0;
-    /* 为垂直滚动条留出空间 */
+    margin: 0;
     overflow-y: hidden;
     /* 阻止 body 自身出现滚动条 */
+    /* 为主题切换添加平滑过渡效果 */
+    transition: background-color 0.3s ease, color 0.3s ease;
+    /* 优化主题切换性能 */
+    will-change: background-color, color;
 }
 
 #content-container {
-    padding-top: 35px;
-    /* 略大于标题栏高度，避免重叠 */
+    padding: 20px 0 20px 0;
+    /* 移除顶部固定padding，改为在movie-covers上动态设置 */
     padding-right: 0;
     /* 移除右侧 padding，让滚动条紧贴窗口 */
     padding-left: 0;
     /* 同时移除左侧 padding */
     overflow-y: auto;
     /* 在内容容器上启用滚动条 */
-    height: calc(100vh - 35px - 1px);
-    /* 减去标题栏高度，并额外减去1px防止溢出 */
-    overscroll-behavior: contain;
-    /* 防止滚动到底部时的反弹效果 */
+    height: calc(100vh - 30px);
+    /* 减去标题栏高度 */
+    box-sizing: border-box;
 }
 
 #custom-titlebar {
@@ -278,17 +277,12 @@ body {
     
     /* 暗色模式下的标题栏 */
     #custom-titlebar {
-        background-color: var(--accent-color) !important;
-    }
-    
-    /* 窗口失焦时的标题栏颜色 */
-    #custom-titlebar.blurred {
-        background-color: #444 !important;
-    }
-}
-    
-    .theme-toggle-btn:hover .theme-toggle-slider {
-    box-shadow: 0 0 5px rgba(255,255,255,0.1);
+        height: calc(100vh - 1px);
+    /* 使用完整的视窗高度，额外减去1px防止溢出 */
+    overscroll-behavior: contain;
+    /* 防止滚动到底部时的反弹效果 */
+    box-sizing: border-box;
+    /* 确保padding计算在高度内 */
 }
 
 /* 强制暗色/亮色模式 */
@@ -306,23 +300,129 @@ body[data-theme='light'] {
     --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* 暗色主题下的影片文字样式强化 */
+body[data-theme='dark'] .movie-item h3 {
+    color: #ffffff !important;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+body[data-theme='dark'] .movie-item p {
+    color: #e0e0e0 !important;
+    opacity: 0.9;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+body[data-theme='dark'] .movie-item p .clickable-text {
+    color: #66b3ff !important;
+    font-weight: 600;
+}
+
+body[data-theme='dark'] .movie-item p .clickable-text:hover {
+    color: #99ccff !important;
+}
+
+/* 媒体标签样式 */
+.media-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.media-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 0.75em;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    font-weight: 500;
+    animation: fadeIn 0.3s ease;
+}
+
+/* 淡入动画 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 演员标签样式 */
+.media-tag[data-filter-type="actor"] {
+    background-color: rgba(0, 122, 255, 0.1);
+    color: var(--accent-color);
+    border-color: rgba(0, 122, 255, 0.2);
+}
+
+.media-tag[data-filter-type="actor"]:hover {
+    background-color: rgba(0, 122, 255, 0.2);
+    border-color: rgba(0, 122, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+/* 系列标签样式 */
+.media-tag[data-filter-type="set"] {
+    background-color: rgba(52, 199, 89, 0.1);
+    color: #34c759;
+    border-color: rgba(52, 199, 89, 0.2);
+}
+
+.media-tag[data-filter-type="set"]:hover {
+    background-color: rgba(52, 199, 89, 0.2);
+    border-color: rgba(52, 199, 89, 0.4);
+    transform: translateY(-1px);
+}
+
+/* 暗色主题下的标签样式 */
+body[data-theme='dark'] .media-tag[data-filter-type="actor"] {
+    background-color: rgba(0, 122, 255, 0.15);
+    color: #66b3ff;
+    border-color: rgba(102, 179, 255, 0.3);
+}
+
+body[data-theme='dark'] .media-tag[data-filter-type="actor"]:hover {
+    background-color: rgba(0, 122, 255, 0.25);
+    border-color: rgba(102, 179, 255, 0.5);
+}
+
+body[data-theme='dark'] .media-tag[data-filter-type="set"] {
+    background-color: rgba(52, 199, 89, 0.15);
+    color: #4cd964;
+    border-color: rgba(76, 217, 100, 0.3);
+}
+
+body[data-theme='dark'] .media-tag[data-filter-type="set"]:hover {
+    background-color: rgba(52, 199, 89, 0.25);
+    border-color: rgba(76, 217, 100, 0.5);
+}
+
+/* 悬浮控制区域 - 暗色主题适配 */
 @media (prefers-color-scheme: dark) {
-    #custom-titlebar {
-        background-color: rgba(50, 50, 50, 0.8);
-        color: white;
+    #controls {
+        background: rgba(44, 44, 44, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
+}
 
-    .window-control-btn {
-        color: white;
-    }
+/* 悬浮控制区域 - 强制主题适配 */
+body[data-theme='dark'] #controls {
+    background: rgba(44, 44, 44, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
 
-    .window-control-btn:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-    }
-
-    #close-btn:hover {
-        background-color: rgba(255, 0, 0, 0.4);
-    }
+body[data-theme='light'] #controls {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
@@ -336,33 +436,213 @@ h1 {
     /* 移除默认 H1 的顶部 margin */
 }
 
-/* 控件容器样式 */
+/* 控制区分组样式 */
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* 控制项样式 - 确保标签和控件作为一个整体换行 */
+.control-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+/* 控制区紧凑布局优化 */
+#controls > .search-container {
+    margin-right: 10px;
+}
+
+#controls > .control-group {
+    margin-right: 10px;
+}
+
+/* 悬浮控制区域样式 */
 #controls {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 1200px;
+    z-index: 100;
+
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 15px;
-    margin-top: 0;
-    /* 移除顶部 margin */
-    margin-left: 10px;
-    margin-right: 10px;
-    margin-bottom: 20px;
-    text-align: center;
-    background-color: var(--card-bg);
-    padding: 20px;
-    /* 保持垂直 padding */
-    padding-left: 20px;
-    /* 添加左侧 padding */
-    padding-right: 20px;
-    /* 添加右侧 padding */
+    gap: 8px;
+
+    /* 磨砂玻璃效果 */
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    /* 视觉效果 */
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+    /* 布局 */
+    padding: 12px;
+    margin: 0;
+    text-align: center;
+
+    /* 动画 - 优化为主题切换性能 */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* 搜索框容器样式 */
+.search-container {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 300px;
+}
+
+#search-input {
+    width: 100%;
+    padding: 6px 30px 6px 10px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 0.9em;
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+#search-input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+}
+
+.clear-search-btn {
+    /* 清楚按钮专属样式 - 完全透明，无任何装饰 */
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    color: #666666 !important;
+    opacity: 0;
+    cursor: pointer;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    transition: opacity 0.15s ease, color 0.15s ease !important;
+    z-index: 10 !important;
+    box-sizing: border-box !important;
+    line-height: 1 !important;
+    font-family: inherit !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+}
+
+/* 清楚按钮悬停状态 - 仅在可见时显示，强制覆盖通用按钮规则 */
+#controls button.clear-search-btn:hover,
+#controls .clear-search-btn:hover,
+.clear-search-btn:hover {
+    opacity: 1 !important;
+    color: #333333 !important;
+    transform: translateY(-50%) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+}
+
+/* 清楚按钮激活状态 */
+.clear-search-btn:active {
+    opacity: 0.8 !important;
+    box-shadow: none !important;
+}
+
+/* 清楚按钮可见状态 - 由JavaScript动态添加 */
+.clear-search-btn.visible {
+    opacity: 0.6 !important;
+    box-shadow: none !important;
+}
+
+/* 清楚按钮点击动画 - 无位移动画 */
+.clear-search-btn.clear-btn-clicking {
+    opacity: 0.8 !important;
+    box-shadow: none !important;
+}
+
+/* 清楚按钮按下状态 - 无位移动画 */
+.clear-search-btn.clear-btn-pressing {
+    opacity: 0.9 !important;
+    box-shadow: none !important;
+}
+
+/* 清楚按钮ESC键动画 - 无位移动画 */
+.clear-search-btn.clear-btn-esc-animation {
+    opacity: 1 !important;
+    box-shadow: none !important;
+}
+
+/* 暗色主题下的清楚按钮 */
+body[data-theme='dark'] .clear-search-btn {
+    color: #b0b0b0 !important;
+    box-shadow: none !important;
+}
+
+body[data-theme='dark'] .clear-search-btn.visible {
+    opacity: 0.7 !important;
+    box-shadow: none !important;
+}
+
+body[data-theme='dark'] .clear-search-btn:hover {
+    opacity: 1 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
 }
 
 #controls label {
     font-weight: 500;
     color: var(--text-color);
+    font-size: 0.85em;
+    margin-right: 4px;
+    white-space: nowrap;
+}
+
+#controls select {
+    padding: 6px 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 0.85em;
+    outline: none;
+    transition: all 0.3s ease;
+    height: 36px;
+    box-sizing: border-box;
+    min-width: 100px;
 }
 
 #controls label[style*="margin-left"] {
@@ -459,20 +739,69 @@ h1 {
     padding: 8px 12px;
     font-size: 0.9em;
     outline: none;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     color: var(--text-color); /* 确保文字颜色跟随主题 */
 }
 
-#controls button {
+#controls button:not(.clear-search-btn) {
     background-color: var(--accent-color);
     color: white;
     border: none;
     cursor: pointer;
+    font-size: 14px !important;
+    padding: 6px 12px !important;
+    min-height: 36px !important;
+    min-width: 36px !important;
+    border-radius: 6px !important;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 500 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
-#controls button:hover {
+#controls button:not(.clear-search-btn):hover {
     opacity: 0.9;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
+
+#controls button:not(.clear-search-btn):active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 统一的图标按钮样式 */
+#controls button[id$="-btn"]:not(#clear-search-btn) {
+    /* 匹配所有以 -btn 结尾的按钮ID，但排除清除搜索按钮 */
+    font-size: 16px !important;
+    padding: 6px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    background: var(--accent-color) !important; /* 使用纯色背景替代渐变 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+#controls button[id$="-btn"]:not(#clear-search-btn):hover {
+    background: var(--accent-color) !important; /* 悬停时保持纯色 */
+    transform: translateY(-1px) scale(1.02) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
+    opacity: 1 !important;
+}
+
+/* 深色主题下的图标按钮 */
+body[data-theme='dark'] #controls button[id$="-btn"]:not(#clear-search-btn) {
+    background: var(--accent-color) !important; /* 深色主题下也使用纯色 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+body[data-theme='dark'] #controls button[id$="-btn"]:not(#clear-search-btn):hover {
+    background: var(--accent-color) !important; /* 悬停时保持纯色 */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
+}
+
 
 /* 选择器选项样式 */
 #controls select option,
@@ -600,8 +929,8 @@ h1 {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
-    padding: 20px;
-    /* 添加水平和垂直 padding */
+    padding: 40px 20px 20px 20px;
+    /* 增加顶部padding，从20px增加到40px，增加与控制区域的间距 */
     justify-items: center;
 }
 
@@ -648,9 +977,15 @@ h1 {
     font-weight: 600;
     margin-bottom: 8px;
     color: var(--text-color);
-    white-space: nowrap;
+    /* 移除单行限制，支持多行显示 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* 最多显示2行 */
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.4;
+    min-height: 2.8em; /* 确保至少有2行的高度 */
+    word-wrap: break-word;
+    word-break: break-word;
 }
 
 .movie-item p {
@@ -691,7 +1026,7 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.3s ease;
     z-index: 2;
 }
 
@@ -749,9 +1084,165 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
     background-color: rgba(255, 255, 255, 0.4);
 }
 
+/* 悬浮控制区域响应式设计 */
+@media (max-width: 768px) {
+    #controls {
+        width: calc(100% - 20px);
+        padding: 10px;
+        gap: 8px;
+        top: 10px;
+    }
+
+    #content-container {
+        padding: 20px 0 20px 0;
+        /* 移除顶部固定padding，改为在movie-covers上动态设置 */
+    }
+
+    .search-container {
+        min-width: 180px;
+        max-width: 100%;
+        flex: 1 1 100%;
+        order: -1;
+        /* 搜索框排在最前面 */
+    }
+
+    #search-input {
+        font-size: 16px;
+        /* 防止iOS缩放 */
+        padding: 8px 30px 8px 12px;
+        height: 40px;
+    }
+
+    #controls select,
+    #controls input:not(#search-input),
+    #controls button {
+        font-size: 14px;
+        padding: 8px 10px;
+        min-height: 40px;
+        /* 触摸友好的最小高度 */
+    }
+    
+    /* 控制项响应式样式 */
+    .control-item {
+        gap: 2px;
+    }
+    
+    /* 在中等屏幕上使用两行布局 */
+    #controls > *:not(.search-container) {
+        flex: 0 0 auto;
+    }
+}
+
 @media (max-width: 600px) {
     #movie-covers {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        padding: 15px;
+    }
+
+    #controls {
+        width: calc(100% - 10px);
+        padding: 8px;
+        gap: 6px;
+        max-height: 100px;
+        overflow-y: auto;
+        top: 5px;
+    }
+
+    #content-container {
+        padding: 20px 0 20px 0;
+        /* 移除顶部固定padding，改为在movie-covers上动态设置 */
+    }
+
+    .search-container {
+        order: -1;
+        margin-bottom: 5px;
+    }
+    
+    /* 在小屏幕上使用更紧凑的布局 */
+    #controls label {
+        font-size: 12px;
+        margin-right: 2px;
+    }
+    
+    #controls select,
+    #controls button:not(.clear-search-btn) {
+        min-height: 36px;
+        font-size: 12px;
+        padding: 6px 8px;
+    }
+    
+    /* 控制项响应式样式 */
+    .control-item {
+        gap: 2px;
+    }
+    
+    .control-group {
+        gap: 4px;
+    }
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 480px) {
+    #controls {
+        gap: 4px;
+        padding: 6px;
+        max-height: 90px;
+        top: 5px;
+        width: calc(100% - 10px);
+    }
+
+    #content-container {
+        padding: 20px 0 20px 0;
+        /* 移除顶部固定padding，改为在movie-covers上动态设置 */
+    }
+
+    #search-input {
+        padding: 5px 22px 5px 8px;
+        height: 32px;
+        font-size: 13px;
+    }
+
+    #controls label {
+        font-size: 11px;
+        margin-right: 2px;
+    }
+
+    #controls select,
+    #controls input,
+    #controls button:not(.clear-search-btn) {
+        padding: 4px 6px;
+        min-height: 32px;
+        font-size: 11px;
+    }
+
+    #controls button:not(.clear-search-btn) {
+        min-width: 32px;
+    }
+
+    .clear-search-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
+    }
+
+    #controls select {
+        min-width: 80px;
+    }
+
+    #movie-covers {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+        padding: 10px;
+    }
+
+    /* 控制项响应式样式 */
+    .control-item {
+        gap: 1px;
+    }
+
+    .control-group {
+        gap: 3px;
     }
 }
 
@@ -802,24 +1293,262 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
     z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-overlay.show {
+    display: flex;
 }
 
 .modal-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     background-color: var(--card-bg);
-    padding: 20px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
-    width: 600px;
-    max-height: 80%;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
     overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    animation: slideUp 0.3s ease-out;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+}
+
+/* 设置相关样式 */
+.settings-section {
+    background-color: var(--surface-bg, var(--bg-color));
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+}
+
+.settings-heading {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.setting-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 8px;
+}
+
+.setting-description {
+    font-size: 13px;
+    color: var(--secondary-text, rgba(0, 0, 0, 0.6));
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+/* 目录列表样式 */
+.directory-list {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.directory-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background-color: var(--input-bg, var(--card-bg));
+    border-radius: 6px;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+}
+
+.directory-path {
+    flex: 1;
+    padding: 8px 12px;
+    background-color: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: 14px;
+    font-family: inherit;
+    cursor: default;
+}
+
+/* 按钮样式优化 */
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 36px;
+}
+
+.btn:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: var(--hover-color);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background-color: var(--secondary-bg, rgba(0, 0, 0, 0.05));
+    color: var(--text-color);
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: var(--hover-bg, rgba(0, 0, 0, 0.1));
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
+/* 选择框样式 */
+select {
+    padding: 8px 12px;
+    background-color: var(--input-bg, var(--card-bg));
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+    border-radius: 6px;
+    color: var(--text-color);
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+select:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+    border-color: var(--accent-color);
+}
+
+/* 播放器设置容器 */
+.player-setting-container,
+.theme-setting-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.player-select-container {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.player-status {
+    font-size: 13px;
+    color: var(--secondary-text, rgba(0, 0, 0, 0.6));
+    margin-top: 4px;
+}
+
+/* 模态框动作区域 */
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+}
+
+/* 动画 */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 暗色主题特定优化 */
+body[data-theme='dark'] .settings-section {
+    background-color: #2c2c2c;
+    border-color: #555;
+}
+
+body[data-theme='dark'] .directory-item {
+    background-color: #3a3a3a;
+    border-color: #555;
+}
+
+body[data-theme='dark'] .btn-secondary {
+    background-color: #404040;
+    border-color: #555;
+}
+
+body[data-theme='dark'] .btn-secondary:hover:not(:disabled) {
+    background-color: #4a4a4a;
+}
+
+body[data-theme='dark'] select {
+    background-color: #3a3a3a;
+    border-color: #555;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .modal-content {
+        padding: 20px;
+        max-height: 90vh;
+    }
+    
+    .player-select-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .player-select-container select {
+        width: 100%;
+    }
+    
+    .modal-actions {
+        flex-direction: column-reverse;
+    }
 }
 
 .modal-actions {
@@ -1203,4 +1932,143 @@ body[data-theme='light'] .filter-group select:focus,
 body[data-theme='light'] .sort-controls select:focus {
     border-color: #4a90e2;
     box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* 封面容器样式 */
+.cover-container {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 150%;
+    background-color: #f5f5f5;
+    overflow: hidden;
+}
+
+/* 封面错误和无封面样式 */
+.cover-error, .no-cover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    background-color: #f8f9fa;
+    border: 1px dashed #dee2e6;
+}
+
+/* 标签页样式 */
+.settings-tabs,
+.tab-navigation {
+    display: flex;
+    border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+    margin-bottom: 20px;
+}
+
+.tab-button,
+.tab-btn {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--secondary-text, rgba(0, 0, 0, 0.6));
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 10px;
+}
+
+.tab-button:hover,
+.tab-btn:hover {
+    color: var(--text-color);
+    background-color: var(--hover-bg, rgba(0, 0, 0, 0.05));
+}
+
+.tab-button.active,
+.tab-btn.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+}
+
+.tab-content,
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active,
+.tab-pane.active {
+    display: block;
+}
+
+/* 标签页内容区域优化 */
+.settings-content {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.settings-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.settings-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+}
+
+.settings-content::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.settings-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* 暗色主题下的标签页样式 */
+body[data-theme='dark'] .tab-button,
+body[data-theme='dark'] .tab-btn {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+body[data-theme='dark'] .tab-button:hover,
+body[data-theme='dark'] .tab-btn:hover {
+    color: #f0f0f0;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+body[data-theme='dark'] .tab-button.active,
+body[data-theme='dark'] .tab-btn.active {
+    color: var(--accent-color);
+}
+
+body[data-theme='dark'] .settings-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body[data-theme='dark'] .settings-content::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+body[data-theme='dark'] .settings-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* 响应式设计 - 标签页 */
+@media (max-width: 768px) {
+    .tab-button,
+    .tab-btn {
+        padding: 10px 15px;
+        font-size: 14px;
+        margin-right: 5px;
+    }
+    
+    .settings-content {
+        max-height: 50vh;
+    }
 }
