@@ -53,6 +53,7 @@ function createMessageElement(message, type, duration = 5000) {
         opacity: 0;
         transform: translateX(100%);
         transition: opacity 0.3s ease, transform 0.3s ease;
+        margin-bottom: 10px;
     `;
 
     messageDiv.textContent = message;
@@ -76,6 +77,20 @@ function showMessage(message, type = 'info', duration = 5000) {
     console.log(`[${type.toUpperCase()}] ${message}`);
 
     const messageDiv = createMessageElement(message, type, duration);
+    
+    // 计算新消息的位置 - 从上到下排列
+    const existingMessages = document.querySelectorAll('div[style*="position: fixed"][style*="right: 20px"]');
+    let totalHeight = 20; // 初始顶部距离
+    
+    existingMessages.forEach(msg => {
+        if (msg.parentNode && msg !== messageDiv) {
+            totalHeight += msg.offsetHeight + 10; // 加上已有消息的高度和间距
+        }
+    });
+    
+    // 设置新消息的位置
+    messageDiv.style.top = `${totalHeight}px`;
+    
     document.body.appendChild(messageDiv);
 
     // 自动移除
@@ -86,6 +101,8 @@ function showMessage(message, type = 'info', duration = 5000) {
             if (messageDiv.parentNode) {
                 messageDiv.parentNode.removeChild(messageDiv);
             }
+            // 重新排列剩余的消息
+            rearrangeMessages();
         }, 300);
     }, duration);
 }
@@ -118,6 +135,21 @@ function safeAddEventListener(element, event, handler) {
     } catch (error) {
         console.error(`添加事件监听器失败: ${event}`, error);
     }
+}
+
+/**
+ * 重新排列剩余的消息气泡
+ */
+function rearrangeMessages() {
+    const existingMessages = document.querySelectorAll('div[style*="position: fixed"][style*="right: 20px"]');
+    let totalHeight = 20; // 初始顶部距离
+    
+    existingMessages.forEach(msg => {
+        if (msg.parentNode) {
+            msg.style.top = `${totalHeight}px`;
+            totalHeight += msg.offsetHeight + 10; // 加上消息的高度和间距
+        }
+    });
 }
 
 module.exports = {
