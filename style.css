@@ -662,9 +662,15 @@ body[data-theme='dark'] #controls button[id$="-btn"]:not(#clear-search-btn):hove
     font-weight: 600;
     margin-bottom: 8px;
     color: var(--text-color);
-    white-space: nowrap;
+    /* 移除单行限制，支持多行显示 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* 最多显示2行 */
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.4;
+    min-height: 2.8em; /* 确保至少有2行的高度 */
+    word-wrap: break-word;
+    word-break: break-word;
 }
 
 .movie-item p {

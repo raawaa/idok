@@ -128,11 +128,11 @@ function createInfoContainer(media) {
         font-weight: 600;
         line-height: 1.4;
         color: #333;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        /* 支持多行显示，最多2行 */
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
+        overflow: hidden;
         word-wrap: break-word;
         word-break: break-word;
         min-height: 2.8em;
