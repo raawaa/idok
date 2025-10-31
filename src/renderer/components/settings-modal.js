@@ -3,7 +3,7 @@
  */
 
 const { ipcRenderer } = require('electron');
-const { showMessage } = require('../utils/dom-utils');
+const { showMessage } = require('../../renderer/utils/dom-utils');
 const { MESSAGE_TYPES } = require('../../shared/constants');
 
 let currentSettings = null;

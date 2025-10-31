@@ -5,40 +5,48 @@
 console.log('🎬 模块化渲染进程开始加载...');
 console.log('🎯 测试：基础JavaScript执行正常');
 
-// 测试require是否工作
+// 导入Electron模块
+let ipcRenderer, fs;
 try {
-    const { ipcRenderer } = require('electron');
+    const electron = require('electron');
+    ipcRenderer = electron.ipcRenderer;
     console.log('✅ Electron模块加载成功');
 } catch (error) {
     console.error('❌ Electron模块加载失败:', error);
 }
 
-// 测试相对路径require
+// 导入Node.js模块
 try {
-    const fs = require('fs');
+    fs = require('fs');
     console.log('✅ Node.js fs模块加载成功');
 } catch (error) {
     console.error('❌ Node.js fs模块加载失败:', error);
 }
 
 // 导入工具函数
+let showMessage, debounce;
 try {
-    const { showMessage, debounce } = require('./utils/dom-utils');
+    const domUtils = require('./src/renderer/utils/dom-utils');
+    showMessage = domUtils.showMessage;
+    debounce = domUtils.debounce;
     console.log('✅ dom-utils模块加载成功');
 } catch (error) {
     console.error('❌ dom-utils模块加载失败:', error);
 }
 
+// 导入常量
+let MESSAGE_TYPES;
 try {
-    const { MESSAGE_TYPES } = require('../shared/constants');
+    const constants = require('./src/shared/constants');
+    MESSAGE_TYPES = constants.MESSAGE_TYPES;
     console.log('✅ constants模块加载成功');
 } catch (error) {
     console.error('❌ constants模块加载失败:', error);
 }
 
 // 导入组件
-const { renderMediaList } = require('./components/media-grid');
-const { openSettingsDialog } = require('./components/settings-modal');
+const { renderMediaList } = require('./src/renderer/components/media-grid');
+const { openSettingsDialog } = require('./src/renderer/components/settings-modal');
 
 // 全局状态
 let allMediaList = [];
@@ -144,6 +152,11 @@ function initializeEventListeners() {
     const clearFiltersBtn = document.getElementById('clear-filters');
     const openSettingsBtn = document.getElementById('open-settings-btn');
 
+    // 过滤器元素
+    const filterActorSelect = document.getElementById('filter-actor');
+    const filterStudioSelect = document.getElementById('filter-studio');
+    const filterGenreSelect = document.getElementById('filter-genre');
+
     if (sortBySelect) {
         sortBySelect.addEventListener('change', handleSortChange);
     }
@@ -152,6 +165,17 @@ function initializeEventListeners() {
     }
     if (clearFiltersBtn) {
         clearFiltersBtn.addEventListener('click', clearAllFilters);
+    }
+
+    // 添加过滤事件监听器
+    if (filterActorSelect) {
+        filterActorSelect.addEventListener('change', handleFilterChange);
+    }
+    if (filterStudioSelect) {
+        filterStudioSelect.addEventListener('change', handleFilterChange);
+    }
+    if (filterGenreSelect) {
+        filterGenreSelect.addEventListener('change', handleFilterChange);
     }
     if (openSettingsBtn) {
         console.log('✅ 找到设置按钮，添加事件监听器');
@@ -331,19 +355,18 @@ async function handleInitialScan(directoryPaths) {
  * 处理搜索
  */
 function handleSearch(query) {
-    if (!query || query.trim() === '') {
-        renderMediaList(allMediaList, handleMediaClick, handleMediaContextMenu);
-        return;
+    // 更新搜索输入框的值
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.value = query;
     }
 
-    const filteredList = allMediaList.filter(media => {
-        const searchLower = query.toLowerCase();
-        return (media.title && media.title.toLowerCase().includes(searchLower)) ||
-               (media.id && media.id.toLowerCase().includes(searchLower));
-    });
+    // 使用统一的过滤系统
+    applyFilters();
 
-    renderMediaList(filteredList, handleMediaClick, handleMediaContextMenu);
-    console.log(`搜索 "${query}" 找到 ${filteredList.length} 个结果`);
+    if (query && query.trim() !== '') {
+        console.log(`🔍 搜索 "${query}"`);
+    }
 }
 
 /**
@@ -352,52 +375,60 @@ function handleSearch(query) {
 function handleSortChange() {
     const sortBy = document.getElementById('sort-by').value;
     const sortOrder = document.getElementById('sort-order').value;
+    console.log(`📊 排序变化: ${sortBy} ${sortOrder}`);
 
-    let sortedList = [...allMediaList];
-
-    sortedList.sort((a, b) => {
-        let compareResult = 0;
-
-        if (sortBy === 'title') {
-            compareResult = (a.title || '').localeCompare(b.title || '');
-        } else if (sortBy === 'releaseDate') {
-            const dateA = a.releaseDateFull ? new Date(a.releaseDateFull) : new Date(0);
-            const dateB = b.releaseDateFull ? new Date(b.releaseDateFull) : new Date(0);
-            compareResult = dateA.getTime() - dateB.getTime();
-        }
-
-        return sortOrder === 'desc' ? -compareResult : compareResult;
-    });
-
-    renderMediaList(sortedList, handleMediaClick, handleMediaContextMenu);
-    console.log(`按 ${sortBy} ${sortOrder} 排序完成`);
+    // 使用统一的过滤系统（包含排序逻辑）
+    applyFilters();
 }
 
 /**
  * 清除所有过滤器
  */
 function clearAllFilters() {
-    document.getElementById('filter-actor').value = '';
-    document.getElementById('filter-studio').value = '';
-    document.getElementById('filter-genre').value = '';
-    document.getElementById('search-input').value = '';
+    const actorSelect = document.getElementById('filter-actor');
+    const studioSelect = document.getElementById('filter-studio');
+    const genreSelect = document.getElementById('filter-genre');
+    const searchInput = document.getElementById('search-input');
 
-    renderMediaList(allMediaList, handleMediaClick, handleMediaContextMenu);
+    if (actorSelect) actorSelect.value = '';
+    if (studioSelect) studioSelect.value = '';
+    if (genreSelect) genreSelect.value = '';
+    if (searchInput) searchInput.value = '';
+
+    // 使用统一的过滤系统
+    applyFilters();
     console.log('已清除所有过滤器');
 }
 
 /**
  * 处理媒体点击
  */
-function handleMediaClick(media) {
-    ipcRenderer.send('open-video', media.videoPath);
+async function handleMediaClick(media) {
+    try {
+        console.log('🎬 开始播放视频:', media.videoPath);
+        const result = await ipcRenderer.invoke('open-video', media.videoPath);
+        if (result.success) {
+            console.log('✅ 视频播放成功');
+        } else {
+            console.error('❌ 视频播放失败:', result.error);
+            showError(`无法播放视频: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('❌ 播放视频异常:', error);
+        showError(`播放视频失败: ${error.message}`);
+    }
 }
 
 /**
  * 处理媒体右键菜单
  */
 function handleMediaContextMenu(event, media) {
-    ipcRenderer.send('show-context-menu', media.videoPath);
+    try {
+        console.log('📋 显示右键菜单:', media.videoPath);
+        ipcRenderer.send('show-context-menu', media.videoPath);
+    } catch (error) {
+        console.error('❌ 显示右键菜单失败:', error);
+    }
 }
 
 /**
@@ -514,6 +545,88 @@ function getUniqueGenres(mediaList) {
         }
     });
     return Array.from(genres).sort();
+}
+
+/**
+ * 处理过滤变化
+ */
+function handleFilterChange() {
+    console.log('🔍 过滤条件已更改');
+    applyFilters();
+}
+
+/**
+ * 应用当前过滤条件
+ */
+function applyFilters() {
+    const filteredList = getFilteredMediaList();
+    renderMediaList(filteredList, handleMediaClick, handleMediaContextMenu);
+    console.log(`🔍 过滤完成，显示 ${filteredList.length} 个结果`);
+}
+
+/**
+ * 获取过滤后的媒体列表
+ * @returns {Object[]} 过滤后的媒体列表
+ */
+function getFilteredMediaList() {
+    const actorFilter = document.getElementById('filter-actor')?.value || '';
+    const studioFilter = document.getElementById('filter-studio')?.value || '';
+    const genreFilter = document.getElementById('filter-genre')?.value || '';
+    const searchQuery = document.getElementById('search-input')?.value || '';
+
+    let filteredList = [...allMediaList];
+
+    // 应用搜索过滤
+    if (searchQuery.trim() !== '') {
+        const searchLower = searchQuery.toLowerCase();
+        filteredList = filteredList.filter(media => {
+            return (media.title && media.title.toLowerCase().includes(searchLower)) ||
+                   (media.id && media.id.toLowerCase().includes(searchLower));
+        });
+    }
+
+    // 应用演员过滤
+    if (actorFilter !== '') {
+        filteredList = filteredList.filter(media => {
+            return media.actors && Array.isArray(media.actors) &&
+                   media.actors.some(actor => actor === actorFilter);
+        });
+    }
+
+    // 应用片商过滤
+    if (studioFilter !== '') {
+        filteredList = filteredList.filter(media => {
+            return media.studio === studioFilter;
+        });
+    }
+
+    // 应用类别过滤
+    if (genreFilter !== '') {
+        filteredList = filteredList.filter(media => {
+            return media.genres && Array.isArray(media.genres) &&
+                   media.genres.some(genre => genre === genreFilter);
+        });
+    }
+
+    // 应用排序
+    const sortBy = document.getElementById('sort-by')?.value || 'title';
+    const sortOrder = document.getElementById('sort-order')?.value || 'asc';
+
+    filteredList.sort((a, b) => {
+        let compareResult = 0;
+
+        if (sortBy === 'title') {
+            compareResult = (a.title || '').localeCompare(b.title || '');
+        } else if (sortBy === 'releaseDate') {
+            const dateA = a.releaseDateFull ? new Date(a.releaseDateFull) : new Date(0);
+            const dateB = b.releaseDateFull ? new Date(b.releaseDateFull) : new Date(0);
+            compareResult = dateA.getTime() - dateB.getTime();
+        }
+
+        return sortOrder === 'desc' ? -compareResult : compareResult;
+    });
+
+    return filteredList;
 }
 
 // 全局函数供HTML调用

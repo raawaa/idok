@@ -2,7 +2,8 @@
  * 媒体网格组件
  */
 
-const { safeGetElementById, safeAddEventListener } = require('../utils/dom-utils');
+const { safeGetElementById, safeAddEventListener } = require('../../renderer/utils/dom-utils');
+const { ipcRenderer } = require('electron');
 
 /**
  * 渲染媒体列表
@@ -47,19 +48,11 @@ function renderMediaList(mediaList, onMediaClick, onMediaContextMenu) {
  */
 function createMediaElement(media, onClick, onContextMenu) {
     const div = document.createElement('div');
-    div.className = 'media-item';
+    div.className = 'movie-item';
     div.dataset.videoPath = media.videoPath;
 
-    Object.assign(div.style, {
-        backgroundColor: '#fff',
-        borderRadius: '8px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        overflow: 'hidden',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        cursor: 'pointer',
-        display: 'flex',
-        flexDirection: 'column'
-    });
+    // 添加鼠标悬停效果
+    div.style.cursor = 'pointer';
 
     // 封面容器
     const coverContainer = createCoverContainer(media);
@@ -82,18 +75,11 @@ function createMediaElement(media, onClick, onContextMenu) {
  */
 function createCoverContainer(media) {
     const coverContainer = document.createElement('div');
-    coverContainer.style.cssText = `
-        position: relative;
-        width: 100%;
-        paddingTop: 150%;
-        backgroundColor: '#f5f5f5';
-        overflow: hidden;
-    `;
+    coverContainer.className = 'cover-container';
 
     // 封面图片
     if (media.coverImagePath) {
         const img = document.createElement('img');
-        img.src = media.coverImagePath;
         img.alt = media.title;
         img.loading = 'lazy';
 
@@ -104,18 +90,12 @@ function createCoverContainer(media) {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            opacity: '0',
+            opacity: '1',
             transition: 'opacity 0.3s ease'
         });
 
-        img.addEventListener('load', () => {
-            img.style.opacity = '1';
-        });
-
-        img.addEventListener('error', () => {
-            img.style.display = 'none';
-            showCoverError(coverContainer);
-        });
+        // 使用IPC加载图片
+        loadImageThroughIPC(media.coverImagePath, img, coverContainer);
 
         coverContainer.appendChild(img);
     } else {
@@ -146,13 +126,16 @@ function createInfoContainer(media) {
         margin: 0 0 8px 0;
         font-size: 14px;
         font-weight: 600;
-        lineHeight: 1.4;
+        line-height: 1.4;
         color: #333;
         overflow: hidden;
-        textOverflow: ellipsis;
+        text-overflow: ellipsis;
         display: -webkit-box;
-        WebkitLineClamp: 2;
-        WebkitBoxOrient: vertical;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        word-wrap: break-word;
+        word-break: break-word;
+        min-height: 2.8em;
     `;
     infoContainer.appendChild(titleElement);
 
@@ -193,17 +176,6 @@ function createInfoContainer(media) {
  * @param {Function} onContextMenu - 右键回调
  */
 function addMediaEventListeners(element, media, onClick, onContextMenu) {
-    // 鼠标悬停效果
-    element.addEventListener('mouseenter', () => {
-        element.style.transform = 'translateY(-4px)';
-        element.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)';
-    });
-
-    element.addEventListener('mouseleave', () => {
-        element.style.transform = 'translateY(0)';
-        element.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-    });
-
     // 点击事件
     safeAddEventListener(element, 'click', () => {
         if (onClick) onClick(media);
@@ -217,24 +189,69 @@ function addMediaEventListeners(element, media, onClick, onContextMenu) {
 }
 
 /**
+ * 通过IPC加载图片
+ * @param {string} imagePath - 图片路径
+ * @param {HTMLImageElement} imgElement - 图片元素
+ * @param {HTMLElement} container - 封面容器
+ */
+async function loadImageThroughIPC(imagePath, imgElement, container) {
+    try {
+        // 解码file:// URL为文件路径
+        let filePath = decodeURIComponent(imagePath.replace(/^file:\/\//, ''));
+
+        // 修复Windows路径格式问题
+        if (filePath.startsWith('/') && /^[A-Za-z]:/.test(filePath.substring(1))) {
+            // 移除开头的斜杠，转换 /D:/path 为 D:/path
+            filePath = filePath.substring(1);
+        }
+
+        // 修复Windows路径中的重复驱动器字母问题
+        if (filePath.match(/^[A-Za-z]:[\/\\][A-Za-z]:[\/\\]/)) {
+            filePath = filePath.substring(2); // 移除重复的驱动器字母
+        }
+
+        // 确保使用正确的Windows路径分隔符
+        filePath = filePath.replace(/\//g, '\\');
+
+        console.log('🖼️ 通过IPC加载图片:', filePath);
+
+        const result = await ipcRenderer.invoke('get-image-data', filePath);
+
+        if (result.success) {
+            imgElement.src = result.dataUrl;
+            imgElement.addEventListener('load', () => {
+                console.log('✅ 图片加载成功:', filePath);
+            });
+            imgElement.addEventListener('error', () => {
+                console.error('❌ 图片显示失败:', filePath);
+                showCoverError(container);
+            });
+        } else {
+            console.error('❌ IPC图片加载失败:', result.error);
+            showCoverError(container);
+        }
+    } catch (error) {
+        console.error('❌ IPC图片加载异常:', error);
+        showCoverError(container);
+    }
+}
+
+/**
  * 显示封面错误
  * @param {HTMLElement} container - 封面容器
  */
 function showCoverError(container) {
+    // 移除可能存在的错误提示
+    const existingError = container.querySelector('.cover-error');
+    if (existingError) {
+        existingError.remove();
+    }
+
     const errorDiv = document.createElement('div');
-    errorDiv.textContent = '封面加载失败';
-    errorDiv.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #f44336;
-        font-size: 14px;
-        background-color: '#f5f5f5';
+    errorDiv.className = 'cover-error';
+    errorDiv.innerHTML = `
+        <div style="font-size: 24px; margin-bottom: 8px;">🖼️</div>
+        <div style="font-size: 12px; color: #666;">封面加载失败</div>
     `;
     container.appendChild(errorDiv);
 }
@@ -244,20 +261,17 @@ function showCoverError(container) {
  * @param {HTMLElement} container - 封面容器
  */
 function showNoCover(container) {
+    // 移除可能存在的错误提示
+    const existingNoCover = container.querySelector('.no-cover');
+    if (existingNoCover) {
+        existingNoCover.remove();
+    }
+
     const noCoverDiv = document.createElement('div');
-    noCoverDiv.textContent = '无封面';
-    noCoverDiv.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #999;
-        font-size: 14px;
-        background-color: '#f5f5f5';
+    noCoverDiv.className = 'no-cover';
+    noCoverDiv.innerHTML = `
+        <div style="font-size: 24px; margin-bottom: 8px;">📁</div>
+        <div style="font-size: 12px; color: #666;">无封面</div>
     `;
     container.appendChild(noCoverDiv);
 }

@@ -69,7 +69,7 @@ async function scanDirectoryRecursive(directoryPath) {
                 mediaList.push({
                     ...movieInfo,
                     videoPath: videoFile,
-                    coverImagePath: coverImagePath ? `file://${coverImagePath}` : null
+                    coverImagePath: coverImagePath ? encodeFilePath(coverImagePath) : null
                 });
             } catch (error) {
                 console.error('处理媒体文件失败:', error);
@@ -152,8 +152,34 @@ async function parseNfoFile(nfoPath) {
     }
 }
 
+/**
+ * 编码文件路径为正确的file:// URL格式
+ * @param {string} filePath - 文件路径
+ * @returns {string} 编码后的file:// URL
+ */
+function encodeFilePath(filePath) {
+    // 确保路径是绝对路径
+    const absolutePath = path.resolve(filePath);
+
+    // 转换为正斜杠
+    const normalizedPath = absolutePath.replace(/\\/g, '/');
+
+    // 对Windows路径进行特殊处理
+    let fileUrl;
+    if (process.platform === 'win32' && !normalizedPath.startsWith('/')) {
+        // Windows路径需要添加额外的斜杠
+        fileUrl = `file:///${normalizedPath}`;
+    } else {
+        fileUrl = `file://${normalizedPath}`;
+    }
+
+    // 对URL中的特殊字符进行编码，但保留路径分隔符
+    return encodeURI(fileUrl);
+}
+
 module.exports = {
     scanDirectories,
     scanDirectoryRecursive,
-    parseNfoFile
+    parseNfoFile,
+    encodeFilePath
 };
