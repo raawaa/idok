@@ -22,3 +22,5 @@
 - **project_doing.md**: 项目过程记录文档
 - **project_index.md**: 项目文件索引
 - **project_codebase.md**: 代码库函数概览
+- **THEME_PERFORMANCE_OPTIMIZATION.md**: 主题切换性能优化报告
+- **performance-test.html**: 主题切换性能测试工具

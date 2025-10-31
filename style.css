@@ -21,7 +21,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    transition: all 0.3s ease;
+    /* 移除全局过渡效果，避免主题切换时的性能问题 */
 }
 
 body {
@@ -33,6 +33,10 @@ body {
     margin: 0;
     overflow-y: hidden;
     /* 阻止 body 自身出现滚动条 */
+    /* 为主题切换添加平滑过渡效果 */
+    transition: background-color 0.3s ease, color 0.3s ease;
+    /* 优化主题切换性能 */
+    will-change: background-color, color;
 }
 
 #content-container {
@@ -178,8 +182,8 @@ h1 {
     margin: 0;
     text-align: center;
 
-    /* 动画 */
-    transition: all 0.3s ease;
+    /* 动画 - 优化为主题切换性能 */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* 搜索框容器样式 */
@@ -199,7 +203,7 @@ h1 {
     color: var(--text-color);
     font-size: 0.9em;
     outline: none;
-    transition: all 0.3s ease;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
     height: 36px;
     box-sizing: border-box;
 }
@@ -425,7 +429,7 @@ body[data-theme='dark'] .clear-search-btn:hover {
     padding: 8px 12px;
     font-size: 0.9em;
     outline: none;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     color: var(--text-color); /* 确保文字颜色跟随主题 */
 }
 
@@ -439,7 +443,7 @@ body[data-theme='dark'] .clear-search-btn:hover {
     min-height: 36px !important;
     min-width: 36px !important;
     border-radius: 6px !important;
-    transition: all 0.3s ease !important;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -465,12 +469,13 @@ body[data-theme='dark'] .clear-search-btn:hover {
     padding: 6px !important;
     min-width: 36px !important;
     min-height: 36px !important;
-    background: linear-gradient(135deg, var(--accent-color) 0%, color-mix(in srgb, var(--accent-color) 85%, black) 100%) !important;
+    background: var(--accent-color) !important; /* 使用纯色背景替代渐变 */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease !important;
 }
 
 #controls button[id$="-btn"]:not(#clear-search-btn):hover {
-    background: linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 95%, white) 0%, var(--accent-color) 100%) !important;
+    background: var(--accent-color) !important; /* 悬停时保持纯色 */
     transform: translateY(-1px) scale(1.02) !important;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
     opacity: 1 !important;
@@ -478,12 +483,12 @@ body[data-theme='dark'] .clear-search-btn:hover {
 
 /* 深色主题下的图标按钮 */
 body[data-theme='dark'] #controls button[id$="-btn"]:not(#clear-search-btn) {
-    background: linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 90%, white) 0%, var(--accent-color) 100%) !important;
+    background: var(--accent-color) !important; /* 深色主题下也使用纯色 */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
 body[data-theme='dark'] #controls button[id$="-btn"]:not(#clear-search-btn):hover {
-    background: linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 100%, white) 0%, color-mix(in srgb, var(--accent-color) 95%, white) 100%) !important;
+    background: var(--accent-color) !important; /* 悬停时保持纯色 */
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
 }
 
@@ -711,7 +716,7 @@ body[data-theme='dark'] #controls button[id$="-btn"]:not(#clear-search-btn):hove
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.3s ease;
     z-index: 2;
 }
 

@@ -30,3 +30,27 @@
 
 ### 主要函数
 - **initializeTheme()**: 初始化主题设置，根据保存的偏好或系统设置应用主题
+- **toggleTheme()**: 性能优化的主题切换函数，使用requestAnimationFrame和防抖机制来优化性能
+  - 使用requestAnimationFrame确保在下一次重绘前应用主题
+  - 延迟更新容器padding，避免与主题切换同时进行
+  - 保存主题设置到localStorage
+  - 更新主题切换按钮状态
+- **updateContainerPadding()**: 更新媒体容器padding，根据窗口大小调整内容区域
+- **initializeEventListeners()**: 初始化事件监听器，包括主题切换按钮点击事件
+- **handleFileSelection()**: 处理文件选择事件
+- **handleDragStart()**: 处理拖拽开始事件
+- **handleDragOver()**: 处理拖拽悬停事件
+- **handleDrop()**: 处理文件拖放事件
+- **handleModalClose()**: 处理模态框关闭事件
+- **openFile()**: 打开文件
+- **playMedia()**: 播放媒体文件
+- **showMediaInfo()**: 显示媒体信息
+- **updateMediaGrid()**: 更新媒体网格显示
+- **filterMedia()**: 过滤媒体文件
+- **sortMedia()**: 排序媒体文件
+- **searchMedia()**: 搜索媒体文件
+- **formatFileSize()**: 格式化文件大小
+- **formatDuration()**: 格式化时长
+- **escapeHtml()**: HTML转义
+- **debounce()**: 防抖函数
+- **throttle()**: 节流函数

@@ -148,7 +148,8 @@ function initializeTheme() {
 }
 
 /**
- * 切换主题
+ * 性能优化的主题切换函数
+ * 使用requestAnimationFrame和防抖机制来优化性能
  */
 function toggleTheme() {
     console.log('🎨 开始切换主题...');
@@ -175,20 +176,25 @@ function toggleTheme() {
         showSuccess('已切换到深色主题', 1500);
     }
 
-    // 应用新主题
-    document.body.setAttribute('data-theme', newTheme);
-
-    // 保存到localStorage
-    localStorage.setItem('theme', newTheme);
-    console.log(`💾 主题设置已保存: ${newTheme}`);
-    
-    // 主题切换后更新媒体容器的padding
-    try {
-        updateContainerPadding();
-        console.log('✅ 主题切换后已更新媒体容器padding');
-    } catch (error) {
-        console.error('❌ 更新媒体容器padding失败:', error);
-    }
+    // 性能优化：使用 requestAnimationFrame 确保在下一次重绘前应用主题
+    requestAnimationFrame(() => {
+        // 应用新主题
+        document.body.setAttribute('data-theme', newTheme);
+        
+        // 保存到localStorage
+        localStorage.setItem('theme', newTheme);
+        console.log(`💾 主题设置已保存: ${newTheme}`);
+        
+        // 延迟更新容器padding，避免与主题切换同时进行
+        requestAnimationFrame(() => {
+            try {
+                updateContainerPadding();
+                console.log('✅ 主题切换后已更新媒体容器padding');
+            } catch (error) {
+                console.error('❌ 更新媒体容器padding失败:', error);
+            }
+        });
+    });
 }
 
 /**
