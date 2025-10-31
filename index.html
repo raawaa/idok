@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;">
     <title>媒体资料库</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -125,74 +126,12 @@
     <!-- 结束内容容器 -->
     </div>
 
-    <!-- 设置模态框结构 -->
-    <div id="settings-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h2>设置</h2>
-            <div id="settings-content">
-                <!-- 内容将通过JavaScript动态填充 -->
-            </div>
-            <div class="modal-actions">
-                <button id="save-settings-btn" class="btn btn-primary">保存</button>
-                <button id="cancel-settings-btn" class="btn btn-secondary">取消</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 设置项模板 (隐藏) -->
-    <template id="settings-templates">
-        <!-- 目录设置模板 -->
-        <div class="settings-section directory-settings">
-            <h3 class="settings-heading">📁 媒体库目录</h3>
-            <div class="directory-list"></div>
-            <button class="btn btn-primary add-directory-btn">添加目录</button>
-        </div>
-        
-        <!-- 播放器设置模板 -->
-        <div class="settings-section player-settings">
-            <h3 class="settings-heading">🎬 默认播放器</h3>
-            <div class="player-setting-container">
-                <label for="default-player-select" class="setting-label">选择播放器:</label>
-                <div class="player-select-container">
-                    <select class="default-player-select player-select">
-                        <option value="">系统默认播放器</option>
-                        <option value="vlc">VLC Media Player</option>
-                        <option value="mpv">MPV</option>
-                        <option value="potplayer">PotPlayer</option>
-                    </select>
-                    <button class="btn btn-secondary custom-player-btn">自定义播放器</button>
-                </div>
-                <div class="player-status"></div>
-            </div>
-            <div class="setting-description">
-                选择用于播放视频的默认播放器。如果未选择，将使用系统默认播放器。
-            </div>
-        </div>
-        
-        <!-- 主题设置模板 -->
-        <div class="settings-section theme-settings">
-            <h3 class="settings-heading">🎨 主题设置</h3>
-            <div class="theme-setting-container">
-                <label for="theme-select" class="setting-label">主题模式:</label>
-                <select class="theme-select">
-                    <option value="auto">跟随系统</option>
-                    <option value="light">浅色主题</option>
-                    <option value="dark">深色主题</option>
-                </select>
-            </div>
-        </div>
-        
-        <!-- 目录项模板 -->
-        <div class="directory-item">
-            <input type="text" class="directory-path" readonly>
-            <button class="btn btn-danger remove-directory-btn">删除</button>
-        </div>
-    </template>
+    <!-- 设置模态框结构将通过JavaScript动态创建 -->
 
-    <!-- 加载设置模态框组件 -->
-    <script src="src/renderer/components/settings-modal.js"></script>
     <!-- 加载渲染器入口 -->
     <script src="src/renderer/renderer.js"></script>
+    <!-- 加载设置模态框组件 -->
+    <script src="src/renderer/components/settings-modal.js"></script>
 </body>
 
 </html>

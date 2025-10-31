@@ -73,10 +73,46 @@ function registerMediaHandlers(ipcMain, settingsPath, mainWindow) {
                 console.log('⚠️ 无法读取设置，使用默认播放器');
             }
 
-            const defaultPlayer = settings.defaultPlayer || '';
+            // 处理新的播放器设置格式
+            let playerType = settings.playerType || 'system';
+            let customPlayer = settings.customPlayer || '';
+            
+            // 兼容旧版本的defaultPlayer字段
+            if (settings.defaultPlayer && !settings.playerType) {
+                // 如果有旧的defaultPlayer但没有新的playerType，进行转换
+                if (settings.defaultPlayer.includes('\\') || settings.defaultPlayer.includes('/')) {
+                    playerType = 'custom';
+                    customPlayer = settings.defaultPlayer;
+                } else {
+                    playerType = settings.defaultPlayer;
+                    customPlayer = '';
+                }
+            }
+
+            console.log(`🎬 播放器类型: ${playerType}`);
+            if (playerType === 'custom') {
+                console.log(`🎬 自定义播放器路径: ${customPlayer}`);
+            }
+
+            // 如果是系统默认播放器
+            if (playerType === 'system') {
+                console.log('🎬 使用系统默认播放器');
+                const { shell } = require('electron');
+                await shell.openPath(videoPath);
+                return { success: true };
+            }
+
+            // 处理自定义播放器或预定义播放器
+            let defaultPlayer = '';
+            if (playerType === 'custom') {
+                defaultPlayer = customPlayer;
+            } else {
+                // 预定义播放器
+                defaultPlayer = playerType;
+            }
 
             if (defaultPlayer && defaultPlayer.trim() !== '') {
-                console.log('🎬 使用自定义播放器:', defaultPlayer);
+                console.log('🎬 使用播放器:', defaultPlayer);
 
                 // 处理播放器路径
                 let playerPath = defaultPlayer;
@@ -84,7 +120,7 @@ function registerMediaHandlers(ipcMain, settingsPath, mainWindow) {
                 const { shell } = require('electron');
 
                 // 检查是否为完整路径（自定义播放器）
-                if (defaultPlayer.includes('\\') || defaultPlayer.includes('/')) {
+                if (playerType === 'custom' && (defaultPlayer.includes('\\') || defaultPlayer.includes('/'))) {
                     // 用户选择的完整路径
                     if (fs.existsSync(defaultPlayer) && defaultPlayer.toLowerCase().endsWith('.exe')) {
                         playerPath = defaultPlayer;
@@ -98,7 +134,7 @@ function registerMediaHandlers(ipcMain, settingsPath, mainWindow) {
                     }
                 }
                 // 预定义播放器名称
-                else if (process.platform === 'win32') {
+                else if (playerType !== 'custom' && process.platform === 'win32') {
                     const playerPaths = {
                         'vlc': [
                             'C:\\Program Files\\VideoLAN\\VLC\\vlc.exe',

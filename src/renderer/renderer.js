@@ -6,10 +6,18 @@ console.log('🎬 模块化渲染进程开始加载...');
 console.log('🎯 测试：基础JavaScript执行正常');
 
 // 导入Electron模块
-let ipcRenderer, fs;
 try {
     const electron = require('electron');
-    ipcRenderer = electron.ipcRenderer;
+    // 将ipcRenderer设为全局变量，供其他组件使用
+    window.ipcRenderer = electron.ipcRenderer;
+    // 防止其他文件重新声明ipcRenderer
+    if (typeof window !== 'undefined') {
+        Object.defineProperty(window, 'ipcRenderer', {
+            value: electron.ipcRenderer,
+            writable: false,
+            configurable: false
+        });
+    }
     console.log('✅ Electron模块加载成功');
 } catch (error) {
     console.error('❌ Electron模块加载失败:', error);
@@ -182,42 +190,42 @@ function initializeEventListeners() {
     console.log('初始化事件监听器...');
 
     // 监听主进程事件
-    ipcRenderer.on('app-info', (event, appInfo) => {
+    window.ipcRenderer.on('app-info', (event, appInfo) => {
         console.log('收到应用信息:', appInfo);
         updateAppTitle(appInfo);
     });
 
-    ipcRenderer.on('start-initial-scan', async (event, directoryPaths) => {
+    window.ipcRenderer.on('start-initial-scan', async (event, directoryPaths) => {
         console.log('收到初始扫描请求:', directoryPaths);
         await handleInitialScan(directoryPaths);
     });
 
-    ipcRenderer.on('no-directories-configured', () => {
+    window.ipcRenderer.on('no-directories-configured', () => {
         console.log('没有配置目录');
         showNoDirectoriesMessage();
     });
 
-    ipcRenderer.on('video-opened', (event, videoPath) => {
+    window.ipcRenderer.on('video-opened', (event, videoPath) => {
         console.log('视频打开成功:', videoPath);
         showSuccess('视频已开始播放', 2000);
     });
 
-    ipcRenderer.on('video-open-failed', (event, videoPath, errorMessage) => {
+    window.ipcRenderer.on('video-open-failed', (event, videoPath, errorMessage) => {
         console.error('视频打开失败:', errorMessage);
         showError(`无法打开视频: ${errorMessage}`);
     });
 
-    ipcRenderer.on('confirm-delete', (event, directoryPath) => {
+    window.ipcRenderer.on('confirm-delete', (event, directoryPath) => {
         console.log('🗑️ 显示删除确认对话框:', directoryPath);
         showDeleteConfirmDialog(directoryPath);
     });
 
-    ipcRenderer.on('directory-trashed', (event, directoryPath) => {
+    window.ipcRenderer.on('directory-trashed', (event, directoryPath) => {
         console.log('✅ 目录已删除:', directoryPath);
         showSuccess(`目录已删除: ${directoryPath}`);
     });
 
-    ipcRenderer.on('trash-failed', (event, directoryPath, errorMessage) => {
+    window.ipcRenderer.on('trash-failed', (event, directoryPath, errorMessage) => {
         console.error('❌ 删除目录失败:', errorMessage);
         showError(`删除目录失败: ${errorMessage}`);
     });
@@ -427,7 +435,7 @@ async function handleInitialScan(directoryPaths) {
         console.log('开始初始扫描...', directoryPaths);
         showInfo('正在扫描媒体文件...');
 
-        const result = await ipcRenderer.invoke('scan-directory', directoryPaths);
+        const result = await window.ipcRenderer.invoke('scan-directory', directoryPaths);
 
         if (result.success) {
             allMediaList = result.data || [];
@@ -504,7 +512,7 @@ function clearAllFilters() {
 async function handleMediaClick(media) {
     try {
         console.log('🎬 开始播放视频:', media.videoPath);
-        const result = await ipcRenderer.invoke('open-video', media.videoPath);
+        const result = await window.ipcRenderer.invoke('open-video', media.videoPath);
         if (result.success) {
             console.log('✅ 视频播放成功');
         } else {
@@ -523,7 +531,7 @@ async function handleMediaClick(media) {
 function handleMediaContextMenu(event, media) {
     try {
         console.log('📋 显示右键菜单:', media.videoPath);
-        ipcRenderer.send('show-context-menu', media.videoPath);
+        window.ipcRenderer.send('show-context-menu', media.videoPath);
     } catch (error) {
         console.error('❌ 显示右键菜单失败:', error);
     }
@@ -574,7 +582,7 @@ function showDeleteConfirmDialog(directoryPath) {
     console.log('🗑️ 显示删除确认对话框:', directoryPath);
 
     if (confirm(`确定要删除以下目录吗？\n\n${directoryPath}\n\n目录将被移动到回收站。`)) {
-        ipcRenderer.send('delete-directory', directoryPath);
+        window.ipcRenderer.send('delete-directory', directoryPath);
     }
 }
 
@@ -725,6 +733,19 @@ function getFilteredMediaList() {
     });
 
     return filteredList;
+}
+
+/**
+ * 打开设置对话框
+ */
+function openSettingsDialog() {
+    console.log('🔧 打开设置对话框');
+    // 检查SettingsModal实例是否存在
+    if (window.settingsModal) {
+        window.settingsModal.open();
+    } else {
+        console.error('设置模态框未初始化');
+    }
 }
 
 // 全局函数供HTML调用

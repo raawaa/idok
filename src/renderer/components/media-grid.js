@@ -3,7 +3,8 @@
  */
 
 const { safeGetElementById, safeAddEventListener } = require('../../renderer/utils/dom-utils');
-const { ipcRenderer } = require('electron');
+// 使用全局ipcRenderer实例（已在renderer.js中设置为window.ipcRenderer）
+// 直接使用window.ipcRenderer，避免重复声明
 
 /**
  * 渲染媒体列表
@@ -196,6 +197,13 @@ function addMediaEventListeners(element, media, onClick, onContextMenu) {
  */
 async function loadImageThroughIPC(imagePath, imgElement, container) {
     try {
+        // 检查ipcRenderer是否可用
+        if (!window.ipcRenderer) {
+            console.error('❌ IPC通信不可用，无法加载图片');
+            showCoverError(container);
+            return;
+        }
+        
         // 解码file:// URL为文件路径
         let filePath = decodeURIComponent(imagePath.replace(/^file:\/\//, ''));
 
@@ -215,7 +223,7 @@ async function loadImageThroughIPC(imagePath, imgElement, container) {
 
         console.log('🖼️ 通过IPC加载图片:', filePath);
 
-        const result = await ipcRenderer.invoke('get-image-data', filePath);
+        const result = await window.ipcRenderer.invoke('get-image-data', filePath);
 
         if (result.success) {
             imgElement.src = result.dataUrl;
