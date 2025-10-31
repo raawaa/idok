@@ -353,6 +353,7 @@ function initializeEventListeners() {
     const filterActorSelect = document.getElementById('filter-actor');
     const filterStudioSelect = document.getElementById('filter-studio');
     const filterGenreSelect = document.getElementById('filter-genre');
+    const filterSetSelect = document.getElementById('filter-set');
 
     if (sortBySelect) {
         sortBySelect.addEventListener('change', handleSortChange);
@@ -373,6 +374,9 @@ function initializeEventListeners() {
     }
     if (filterGenreSelect) {
         filterGenreSelect.addEventListener('change', handleFilterChange);
+    }
+    if (filterSetSelect) {
+        filterSetSelect.addEventListener('change', handleFilterChange);
     }
     if (themeToggleBtn) {
         console.log('✅ 找到主题切换按钮，添加事件监听器');
@@ -606,11 +610,13 @@ function clearAllFilters() {
     const actorSelect = document.getElementById('filter-actor');
     const studioSelect = document.getElementById('filter-studio');
     const genreSelect = document.getElementById('filter-genre');
+    const setSelect = document.getElementById('filter-set');
     const searchInput = document.getElementById('search-input');
 
     if (actorSelect) actorSelect.value = '';
     if (studioSelect) studioSelect.value = '';
     if (genreSelect) genreSelect.value = '';
+    if (setSelect) setSelect.value = '';
     if (searchInput) searchInput.value = '';
 
     // 使用统一的过滤系统
@@ -763,6 +769,7 @@ function updateFilterDropdowns(mediaList) {
     updateDropdown('filter-actor', getUniqueActors(mediaList));
     updateDropdown('filter-studio', getUniqueStudios(mediaList));
     updateDropdown('filter-genre', getUniqueGenres(mediaList));
+    updateDropdown('filter-set', getUniqueSets(mediaList));
 }
 
 /**
@@ -824,6 +831,19 @@ function getUniqueGenres(mediaList) {
 }
 
 /**
+ * 获取唯一的系列列表
+ */
+function getUniqueSets(mediaList) {
+    const sets = new Set();
+    mediaList.forEach(media => {
+        if (media.set) {
+            sets.add(media.set);
+        }
+    });
+    return Array.from(sets).sort();
+}
+
+/**
  * 处理过滤变化
  */
 function handleFilterChange() {
@@ -848,6 +868,7 @@ function getFilteredMediaList() {
     const actorFilter = document.getElementById('filter-actor')?.value || '';
     const studioFilter = document.getElementById('filter-studio')?.value || '';
     const genreFilter = document.getElementById('filter-genre')?.value || '';
+    const setFilter = document.getElementById('filter-set')?.value || '';
     const searchQuery = document.getElementById('search-input')?.value || '';
 
     let filteredList = [...allMediaList];
@@ -881,6 +902,13 @@ function getFilteredMediaList() {
         filteredList = filteredList.filter(media => {
             return media.genres && Array.isArray(media.genres) &&
                    media.genres.some(genre => genre === genreFilter);
+        });
+    }
+
+    // 应用系列过滤
+    if (setFilter !== '') {
+        filteredList = filteredList.filter(media => {
+            return media.set === setFilter;
         });
     }
 

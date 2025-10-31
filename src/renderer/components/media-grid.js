@@ -612,13 +612,13 @@ function handleTagClick(tagElement) {
             actorSelect.dispatchEvent(event);
         }
     } else if (filterType === 'set') {
-        // 系列过滤通过搜索功能实现，因为系列不是下拉框选项
-        const searchInput = document.getElementById('search-input');
-        if (searchInput) {
-            searchInput.value = filterValue;
-            // 触发input事件来应用搜索过滤
-            const event = new Event('input', { bubbles: true });
-            searchInput.dispatchEvent(event);
+        // 系列过滤通过系列过滤器实现
+        const setSelect = document.getElementById('filter-set');
+        if (setSelect) {
+            setSelect.value = filterValue;
+            // 触发change事件来应用过滤
+            const event = new Event('change', { bubbles: true });
+            setSelect.dispatchEvent(event);
         }
     }
     
