@@ -1041,47 +1041,51 @@ body[data-theme='dark'] #controls button[id$="-btn"]:not(#clear-search-btn):hove
     height: 8px;
 }
 
-#content-container::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05);
+/* 亮色主题滚动条 - 使用深色提供足够对比度 */
+body[data-theme='light'] #content-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.08);
     border-radius: 4px;
 }
 
-#content-container::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
+body[data-theme='light'] #content-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.5);
     border-radius: 4px;
     transition: background-color 0.3s ease;
 }
 
-#content-container::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.4);
+body[data-theme='light'] #content-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.7);
 }
 
-/* 暗色主题下的滚动条 */
-@media (prefers-color-scheme: dark) {
-    #content-container::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05);
-    }
-    
-    #content-container::-webkit-scrollbar-thumb {
-        background-color: rgba(255, 255, 255, 0.2);
-    }
-    
-    #content-container::-webkit-scrollbar-thumb:hover {
-        background-color: rgba(255, 255, 255, 0.4);
-    }
-}
-
-/* 强制主题下的滚动条 */
+/* 暗色主题滚动条 - 使用浅色 */
 body[data-theme='dark'] #content-container::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
 }
 
 body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
 }
 
 body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255, 255, 255, 0.4);
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* 系统偏好暗色主题 - 作为后备 */
+@media (prefers-color-scheme: dark) {
+    #content-container::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.08);
+    }
+    
+    #content-container::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    #content-container::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.5);
+    }
 }
 
 /* 悬浮控制区域响应式设计 */
@@ -2016,18 +2020,19 @@ body[data-theme='light'] .sort-controls select:focus {
     width: 6px;
 }
 
-.settings-content::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05);
+/* 亮色主题下设置内容区域滚动条 */
+body[data-theme='light'] .settings-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.08);
     border-radius: 3px;
 }
 
-.settings-content::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
+body[data-theme='light'] .settings-content::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.5);
     border-radius: 3px;
 }
 
-.settings-content::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.4);
+body[data-theme='light'] .settings-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.7);
 }
 
 /* 暗色主题下的标签页样式 */
@@ -2047,16 +2052,19 @@ body[data-theme='dark'] .tab-btn.active {
     color: var(--accent-color);
 }
 
+/* 暗色主题下设置内容区域滚动条 */
 body[data-theme='dark'] .settings-content::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
 }
 
 body[data-theme='dark'] .settings-content::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
 }
 
 body[data-theme='dark'] .settings-content::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255, 255, 255, 0.4);
+    background-color: rgba(255, 255, 255, 0.5);
 }
 
 /* 响应式设计 - 标签页 */
@@ -2071,4 +2079,5 @@ body[data-theme='dark'] .settings-content::-webkit-scrollbar-thumb:hover {
     .settings-content {
         max-height: 50vh;
     }
+}
 }
