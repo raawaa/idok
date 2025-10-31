@@ -1,4 +1,11 @@
 # 更新历史：
+### [0.4.1](https://github.com/raawaa/idok/compare/v0.4.0...v0.4.1) (2025-10-31)
+
+
+### 🐛 Bug 修复
+
+* 去掉设置界面多余的关闭按钮 ([f4b3dbc](https://github.com/raawaa/idok/commit/f4b3dbc5a74a86c60d6b8356ab8642b66b0c5c86))
+
 ## [0.4.0](https://github.com/raawaa/idok/compare/v0.3.0...v0.4.0) (2025-10-31)
 
 ### ✨ 新增功能
