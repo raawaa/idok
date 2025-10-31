@@ -122,6 +122,31 @@ h1 {
     /* 移除默认 H1 的顶部 margin */
 }
 
+/* 控制区分组样式 */
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* 控制项样式 - 确保标签和控件作为一个整体换行 */
+.control-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+/* 控制区紧凑布局优化 */
+#controls > .search-container {
+    margin-right: 10px;
+}
+
+#controls > .control-group {
+    margin-right: 10px;
+}
+
 /* 悬浮控制区域样式 */
 #controls {
     position: fixed;
@@ -136,7 +161,7 @@ h1 {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 15px;
+    gap: 8px;
 
     /* 磨砂玻璃效果 */
     background: rgba(255, 255, 255, 0.8);
@@ -149,7 +174,7 @@ h1 {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 
     /* 布局 */
-    padding: 20px;
+    padding: 12px;
     margin: 0;
     text-align: center;
 
@@ -167,7 +192,7 @@ h1 {
 
 #search-input {
     width: 100%;
-    padding: 8px 30px 8px 12px;
+    padding: 6px 30px 6px 10px;
     border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 6px;
     background-color: var(--bg-color);
@@ -175,6 +200,8 @@ h1 {
     font-size: 0.9em;
     outline: none;
     transition: all 0.3s ease;
+    height: 36px;
+    box-sizing: border-box;
 }
 
 #search-input:focus {
@@ -285,6 +312,23 @@ body[data-theme='dark'] .clear-search-btn:hover {
 #controls label {
     font-weight: 500;
     color: var(--text-color);
+    font-size: 0.85em;
+    margin-right: 4px;
+    white-space: nowrap;
+}
+
+#controls select {
+    padding: 6px 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 0.85em;
+    outline: none;
+    transition: all 0.3s ease;
+    height: 36px;
+    box-sizing: border-box;
+    min-width: 100px;
 }
 
 #controls label[style*="margin-left"] {
@@ -390,11 +434,11 @@ body[data-theme='dark'] .clear-search-btn:hover {
     color: white;
     border: none;
     cursor: pointer;
-    font-size: 16px !important;
-    padding: 10px 16px !important;
-    min-height: 44px !important;
-    min-width: 44px !important;
-    border-radius: 8px !important;
+    font-size: 14px !important;
+    padding: 6px 12px !important;
+    min-height: 36px !important;
+    min-width: 36px !important;
+    border-radius: 6px !important;
     transition: all 0.3s ease !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -417,10 +461,10 @@ body[data-theme='dark'] .clear-search-btn:hover {
 /* 统一的图标按钮样式 */
 #controls button[id$="-btn"]:not(#clear-search-btn) {
     /* 匹配所有以 -btn 结尾的按钮ID，但排除清除搜索按钮 */
-    font-size: 18px !important;
-    padding: 10px !important;
-    min-width: 44px !important;
-    min-height: 44px !important;
+    font-size: 16px !important;
+    padding: 6px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
     background: linear-gradient(135deg, var(--accent-color) 0%, color-mix(in srgb, var(--accent-color) 85%, black) 100%) !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
@@ -723,14 +767,14 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
 @media (max-width: 768px) {
     #controls {
         width: calc(100% - 20px);
-        padding: 15px;
-        gap: 12px;
+        padding: 10px;
+        gap: 8px;
         top: 10px;
     }
 
     #content-container {
-        padding: 120px 0 20px 0;
-        /* 10px + 80px (controls height) + 30px clearance */
+        padding: 80px 0 20px 0;
+        /* 减少了控制区高度后的内容区域调整 */
     }
 
     .search-container {
@@ -744,16 +788,27 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
     #search-input {
         font-size: 16px;
         /* 防止iOS缩放 */
-        padding: 12px 40px 12px 15px;
+        padding: 8px 30px 8px 12px;
+        height: 40px;
     }
 
     #controls select,
     #controls input:not(#search-input),
     #controls button {
         font-size: 14px;
-        padding: 10px 12px;
-        min-height: 44px;
+        padding: 8px 10px;
+        min-height: 40px;
         /* 触摸友好的最小高度 */
+    }
+    
+    /* 控制项响应式样式 */
+    .control-item {
+        gap: 2px;
+    }
+    
+    /* 在中等屏幕上使用两行布局 */
+    #controls > *:not(.search-container) {
+        flex: 0 0 auto;
     }
 }
 
@@ -766,51 +821,107 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
 
     #controls {
         width: calc(100% - 10px);
-        padding: 12px;
-        max-height: 140px;
+        padding: 8px;
+        gap: 6px;
+        max-height: 100px;
         overflow-y: auto;
+        top: 5px;
     }
 
     #content-container {
-        padding: 160px 0 20px 0;
-        /* 10px + 140px (controls max-height) + 10px clearance */
+        padding: 120px 0 20px 0;
+        /* 减少了控制区高度后的内容区域调整 */
     }
 
     .search-container {
         order: -1;
         margin-bottom: 5px;
     }
+    
+    /* 在小屏幕上使用更紧凑的布局 */
+    #controls label {
+        font-size: 12px;
+        margin-right: 2px;
+    }
+    
+    #controls select,
+    #controls button:not(.clear-search-btn) {
+        min-height: 36px;
+        font-size: 12px;
+        padding: 6px 8px;
+    }
+    
+    /* 控制项响应式样式 */
+    .control-item {
+        gap: 2px;
+    }
+    
+    .control-group {
+        gap: 4px;
+    }
 }
 
 /* 超小屏幕优化 */
 @media (max-width: 480px) {
     #controls {
-        gap: 8px;
-        padding: 10px;
-        max-height: 180px;
+        gap: 4px;
+        padding: 6px;
+        max-height: 90px;
         top: 5px;
         width: calc(100% - 10px);
     }
 
     #content-container {
-        padding: 200px 0 20px 0;
-        /* 5px + 180px (controls max-height) + 15px clearance */
+        padding: 110px 0 20px 0;
+        /* 进一步减少了控制区高度后的内容区域调整 */
+    }
+
+    #search-input {
+        padding: 5px 22px 5px 8px;
+        height: 32px;
+        font-size: 13px;
     }
 
     #controls label {
-        font-size: 12px;
+        font-size: 11px;
+        margin-right: 2px;
     }
 
-    #controls button {
-        font-size: 13px;
-        padding: 8px 10px;
-        min-height: 40px;
+    #controls select,
+    #controls input,
+    #controls button:not(.clear-search-btn) {
+        padding: 4px 6px;
+        min-height: 32px;
+        font-size: 11px;
+    }
+
+    #controls button:not(.clear-search-btn) {
+        min-width: 32px;
+    }
+
+    .clear-search-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
+    }
+
+    #controls select {
+        min-width: 80px;
     }
 
     #movie-covers {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 12px;
         padding: 10px;
+    }
+
+    /* 控制项响应式样式 */
+    .control-item {
+        gap: 1px;
+    }
+
+    .control-group {
+        gap: 3px;
     }
 }
 
