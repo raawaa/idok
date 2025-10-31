@@ -912,9 +912,9 @@ function getFilteredMediaList() {
         });
     }
 
-    // 应用排序
-    const sortBy = document.getElementById('sort-by')?.value || 'title';
-    const sortOrder = document.getElementById('sort-order')?.value || 'asc';
+    // 应用排序 - 默认按发布日期降序
+    const sortBy = document.getElementById('sort-by')?.value || 'releaseDate';
+    const sortOrder = document.getElementById('sort-order')?.value || 'desc';
 
     filteredList.sort((a, b) => {
         let compareResult = 0;
