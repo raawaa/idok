@@ -6,6 +6,18 @@
     --accent-color: #007aff;
     --hover-color: #0056b3;
     --border-radius: 12px;
+    --controls-bg: rgba(255, 255, 255, 0.8);
+    --controls-border: rgba(255, 255, 255, 0.3);
+    --controls-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --movie-title-color: #333;
+    --movie-date-color: #666;
+    --movie-studio-color: #888;
+    --search-border: rgba(0, 0, 0, 0.1);
+    --clear-btn-color: #666666;
+    --select-bg: white;
+    --select-border: rgba(0, 0, 0, 0.1);
+    --select-option-bg: white;
+    --select-option-color: #333;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -14,6 +26,18 @@
         --text-color: #f0f0f0;
         --card-bg: #2c2c2c;
         --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        --controls-bg: rgba(44, 44, 44, 0.8);
+        --controls-border: rgba(255, 255, 255, 0.1);
+        --controls-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        --movie-title-color: #ffffff;
+        --movie-date-color: #e0e0e0;
+        --movie-studio-color: #cccccc;
+        --search-border: rgba(255, 255, 255, 0.1);
+        --clear-btn-color: #cccccc;
+        --select-bg: #2c2c2c;
+        --select-border: rgba(255, 255, 255, 0.1);
+        --select-option-bg: #2c2c2c;
+        --select-option-color: #f0f0f0;
     }
 }
 
@@ -21,7 +45,6 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    transition: all 0.3s ease;
 }
 
 body {
@@ -58,6 +81,18 @@ body[data-theme='dark'] {
     --text-color: #f0f0f0;
     --card-bg: #2c2c2c;
     --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --controls-bg: rgba(44, 44, 44, 0.8);
+    --controls-border: rgba(255, 255, 255, 0.1);
+    --controls-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --movie-title-color: #ffffff;
+    --movie-date-color: #e0e0e0;
+    --movie-studio-color: #cccccc;
+    --search-border: rgba(255, 255, 255, 0.1);
+    --clear-btn-color: #cccccc;
+    --select-bg: #2c2c2c;
+    --select-border: rgba(255, 255, 255, 0.1);
+    --select-option-bg: #2c2c2c;
+    --select-option-color: #f0f0f0;
 }
 
 body[data-theme='light'] {
@@ -65,6 +100,18 @@ body[data-theme='light'] {
     --text-color: #1a1a1a;
     --card-bg: white;
     --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --controls-bg: rgba(255, 255, 255, 0.8);
+    --controls-border: rgba(255, 255, 255, 0.3);
+    --controls-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --movie-title-color: #333;
+    --movie-date-color: #666;
+    --movie-studio-color: #888;
+    --search-border: rgba(0, 0, 0, 0.1);
+    --clear-btn-color: #666666;
+    --select-bg: white;
+    --select-border: rgba(0, 0, 0, 0.1);
+    --select-option-bg: white;
+    --select-option-color: #333;
 }
 
 /* 暗色主题下的影片文字样式强化 */
@@ -164,14 +211,14 @@ h1 {
     gap: 8px;
 
     /* 磨砂玻璃效果 */
-    background: rgba(255, 255, 255, 0.8);
+    background: var(--controls-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
 
     /* 视觉效果 */
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid var(--controls-border);
     border-radius: var(--border-radius);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--controls-shadow);
 
     /* 布局 */
     padding: 12px;
@@ -193,7 +240,7 @@ h1 {
 #search-input {
     width: 100%;
     padding: 6px 30px 6px 10px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--search-border);
     border-radius: 6px;
     background-color: var(--bg-color);
     color: var(--text-color);
@@ -218,7 +265,7 @@ h1 {
     background: transparent !important;
     border: none !important;
     outline: none !important;
-    color: #666666 !important;
+    color: var(--clear-btn-color) !important;
     opacity: 0;
     cursor: pointer;
     font-size: 14px !important;
@@ -319,9 +366,9 @@ body[data-theme='dark'] .clear-search-btn:hover {
 
 #controls select {
     padding: 6px 8px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--select-border);
     border-radius: 6px;
-    background-color: var(--bg-color);
+    background-color: var(--select-bg);
     color: var(--text-color);
     font-size: 0.85em;
     outline: none;

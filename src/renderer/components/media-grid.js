@@ -127,7 +127,7 @@ function createInfoContainer(media) {
         font-size: 14px;
         font-weight: 600;
         line-height: 1.4;
-        color: #333;
+        color: var(--movie-title-color);
         /* 支持多行显示，最多2行 */
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -145,7 +145,7 @@ function createInfoContainer(media) {
         dateElement.textContent = media.releaseDateFull;
         dateElement.style.cssText = `
             font-size: 12px;
-            color: #666;
+            color: var(--movie-date-color);
             marginBottom: 4px;
         `;
         infoContainer.appendChild(dateElement);
@@ -157,7 +157,7 @@ function createInfoContainer(media) {
         studioElement.textContent = media.studio;
         studioElement.style.cssText = `
             font-size: 12px;
-            color: #888;
+            color: var(--movie-studio-color);
             overflow: hidden;
             textOverflow: ellipsis;
             whiteSpace: nowrap;
@@ -251,7 +251,7 @@ function showCoverError(container) {
     errorDiv.className = 'cover-error';
     errorDiv.innerHTML = `
         <div style="font-size: 24px; margin-bottom: 8px;">🖼️</div>
-        <div style="font-size: 12px; color: #666;">封面加载失败</div>
+        <div style="font-size: 12px; color: var(--movie-date-color);">封面加载失败</div>
     `;
     container.appendChild(errorDiv);
 }
@@ -271,7 +271,7 @@ function showNoCover(container) {
     noCoverDiv.className = 'no-cover';
     noCoverDiv.innerHTML = `
         <div style="font-size: 24px; margin-bottom: 8px;">📁</div>
-        <div style="font-size: 12px; color: #666;">无封面</div>
+        <div style="font-size: 12px; color: var(--movie-date-color);">无封面</div>
     `;
     container.appendChild(noCoverDiv);
 }
