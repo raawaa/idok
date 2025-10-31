@@ -36,8 +36,8 @@ body {
 }
 
 #content-container {
-    padding-top: 10px;
-    /* 为顶部内容留出少量空间 */
+    padding: 140px 0 20px 0;
+    /* 顶部140px为悬浮控制区域留出充足空间 (20px top + 80px controls + 40px clearance) */
     padding-right: 0;
     /* 移除右侧 padding，让滚动条紧贴窗口 */
     padding-left: 0;
@@ -48,6 +48,8 @@ body {
     /* 使用完整的视窗高度，额外减去1px防止溢出 */
     overscroll-behavior: contain;
     /* 防止滚动到底部时的反弹效果 */
+    box-sizing: border-box;
+    /* 确保padding计算在高度内 */
 }
 
 /* 强制暗色/亮色模式 */
@@ -65,6 +67,28 @@ body[data-theme='light'] {
     --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* 悬浮控制区域 - 暗色主题适配 */
+@media (prefers-color-scheme: dark) {
+    #controls {
+        background: rgba(44, 44, 44, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* 悬浮控制区域 - 强制主题适配 */
+body[data-theme='dark'] #controls {
+    background: rgba(44, 44, 44, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+body[data-theme='light'] #controls {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
 h1 {
     text-align: center;
     font-weight: 600;
@@ -76,28 +100,39 @@ h1 {
     /* 移除默认 H1 的顶部 margin */
 }
 
-/* 控件容器样式 */
+/* 悬浮控制区域样式 */
 #controls {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 1200px;
+    z-index: 100;
+
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
     gap: 15px;
-    margin-top: 0;
-    /* 移除顶部 margin */
-    margin-left: 10px;
-    margin-right: 10px;
-    margin-bottom: 20px;
-    text-align: center;
-    background-color: var(--card-bg);
-    padding: 20px;
-    /* 保持垂直 padding */
-    padding-left: 20px;
-    /* 添加左侧 padding */
-    padding-right: 20px;
-    /* 添加右侧 padding */
+
+    /* 磨砂玻璃效果 */
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    /* 视觉效果 */
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+    /* 布局 */
+    padding: 20px;
+    margin: 0;
+    text-align: center;
+
+    /* 动画 */
+    transition: all 0.3s ease;
 }
 
 /* 搜索框容器样式 */
@@ -544,9 +579,98 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
     background-color: rgba(255, 255, 255, 0.4);
 }
 
+/* 悬浮控制区域响应式设计 */
+@media (max-width: 768px) {
+    #controls {
+        width: calc(100% - 20px);
+        padding: 15px;
+        gap: 12px;
+        top: 10px;
+    }
+
+    #content-container {
+        padding: 120px 0 20px 0;
+        /* 10px + 80px (controls height) + 30px clearance */
+    }
+
+    .search-container {
+        min-width: 180px;
+        max-width: 100%;
+        flex: 1 1 100%;
+        order: -1;
+        /* 搜索框排在最前面 */
+    }
+
+    #search-input {
+        font-size: 16px;
+        /* 防止iOS缩放 */
+        padding: 12px 40px 12px 15px;
+    }
+
+    #controls select,
+    #controls input:not(#search-input),
+    #controls button {
+        font-size: 14px;
+        padding: 10px 12px;
+        min-height: 44px;
+        /* 触摸友好的最小高度 */
+    }
+}
+
 @media (max-width: 600px) {
     #movie-covers {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        padding: 15px;
+    }
+
+    #controls {
+        width: calc(100% - 10px);
+        padding: 12px;
+        max-height: 140px;
+        overflow-y: auto;
+    }
+
+    #content-container {
+        padding: 160px 0 20px 0;
+        /* 10px + 140px (controls max-height) + 10px clearance */
+    }
+
+    .search-container {
+        order: -1;
+        margin-bottom: 5px;
+    }
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 480px) {
+    #controls {
+        gap: 8px;
+        padding: 10px;
+        max-height: 180px;
+        top: 5px;
+        width: calc(100% - 10px);
+    }
+
+    #content-container {
+        padding: 200px 0 20px 0;
+        /* 5px + 180px (controls max-height) + 15px clearance */
+    }
+
+    #controls label {
+        font-size: 12px;
+    }
+
+    #controls button {
+        font-size: 13px;
+        padding: 8px 10px;
+        min-height: 40px;
+    }
+
+    #movie-covers {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+        padding: 10px;
     }
 }
 
