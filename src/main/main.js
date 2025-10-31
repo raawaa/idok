@@ -72,8 +72,8 @@ function createWindow() {
         console.error('❌ 页面加载失败:', error);
     });
 
-    // 开发者工具 - 重新开启以调试按钮问题
-    mainWindow.webContents.openDevTools();
+    // 开发者工具 - 默认关闭
+    // mainWindow.webContents.openDevTools();
 
     // 窗口事件处理
     setupWindowEvents(mainWindow);
