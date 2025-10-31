@@ -40,7 +40,7 @@ body {
 }
 
 #content-container {
-    padding: 20px 0 20px 0;
+    padding: 20px 0 0 0;
     /* 移除顶部固定padding，改为在movie-covers上动态设置 */
     padding-right: 0;
     /* 移除右侧 padding，让滚动条紧贴窗口 */
@@ -48,7 +48,7 @@ body {
     /* 同时移除左侧 padding */
     overflow-y: auto;
     /* 在内容容器上启用滚动条 */
-    height: calc(100vh - 30px);
+    height: 100vh;
     /* 减去标题栏高度 */
     box-sizing: border-box;
 }
@@ -1098,7 +1098,7 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
     }
 
     #content-container {
-        padding: 20px 0 20px 0;
+        padding: 20px 0 0 0;
         /* 移除顶部固定padding，改为在movie-covers上动态设置 */
     }
 
@@ -1154,7 +1154,7 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
     }
 
     #content-container {
-        padding: 20px 0 20px 0;
+        padding: 20px 0 0 0;
         /* 移除顶部固定padding，改为在movie-covers上动态设置 */
     }
 
@@ -1197,7 +1197,7 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
     }
 
     #content-container {
-        padding: 20px 0 20px 0;
+        padding: 20px 0 0 0;
         /* 移除顶部固定padding，改为在movie-covers上动态设置 */
     }
 
