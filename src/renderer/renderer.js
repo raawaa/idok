@@ -82,6 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
 async function initializeApp() {
     console.log('开始初始化模块化应用程序...');
 
+    // 初始化主题设置
+    initializeTheme();
+
     // 初始化事件监听器
     initializeEventListeners();
 
@@ -89,6 +92,87 @@ async function initializeApp() {
     initializeSearch();
 
     console.log('模块化应用程序初始化完成');
+}
+
+/**
+ * 初始化主题设置
+ */
+function initializeTheme() {
+    console.log('初始化主题设置...');
+
+    // 获取保存的主题设置，默认为 'auto'
+    const savedTheme = localStorage.getItem('theme') || 'auto';
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+
+    if (savedTheme !== 'auto') {
+        // 如果用户手动设置了主题，直接应用
+        document.body.setAttribute('data-theme', savedTheme);
+        console.log(`应用手动设置的主题: ${savedTheme}`);
+
+        // 设置按钮状态
+        if (themeToggleBtn) {
+            if (savedTheme === 'dark') {
+                themeToggleBtn.textContent = '🌙';
+                themeToggleBtn.title = '切换到浅色主题';
+            } else {
+                themeToggleBtn.textContent = '☀️';
+                themeToggleBtn.title = '切换到深色主题';
+            }
+        }
+    } else {
+        // 如果是自动主题，根据系统偏好设置
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.body.setAttribute('data-theme', 'dark');
+            console.log('应用系统深色主题');
+            if (themeToggleBtn) {
+                themeToggleBtn.textContent = '🌙';
+                themeToggleBtn.title = '切换到浅色主题';
+            }
+        } else {
+            document.body.setAttribute('data-theme', 'light');
+            console.log('应用系统浅色主题');
+            if (themeToggleBtn) {
+                themeToggleBtn.textContent = '☀️';
+                themeToggleBtn.title = '切换到深色主题';
+            }
+        }
+    }
+}
+
+/**
+ * 切换主题
+ */
+function toggleTheme() {
+    console.log('🎨 开始切换主题...');
+
+    const currentTheme = document.body.getAttribute('data-theme');
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+
+    let newTheme;
+    if (currentTheme === 'dark') {
+        newTheme = 'light';
+        if (themeToggleBtn) {
+            themeToggleBtn.textContent = '☀️';
+            themeToggleBtn.title = '切换到深色主题';
+        }
+        console.log('🌞 切换到浅色主题');
+        showSuccess('已切换到浅色主题', 1500);
+    } else {
+        newTheme = 'dark';
+        if (themeToggleBtn) {
+            themeToggleBtn.textContent = '🌙';
+            themeToggleBtn.title = '切换到浅色主题';
+        }
+        console.log('🌙 切换到深色主题');
+        showSuccess('已切换到深色主题', 1500);
+    }
+
+    // 应用新主题
+    document.body.setAttribute('data-theme', newTheme);
+
+    // 保存到localStorage
+    localStorage.setItem('theme', newTheme);
+    console.log(`💾 主题设置已保存: ${newTheme}`);
 }
 
 /**
@@ -142,6 +226,7 @@ function initializeEventListeners() {
     const sortBySelect = document.getElementById('sort-by');
     const sortOrderSelect = document.getElementById('sort-order');
     const clearFiltersBtn = document.getElementById('clear-filters');
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
     const openSettingsBtn = document.getElementById('open-settings-btn');
 
     // 过滤器元素
@@ -168,6 +253,15 @@ function initializeEventListeners() {
     }
     if (filterGenreSelect) {
         filterGenreSelect.addEventListener('change', handleFilterChange);
+    }
+    if (themeToggleBtn) {
+        console.log('✅ 找到主题切换按钮，添加事件监听器');
+        themeToggleBtn.addEventListener('click', () => {
+            console.log('🎨 主题切换按钮被点击！');
+            toggleTheme();
+        });
+    } else {
+        console.error('❌ 未找到主题切换按钮 #theme-toggle-btn');
     }
     if (openSettingsBtn) {
         console.log('✅ 找到设置按钮，添加事件监听器');
