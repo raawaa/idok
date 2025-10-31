@@ -119,13 +119,15 @@ function initializeTheme() {
 
         // 设置按钮状态
         if (themeToggleBtn) {
+            const icon = themeToggleBtn.querySelector('i[data-lucide]');
             if (savedTheme === 'dark') {
-                themeToggleBtn.textContent = '🌙';
+                if (icon) icon.setAttribute('data-lucide', 'moon');
                 themeToggleBtn.title = '切换到浅色主题';
             } else {
-                themeToggleBtn.textContent = '☀️';
+                if (icon) icon.setAttribute('data-lucide', 'sun');
                 themeToggleBtn.title = '切换到深色主题';
             }
+            if (window.lucide) window.lucide.createIcons();
         }
     } else {
         // 如果是自动主题，根据系统偏好设置
@@ -133,15 +135,19 @@ function initializeTheme() {
             document.body.setAttribute('data-theme', 'dark');
             console.log('应用系统深色主题');
             if (themeToggleBtn) {
-                themeToggleBtn.textContent = '🌙';
+                const icon = themeToggleBtn.querySelector('i[data-lucide]');
+                if (icon) icon.setAttribute('data-lucide', 'moon');
                 themeToggleBtn.title = '切换到浅色主题';
+                if (window.lucide) window.lucide.createIcons();
             }
         } else {
             document.body.setAttribute('data-theme', 'light');
             console.log('应用系统浅色主题');
             if (themeToggleBtn) {
-                themeToggleBtn.textContent = '☀️';
+                const icon = themeToggleBtn.querySelector('i[data-lucide]');
+                if (icon) icon.setAttribute('data-lucide', 'sun');
                 themeToggleBtn.title = '切换到深色主题';
+                if (window.lucide) window.lucide.createIcons();
             }
         }
     }
@@ -161,16 +167,20 @@ function toggleTheme() {
     if (currentTheme === 'dark') {
         newTheme = 'light';
         if (themeToggleBtn) {
-            themeToggleBtn.textContent = '☀️';
+            const icon = themeToggleBtn.querySelector('i[data-lucide]');
+            if (icon) icon.setAttribute('data-lucide', 'sun');
             themeToggleBtn.title = '切换到深色主题';
+            if (window.lucide) window.lucide.createIcons();
         }
         console.log('🌞 切换到浅色主题');
         showSuccess('已切换到浅色主题', 1500);
     } else {
         newTheme = 'dark';
         if (themeToggleBtn) {
-            themeToggleBtn.textContent = '🌙';
+            const icon = themeToggleBtn.querySelector('i[data-lucide]');
+            if (icon) icon.setAttribute('data-lucide', 'moon');
             themeToggleBtn.title = '切换到浅色主题';
+            if (window.lucide) window.lucide.createIcons();
         }
         console.log('🌙 切换到深色主题');
         showSuccess('已切换到深色主题', 1500);

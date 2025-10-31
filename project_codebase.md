@@ -34,7 +34,7 @@
   - 使用requestAnimationFrame确保在下一次重绘前应用主题
   - 延迟更新容器padding，避免与主题切换同时进行
   - 保存主题设置到localStorage
-  - 更新主题切换按钮状态
+  - 更新Lucide图标(moon/sun)和按钮标题
 - **updateContainerPadding()**: 更新媒体容器padding，根据窗口大小调整内容区域
 - **initializeEventListeners()**: 初始化事件监听器，包括主题切换按钮点击事件
 - **handleFileSelection()**: 处理文件选择事件
@@ -86,7 +86,7 @@
 ### 依赖管理
 - **Electron** - 桌面应用框架
 - **Lucide** - 原生JavaScript图标库，用于UI图标显示
-- **其他依赖** - 见package.json文件
+- **其他依赖** - 详见package.json文件
 
 - **addMediaEventListeners(element, media, onClick, onContextMenu)**: 添加媒体元素事件监听器
   - 功能: 为媒体元素添加点击和右键事件监听，特别处理tag点击事件
