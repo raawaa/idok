@@ -110,6 +110,19 @@ body[data-theme='dark'] .movie-item p .clickable-text:hover {
     transition: all 0.2s ease;
     border: 1px solid transparent;
     font-weight: 500;
+    animation: fadeIn 0.3s ease;
+}
+
+/* 淡入动画 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* 演员标签样式 */

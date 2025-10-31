@@ -379,7 +379,11 @@ function createInfoContainer(media) {
             gap: 4px;
         `;
         
-        // 显示前3个演员，如果有更多则显示"..."
+        // 存储演员数据用于展开功能
+        actorsContainer.dataset.actors = JSON.stringify(media.actors);
+        actorsContainer.dataset.expanded = 'false';
+        
+        // 显示前3个演员，如果有更多则显示"+?"
         const displayActors = media.actors.slice(0, 3);
         displayActors.forEach(actor => {
             const actorTag = document.createElement('span');
@@ -414,10 +418,12 @@ function createInfoContainer(media) {
             actorsContainer.appendChild(actorTag);
         });
         
-        // 如果演员数量超过3个，显示省略号
+        // 如果演员数量超过3个，显示"+?"展开按钮
         if (media.actors.length > 3) {
             const moreIndicator = document.createElement('span');
             moreIndicator.textContent = `+${media.actors.length - 3}`;
+            moreIndicator.className = 'media-tag media-tag-more';
+            moreIndicator.dataset.remainingCount = media.actors.length - 3;
             moreIndicator.style.cssText = `
                 display: inline-block;
                 padding: 2px 8px;
@@ -426,8 +432,22 @@ function createInfoContainer(media) {
                 background-color: var(--tag-more-bg, #f5f5f5);
                 color: var(--tag-more-color, #666);
                 border: 1px solid var(--tag-more-border, #e0e0e0);
+                cursor: pointer;
+                transition: all 0.2s ease;
                 user-select: none;
             `;
+            
+            // 添加悬停效果
+            moreIndicator.addEventListener('mouseenter', () => {
+                moreIndicator.style.backgroundColor = 'var(--tag-more-hover-bg, #e0e0e0)';
+                moreIndicator.style.transform = 'scale(1.05)';
+            });
+            
+            moreIndicator.addEventListener('mouseleave', () => {
+                moreIndicator.style.backgroundColor = 'var(--tag-more-bg, #f5f5f5)';
+                moreIndicator.style.transform = 'scale(1)';
+            });
+            
             actorsContainer.appendChild(moreIndicator);
         }
         
@@ -447,9 +467,17 @@ function createInfoContainer(media) {
 function addMediaEventListeners(element, media, onClick, onContextMenu) {
     // 点击事件
     safeAddEventListener(element, 'click', (e) => {
-        // 如果点击的是tag，则处理tag过滤
-        if (e.target && e.target.classList && e.target.classList.contains('media-tag')) {
-            handleTagClick(e.target);
+        // 查找点击的元素或其父元素中是否包含media-tag类
+        const tagElement = e.target.closest('.media-tag');
+        
+        if (tagElement) {
+            // 处理"+?"展开按钮或"收起"按钮
+            if (tagElement.classList.contains('media-tag-more')) {
+                handleActorExpand(tagElement);
+                return;
+            }
+            // 处理普通tag过滤
+            handleTagClick(tagElement);
             return;
         }
         
@@ -597,6 +625,160 @@ function handleTagClick(tagElement) {
     // 显示过滤提示
     if (window.showInfo) {
         window.showInfo(`已按${filterType === 'actor' ? '演员' : '系列'} "${filterValue}" 过滤`, 2000);
+    }
+}
+
+/**
+ * 处理演员展开功能
+ * @param {HTMLElement} moreElement - "+?"展开按钮元素
+ */
+function handleActorExpand(moreElement) {
+    const actorsContainer = moreElement.parentElement;
+    if (!actorsContainer || !actorsContainer.dataset.actors) {
+        return;
+    }
+    
+    const isExpanded = actorsContainer.dataset.expanded === 'true';
+    const actors = JSON.parse(actorsContainer.dataset.actors);
+    
+    if (!isExpanded) {
+        // 展开显示全部演员
+        console.log(`展开显示全部${actors.length}个演员`);
+        
+        // 移除现有的"+?"按钮
+        moreElement.remove();
+        
+        // 添加剩余的所有演员
+        const remainingActors = actors.slice(3);
+        remainingActors.forEach(actor => {
+            const actorTag = document.createElement('span');
+            actorTag.textContent = actor;
+            actorTag.className = 'media-tag media-tag-actor';
+            actorTag.dataset.filterType = 'actor';
+            actorTag.dataset.filterValue = actor;
+            actorTag.style.cssText = `
+                display: inline-block;
+                padding: 2px 8px;
+                font-size: 11px;
+                border-radius: 12px;
+                background-color: var(--tag-actor-bg, #f3e5f5);
+                color: var(--tag-actor-color, #7b1fa2);
+                border: 1px solid var(--tag-actor-border, #e1bee7);
+                cursor: pointer;
+                transition: all 0.2s ease;
+                user-select: none;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            // 添加悬停效果
+            actorTag.addEventListener('mouseenter', () => {
+                actorTag.style.backgroundColor = 'var(--tag-actor-hover-bg, #e1bee7)';
+                actorTag.style.transform = 'scale(1.05)';
+            });
+            
+            actorTag.addEventListener('mouseleave', () => {
+                actorTag.style.backgroundColor = 'var(--tag-actor-bg, #f3e5f5)';
+                actorTag.style.transform = 'scale(1)';
+            });
+            
+            actorsContainer.appendChild(actorTag);
+        });
+        
+        // 添加"收起"按钮（使用Lucide图标）
+        const collapseButton = document.createElement('span');
+        collapseButton.innerHTML = '<i data-lucide="chevron-up" style="width: 12px; height: 12px;"></i>';
+        collapseButton.className = 'media-tag media-tag-more';
+        collapseButton.style.cssText = `
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 6px;
+            font-size: 11px;
+            border-radius: 12px;
+            background-color: var(--tag-more-bg, #f5f5f5);
+            color: var(--tag-more-color, #666);
+            border: 1px solid var(--tag-more-border, #e0e0e0);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            line-height: 1;
+        `;
+        
+        // 添加悬停效果
+        collapseButton.addEventListener('mouseenter', () => {
+            collapseButton.style.backgroundColor = 'var(--tag-more-hover-bg, #e0e0e0)';
+            collapseButton.style.transform = 'scale(1.05)';
+        });
+        
+        collapseButton.addEventListener('mouseleave', () => {
+            collapseButton.style.backgroundColor = 'var(--tag-more-bg, #f5f5f5)';
+            collapseButton.style.transform = 'scale(1)';
+        });
+        
+        actorsContainer.appendChild(collapseButton);
+        actorsContainer.dataset.expanded = 'true';
+        
+        // 初始化Lucide图标
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        
+        // 显示提示
+        if (window.showInfo) {
+            window.showInfo(`已展开显示全部${actors.length}个演员，点击"收起"可恢复紧凑显示`, 2000);
+        }
+    } else {
+        // 收起，只显示前3个
+        console.log('收起演员显示');
+        
+        // 移除所有额外的演员标签和"+n"按钮
+        const allTags = actorsContainer.querySelectorAll('.media-tag-actor');
+        const moreButton = actorsContainer.querySelector('.media-tag-more');
+        
+        // 保留前3个演员标签
+        for (let i = 3; i < allTags.length; i++) {
+            allTags[i].remove();
+        }
+        
+        if (moreButton) {
+            moreButton.remove();
+        }
+        
+        // 重新添加"+n"按钮
+        const moreIndicator = document.createElement('span');
+        moreIndicator.textContent = `+${actors.length - 3}`;
+        moreIndicator.className = 'media-tag media-tag-more';
+        moreIndicator.style.cssText = `
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 11px;
+            border-radius: 12px;
+            background-color: var(--tag-more-bg, #f5f5f5);
+            color: var(--tag-more-color, #666);
+            border: 1px solid var(--tag-more-border, #e0e0e0);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        `;
+        
+        // 添加悬停效果
+        moreIndicator.addEventListener('mouseenter', () => {
+            moreIndicator.style.backgroundColor = 'var(--tag-more-hover-bg, #e0e0e0)';
+            moreIndicator.style.transform = 'scale(1.05)';
+        });
+        
+        moreIndicator.addEventListener('mouseleave', () => {
+            moreIndicator.style.backgroundColor = 'var(--tag-more-bg, #f5f5f5)';
+            moreIndicator.style.transform = 'scale(1)';
+        });
+        
+        actorsContainer.appendChild(moreIndicator);
+        actorsContainer.dataset.expanded = 'false';
+        
+        // 显示提示
+        if (window.showInfo) {
+            window.showInfo('已收起演员显示，显示前3个演员', 1500);
+        }
     }
 }
 
