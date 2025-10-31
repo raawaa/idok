@@ -53,7 +53,6 @@ class SettingsModal {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h2>设置</h2>
-                        <button id="close-settings" class="close-btn">&times;</button>
                     </div>
                     
                     <!-- 标签页导航 -->
@@ -126,12 +125,7 @@ class SettingsModal {
             settingsBtn.addEventListener('click', () => this.open());
         }
         
-        // 关闭设置
-        const closeBtn = document.getElementById('close-settings');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.close());
-        }
-        
+                
         // 点击遮罩关闭
         if (this.modal) {
             this.modal.addEventListener('click', (e) => {

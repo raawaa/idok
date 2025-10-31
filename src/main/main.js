@@ -11,8 +11,13 @@
 //     }
 // }
 
+// 在引入electron之前设置缓存和环境配置
+process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+process.env.ELECTRON_ENABLE_LOGGING = 'true';
+
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 // 导入服务
 const { readSettings } = require('./services/file-service');
@@ -35,11 +40,33 @@ const settingsPath = path.join(app.getPath('userData'), 'settings.json');
 let mainWindow = null;
 
 /**
+ * 清理缓存目录
+ */
+function clearCacheDirectory() {
+    try {
+        const cachePath = path.join(app.getPath('userData'), 'cache');
+        if (fs.existsSync(cachePath)) {
+            console.log('🧹 清理缓存目录...');
+            fs.rmSync(cachePath, { recursive: true, force: true });
+            console.log('✅ 缓存目录清理完成');
+        }
+    } catch (error) {
+        console.warn('⚠️ 清理缓存目录失败:', error.message);
+    }
+}
+
+/**
  * 创建应用主窗口
  */
 function createWindow() {
     console.log('📱 创建主窗口...', '当前窗口数量:', BrowserWindow.getAllWindows().length);
 
+    // 清理缓存目录以避免权限问题
+    clearCacheDirectory();
+    
+    // 配置Electron缓存和GPU设置以避免常见错误
+    app.setPath('cache', path.join(app.getPath('userData'), 'cache'));
+    
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
@@ -47,7 +74,11 @@ function createWindow() {
         minHeight: 600,
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: false,
+            // 禁用GPU加速以避免GPU缓存错误
+            webgl: false,
+            // 禁用平滑滚动以减少缓存问题
+            smoothScrolling: false
         },
         autoHideMenuBar: true,
         show: false
@@ -153,6 +184,15 @@ async function initializeApplication() {
 // 应用事件处理
 app.whenReady().then(() => {
     console.log('🚀 应用准备就绪');
+    
+    // 添加额外的命令行参数来避免缓存问题
+    app.commandLine.appendSwitch('disable-gpu');
+    app.commandLine.appendSwitch('disable-software-rasterizer');
+    app.commandLine.appendSwitch('disable-gpu-sandbox');
+    app.commandLine.appendSwitch('disable-web-security');
+    app.commandLine.appendSwitch('disable-features', 'VizDisplayCompositor');
+    app.commandLine.appendSwitch('no-sandbox');
+    
     createWindow();
 
     app.on('activate', () => {
