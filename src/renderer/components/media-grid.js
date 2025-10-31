@@ -226,6 +226,41 @@ function createCoverContainer(media) {
         showNoCover(coverContainer);
     }
 
+    // 添加多盘片标记
+    if (media.totalParts && media.totalParts > 1) {
+        const cdBadge = document.createElement('div');
+        cdBadge.textContent = `${media.totalParts}CD`;
+        cdBadge.style.cssText = `
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 10;
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+        `;
+        
+        // 添加悬停效果
+        cdBadge.addEventListener('mouseenter', () => {
+            cdBadge.style.background = 'rgba(0, 0, 0, 0.8)';
+            cdBadge.style.transform = 'scale(1.05)';
+        });
+        
+        cdBadge.addEventListener('mouseleave', () => {
+            cdBadge.style.background = 'rgba(0, 0, 0, 0.7)';
+            cdBadge.style.transform = 'scale(1)';
+        });
+        
+        coverContainer.appendChild(cdBadge);
+    }
+
     return coverContainer;
 }
 
@@ -262,6 +297,8 @@ function createInfoContainer(media) {
         min-height: 2.8em;
     `;
     infoContainer.appendChild(titleElement);
+
+
 
     // 发布日期
     if (media.releaseDateFull) {

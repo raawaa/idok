@@ -525,17 +525,75 @@ function clearAllFilters() {
  */
 async function handleMediaClick(media) {
     try {
-        console.log('🎬 开始播放视频:', media.videoPath);
-        const result = await window.ipcRenderer.invoke('open-video', media.videoPath);
-        if (result.success) {
-            console.log('✅ 视频播放成功');
+        // 如果有多个视频文件（分盘片），使用播放列表功能一次性播放所有部分
+        if (media.videoFiles && media.videoFiles.length > 1) {
+            console.log(`🎬 检测到分盘片影片，共 ${media.videoFiles.length} 部分`);
+            
+            // 显示加载提示
+            showInfo('正在加载播放列表...');
+            
+            // 使用新的播放列表处理器
+            const result = await window.ipcRenderer.invoke('open-video-playlist', media.videoFiles);
+            
+            if (result.success) {
+                showSuccess(`开始播放: ${media.title} (${media.videoFiles.length} 部分)`);
+            } else {
+                throw new Error(result.error || '播放失败');
+            }
         } else {
-            console.error('❌ 视频播放失败:', result.error);
-            showError(`无法播放视频: ${result.error}`);
+            // 普通影片，直接播放
+            console.log('🎬 开始播放视频:', media.videoPath);
+            await playVideoFile(media.videoPath);
         }
     } catch (error) {
-        console.error('❌ 播放视频异常:', error);
-        showError(`播放视频失败: ${error.message}`);
+        console.error('❌ 播放失败:', error);
+        showError(`播放失败: ${error.message}`);
+    }
+}
+
+/**
+ * 播放单个视频文件
+ */
+async function playVideoFile(videoPath) {
+    const result = await window.ipcRenderer.invoke('open-video', videoPath);
+    if (result.success) {
+        console.log('✅ 视频播放成功');
+    } else {
+        console.error('❌ 视频播放失败:', result.error);
+        showError(`无法播放视频: ${result.error}`);
+    }
+}
+
+/**
+ * 按顺序播放多个视频文件的回退方法（当播放列表处理器不可用时使用）
+ * @param {string[]} videoFiles - 视频文件路径数组
+ */
+async function playVideoFilesInSequence(videoFiles) {
+    if (!videoFiles || videoFiles.length === 0) {
+        throw new Error('没有视频文件可以播放');
+    }
+
+    try {
+        console.log(`🎬 回退模式：逐个播放分盘片影片，共${videoFiles.length}部分`);
+        
+        // 系统默认播放器或其他播放器，逐个打开
+        for (let i = 0; i < videoFiles.length; i++) {
+            console.log(`🎬 播放第${i + 1}部分: ${videoFiles[i]}`);
+            const result = await window.ipcRenderer.invoke('open-video', videoFiles[i]);
+            if (!result.success) {
+                throw new Error(result.error || `播放第${i + 1}部分失败`);
+            }
+            // 添加小延迟，避免同时打开太多文件
+            if (i < videoFiles.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+        
+        console.log('✅ 分盘片影片播放完成');
+        
+    } catch (error) {
+        console.error('❌ 分盘片播放失败:', error);
+        throw error;
     }
 }
 

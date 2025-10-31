@@ -65,7 +65,7 @@ async function scanDirectoryRecursive(directoryPath) {
     try {
         const files = await fs.promises.readdir(directoryPath, { withFileTypes: true });
 
-        let videoFile = null;
+        let videoFiles = [];  // 改为数组，支持多个视频文件
         let nfoFile = null;
 
         for (const dirent of files) {
@@ -77,7 +77,7 @@ async function scanDirectoryRecursive(directoryPath) {
                 mediaList.push(...subMedia);
             } else if (dirent.isFile()) {
                 if (isVideoFile(dirent.name)) {
-                    videoFile = fullPath;
+                    videoFiles.push(fullPath);  // 收集所有视频文件
                 } else if (dirent.name.toLowerCase().endsWith('.nfo')) {
                     nfoFile = fullPath;
                 }
@@ -85,14 +85,19 @@ async function scanDirectoryRecursive(directoryPath) {
         }
 
         // 如果找到视频文件和 NFO 文件
-        if (videoFile && nfoFile) {
+        if (videoFiles.length > 0 && nfoFile) {
             try {
                 const movieInfo = await parseNfoFile(nfoFile);
                 const coverImagePath = await findCoverImage(path.dirname(nfoFile));
 
+                // 无论有多少个视频文件，都只创建一个媒体项
+                videoFiles.sort((a, b) => a.localeCompare(b)); // 按文件名排序
+                
                 mediaList.push({
                     ...movieInfo,
-                    videoPath: videoFile,
+                    videoPath: videoFiles[0], // 使用第一个视频文件作为主路径
+                    videoFiles: videoFiles, // 保存所有视频文件列表，用于播放
+                    totalParts: videoFiles.length, // 总部分数
                     coverImagePath: coverImagePath ? encodeFilePath(coverImagePath) : null
                 });
             } catch (error) {

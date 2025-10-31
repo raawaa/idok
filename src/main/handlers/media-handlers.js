@@ -45,7 +45,7 @@ function registerMediaHandlers(ipcMain, settingsPath, mainWindow) {
         }
     });
 
-    // 打开视频处理器
+    // 打开视频处理器（单个视频）
     ipcMain.handle('open-video', async (event, videoPath) => {
         try {
             console.log('🎬 打开视频:', videoPath);
@@ -349,7 +349,277 @@ function registerMediaHandlers(ipcMain, settingsPath, mainWindow) {
             };
         }
     });
-}
+
+    // 打开视频播放列表处理器（支持多个视频文件）
+    ipcMain.handle('open-video-playlist', async (event, videoPaths) => {
+        try {
+            console.log('🎬 打开视频播放列表:', videoPaths);
+
+            // 验证输入
+            if (!Array.isArray(videoPaths) || videoPaths.length === 0) {
+                throw new Error('视频路径列表无效');
+            }
+
+            // 验证所有路径
+            for (const videoPath of videoPaths) {
+                if (typeof videoPath !== 'string' || videoPath.trim() === '') {
+                    throw new Error('视频路径无效');
+                }
+                if (!isPathSafe(videoPath)) {
+                    throw new Error('视频路径不安全');
+                }
+            }
+
+            // 读取设置获取播放器配置
+            const { spawn } = require('child_process');
+            const path = require('path');
+            const fs = require('fs');
+
+            let settings = {};
+            try {
+                const settingsData = await fs.promises.readFile(settingsPath, 'utf-8');
+                settings = JSON.parse(settingsData);
+            } catch (error) {
+                console.log('⚠️ 无法读取设置，使用默认播放器');
+            }
+
+            // 处理播放器设置
+            let playerType = settings.playerType || 'system';
+            let customPlayer = settings.customPlayer || '';
+            
+            // 兼容旧版本设置
+            if (settings.defaultPlayer && !settings.playerType) {
+                if (settings.defaultPlayer.includes('\\') || settings.defaultPlayer.includes('/')) {
+                    playerType = 'custom';
+                    customPlayer = settings.defaultPlayer;
+                } else {
+                    playerType = settings.defaultPlayer;
+                    customPlayer = '';
+                }
+            }
+
+            console.log(`🎬 播放器类型: ${playerType}`);
+
+            // 如果是系统默认播放器，只能逐个打开
+            if (playerType === 'system') {
+                console.log('🎬 使用系统默认播放器，逐个打开视频');
+                const { shell } = require('electron');
+                for (const videoPath of videoPaths) {
+                    await shell.openPath(videoPath);
+                    // 添加小延迟，避免同时打开太多文件
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                return { success: true };
+            }
+
+            // 处理自定义播放器或预定义播放器
+            let defaultPlayer = '';
+            if (playerType === 'custom') {
+                defaultPlayer = customPlayer;
+            } else {
+                defaultPlayer = playerType;
+            }
+
+            if (defaultPlayer && defaultPlayer.trim() !== '') {
+                console.log('🎬 使用播放器:', defaultPlayer);
+
+                // 获取播放器路径（复用现有逻辑）
+                let playerPath = defaultPlayer;
+                let foundValidPlayer = false;
+                const { shell } = require('electron');
+
+                // 检查自定义播放器路径
+                if (playerType === 'custom' && (defaultPlayer.includes('\\') || defaultPlayer.includes('/'))) {
+                    if (fs.existsSync(defaultPlayer) && defaultPlayer.toLowerCase().endsWith('.exe')) {
+                        playerPath = defaultPlayer;
+                        foundValidPlayer = true;
+                        console.log('✅ 找到自定义播放器:', playerPath);
+                    } else {
+                        console.log('⚠️ 自定义播放器路径无效，回退到系统默认播放器');
+                        for (const videoPath of videoPaths) {
+                            await shell.openPath(videoPath);
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                        }
+                        return { success: true };
+                    }
+                }
+                // 预定义播放器路径查找
+                else if (playerType !== 'custom' && process.platform === 'win32') {
+                    const playerPaths = {
+                        'vlc': [
+                            'C:\\Program Files\\VideoLAN\\VLC\\vlc.exe',
+                            'C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe',
+                            'C:\\Program Files\\VideoLAN\\VLC\\vlc.bat',
+                            'C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.bat'
+                        ],
+                        'mpv': [
+                            'C:\\Program Files\\mpv\\mpv.exe',
+                            'C:\\Program Files (x86)\\mpv\\mpv.exe',
+                            'C:\\Program Files\\mpv-x86_64\\mpv.exe',
+                            'C:\\Program Files (x86)\\mpv-x86_64\\mpv.exe',
+                            'C:\\Users\\' + os.userInfo().username + '\\scoop\\apps\\mpv\\current\\mpv.exe',
+                            'C:\\Users\\' + os.userInfo().username + '\\scoop\\apps\\mpv\\*\\mpv.exe',
+                            'C:\\ProgramData\\chocolatey\\bin\\mpv.exe',
+                            'C:\\ProgramData\\chocolatey\\lib\\mpv\\tools\\mpv.exe'
+                        ],
+                        'potplayer': [
+                            'C:\\Program Files\\Daum\\PotPlayer\\PotPlayerMini64.exe',
+                            'C:\\Program Files\\Daum\\PotPlayer\\PotPlayerMini.exe',
+                            'C:\\Program Files (x86)\\Daum\\PotPlayer\\PotPlayerMini64.exe',
+                            'C:\\Program Files (x86)\\Daum\\PotPlayer\\PotPlayerMini.exe',
+                            'C:\\Program Files\\PotPlayer\\PotPlayerMini64.exe',
+                            'C:\\Program Files (x86)\\PotPlayer\\PotPlayerMini64.exe'
+                        ]
+                    };
+
+                    if (playerPaths[defaultPlayer]) {
+                        console.log(`🔍 搜索播放器 "${defaultPlayer}" 的安装路径...`);
+                        for (const searchPath of playerPaths[defaultPlayer]) {
+                            try {
+                                if (searchPath.includes('*')) {
+                                    const pathParts = searchPath.split('*');
+                                    const baseDir = pathParts[0];
+                                    if (fs.existsSync(baseDir)) {
+                                        const versions = fs.readdirSync(baseDir);
+                                        for (const version of versions) {
+                                            const versionPath = path.join(baseDir, version, pathParts[1] || 'mpv.exe');
+                                            if (fs.existsSync(versionPath)) {
+                                                playerPath = versionPath;
+                                                foundValidPlayer = true;
+                                                console.log('✅ 找到播放器:', playerPath);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                } else if (fs.existsSync(searchPath)) {
+                                    playerPath = searchPath;
+                                    foundValidPlayer = true;
+                                    console.log('✅ 找到播放器:', playerPath);
+                                    break;
+                                }
+                            } catch (err) {
+                                continue;
+                            }
+                            if (foundValidPlayer) break;
+                        }
+                    }
+                }
+
+                // 根据不同播放器类型处理播放列表
+                let args = [];
+                
+                if (defaultPlayer === 'vlc') {
+                    // VLC 支持播放列表参数
+                    console.log('🎬 VLC 播放列表模式');
+                    args = ['--playlist-autostart'];
+                    // VLC 可以一次性接收所有文件路径
+                    args.push(...videoPaths);
+                } else if (defaultPlayer === 'potplayer') {
+                    // PotPlayer 播放列表模式
+                    console.log('🎬 PotPlayer 播放列表模式');
+                    // PotPlayer 支持多个文件参数
+                    args.push(...videoPaths);
+                } else if (defaultPlayer === 'mpv') {
+                    // mpv 播放列表模式
+                    console.log('🎬 mpv 播放列表模式');
+                    // mpv 支持多个文件参数，会自动创建播放列表
+                    args.push(...videoPaths);
+                } else {
+                    // 其他播放器，尝试一次性传入所有文件
+                    console.log('🎬 通用播放器播放列表模式');
+                    args.push(...videoPaths);
+                }
+
+                return new Promise((resolve, reject) => {
+                    console.log(`🚀 尝试启动播放器: "${playerPath}"`);
+                    console.log(`🚀 参数: ${args.join(' ')}`);
+
+                    const playerProcess = spawn(playerPath, args, {
+                        detached: true,
+                        stdio: 'ignore',
+                        windowsHide: true
+                    });
+
+                    let processCompleted = false;
+
+                    playerProcess.on('error', (error) => {
+                        if (processCompleted) return;
+                        processCompleted = true;
+
+                        console.error('❌ 播放器启动失败:', error.message);
+                        console.log('🔄 回退到系统默认播放器，逐个打开');
+                        
+                        // 回退到系统默认播放器
+                        const fallbackPromises = videoPaths.map(videoPath => 
+                            shell.openPath(videoPath).then(() => 
+                                new Promise(resolve => setTimeout(resolve, 500))
+                            )
+                        );
+                        
+                        Promise.all(fallbackPromises).then(() => {
+                            resolve({ success: true });
+                        }).catch((fallbackError) => {
+                            reject(new Error(`无法启动播放器: ${error.message}，系统播放器也失败: ${fallbackError.message}`));
+                        });
+                    });
+
+                    // 设置超时处理
+                    const timeout = setTimeout(() => {
+                        if (processCompleted) return;
+                        processCompleted = true;
+
+                        if (!playerProcess.killed) {
+                            try {
+                                playerProcess.kill();
+                            } catch (killError) {
+                                // 忽略杀死进程时的错误
+                            }
+                        }
+
+                        console.log('⏰ 播放器启动超时 (10秒)，回退到系统默认播放器');
+                        
+                        // 回退到系统默认播放器
+                        const fallbackPromises = videoPaths.map(videoPath => 
+                            shell.openPath(videoPath).then(() => 
+                                new Promise(resolve => setTimeout(resolve, 500))
+                            )
+                        );
+                        
+                        Promise.all(fallbackPromises).then(() => {
+                            resolve({ success: true });
+                        }).catch((fallbackError) => {
+                            reject(new Error(`播放器启动超时，系统播放器也失败: ${fallbackError.message}`));
+                        });
+                    }, 10000); // 10秒超时
+
+                    playerProcess.on('spawn', () => {
+                        if (processCompleted) return;
+                        processCompleted = true;
+
+                        clearTimeout(timeout); // 清除超时
+                        console.log('✅ 播放器启动成功，播放列表已加载');
+                        // 不立即杀死进程，让它独立运行
+                        playerProcess.unref();
+                        resolve({ success: true });
+                    });
+                });
+            } else {
+                // 使用系统默认播放器，逐个打开
+                console.log('🎬 使用系统默认播放器，逐个打开视频');
+                const { shell } = require('electron');
+                for (const videoPath of videoPaths) {
+                    await shell.openPath(videoPath);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                return { success: true };
+            }
+        } catch (error) {
+            console.error('❌ 打开视频播放列表失败:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+} // 结束registerMediaHandlers函数
 
 module.exports = {
     registerMediaHandlers
