@@ -93,6 +93,74 @@ body[data-theme='dark'] .movie-item p .clickable-text:hover {
     color: #99ccff !important;
 }
 
+/* 媒体标签样式 */
+.media-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.media-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 0.75em;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    font-weight: 500;
+}
+
+/* 演员标签样式 */
+.media-tag[data-filter-type="actor"] {
+    background-color: rgba(0, 122, 255, 0.1);
+    color: var(--accent-color);
+    border-color: rgba(0, 122, 255, 0.2);
+}
+
+.media-tag[data-filter-type="actor"]:hover {
+    background-color: rgba(0, 122, 255, 0.2);
+    border-color: rgba(0, 122, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+/* 系列标签样式 */
+.media-tag[data-filter-type="set"] {
+    background-color: rgba(52, 199, 89, 0.1);
+    color: #34c759;
+    border-color: rgba(52, 199, 89, 0.2);
+}
+
+.media-tag[data-filter-type="set"]:hover {
+    background-color: rgba(52, 199, 89, 0.2);
+    border-color: rgba(52, 199, 89, 0.4);
+    transform: translateY(-1px);
+}
+
+/* 暗色主题下的标签样式 */
+body[data-theme='dark'] .media-tag[data-filter-type="actor"] {
+    background-color: rgba(0, 122, 255, 0.15);
+    color: #66b3ff;
+    border-color: rgba(102, 179, 255, 0.3);
+}
+
+body[data-theme='dark'] .media-tag[data-filter-type="actor"]:hover {
+    background-color: rgba(0, 122, 255, 0.25);
+    border-color: rgba(102, 179, 255, 0.5);
+}
+
+body[data-theme='dark'] .media-tag[data-filter-type="set"] {
+    background-color: rgba(52, 199, 89, 0.15);
+    color: #4cd964;
+    border-color: rgba(76, 217, 100, 0.3);
+}
+
+body[data-theme='dark'] .media-tag[data-filter-type="set"]:hover {
+    background-color: rgba(52, 199, 89, 0.25);
+    border-color: rgba(76, 217, 100, 0.5);
+}
+
 /* 悬浮控制区域 - 暗色主题适配 */
 @media (prefers-color-scheme: dark) {
     #controls {

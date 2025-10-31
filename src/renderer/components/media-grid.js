@@ -326,6 +326,114 @@ function createInfoContainer(media) {
         infoContainer.appendChild(studioElement);
     }
 
+    // 系列
+    if (media.set) {
+        const setContainer = document.createElement('div');
+        setContainer.style.cssText = `
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        `;
+        
+        const setTag = document.createElement('span');
+        setTag.textContent = media.set;
+        setTag.className = 'media-tag media-tag-set';
+        setTag.dataset.filterType = 'set';
+        setTag.dataset.filterValue = media.set;
+        setTag.style.cssText = `
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 11px;
+            border-radius: 12px;
+            background-color: var(--tag-set-bg, #e3f2fd);
+            color: var(--tag-set-color, #1976d2);
+            border: 1px solid var(--tag-set-border, #bbdefb);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        `;
+        
+        // 添加悬停效果
+        setTag.addEventListener('mouseenter', () => {
+            setTag.style.backgroundColor = 'var(--tag-set-hover-bg, #bbdefb)';
+            setTag.style.transform = 'scale(1.05)';
+        });
+        
+        setTag.addEventListener('mouseleave', () => {
+            setTag.style.backgroundColor = 'var(--tag-set-bg, #e3f2fd)';
+            setTag.style.transform = 'scale(1)';
+        });
+        
+        setContainer.appendChild(setTag);
+        infoContainer.appendChild(setContainer);
+    }
+
+    // 演员
+    if (media.actors && media.actors.length > 0) {
+        const actorsContainer = document.createElement('div');
+        actorsContainer.style.cssText = `
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        `;
+        
+        // 显示前3个演员，如果有更多则显示"..."
+        const displayActors = media.actors.slice(0, 3);
+        displayActors.forEach(actor => {
+            const actorTag = document.createElement('span');
+            actorTag.textContent = actor;
+            actorTag.className = 'media-tag media-tag-actor';
+            actorTag.dataset.filterType = 'actor';
+            actorTag.dataset.filterValue = actor;
+            actorTag.style.cssText = `
+                display: inline-block;
+                padding: 2px 8px;
+                font-size: 11px;
+                border-radius: 12px;
+                background-color: var(--tag-actor-bg, #f3e5f5);
+                color: var(--tag-actor-color, #7b1fa2);
+                border: 1px solid var(--tag-actor-border, #e1bee7);
+                cursor: pointer;
+                transition: all 0.2s ease;
+                user-select: none;
+            `;
+            
+            // 添加悬停效果
+            actorTag.addEventListener('mouseenter', () => {
+                actorTag.style.backgroundColor = 'var(--tag-actor-hover-bg, #e1bee7)';
+                actorTag.style.transform = 'scale(1.05)';
+            });
+            
+            actorTag.addEventListener('mouseleave', () => {
+                actorTag.style.backgroundColor = 'var(--tag-actor-bg, #f3e5f5)';
+                actorTag.style.transform = 'scale(1)';
+            });
+            
+            actorsContainer.appendChild(actorTag);
+        });
+        
+        // 如果演员数量超过3个，显示省略号
+        if (media.actors.length > 3) {
+            const moreIndicator = document.createElement('span');
+            moreIndicator.textContent = `+${media.actors.length - 3}`;
+            moreIndicator.style.cssText = `
+                display: inline-block;
+                padding: 2px 8px;
+                font-size: 11px;
+                border-radius: 12px;
+                background-color: var(--tag-more-bg, #f5f5f5);
+                color: var(--tag-more-color, #666);
+                border: 1px solid var(--tag-more-border, #e0e0e0);
+                user-select: none;
+            `;
+            actorsContainer.appendChild(moreIndicator);
+        }
+        
+        infoContainer.appendChild(actorsContainer);
+    }
+
     return infoContainer;
 }
 
@@ -338,7 +446,14 @@ function createInfoContainer(media) {
  */
 function addMediaEventListeners(element, media, onClick, onContextMenu) {
     // 点击事件
-    safeAddEventListener(element, 'click', () => {
+    safeAddEventListener(element, 'click', (e) => {
+        // 如果点击的是tag，则处理tag过滤
+        if (e.target && e.target.classList && e.target.classList.contains('media-tag')) {
+            handleTagClick(e.target);
+            return;
+        }
+        
+        // 普通媒体点击
         if (onClick) onClick(media);
     });
 
@@ -444,6 +559,47 @@ function showNoCover(container) {
     container.appendChild(noCoverDiv);
 }
 
+/**
+ * 处理tag点击事件
+ * @param {HTMLElement} tagElement - 被点击的tag元素
+ */
+function handleTagClick(tagElement) {
+    const filterType = tagElement.dataset.filterType;
+    const filterValue = tagElement.dataset.filterValue;
+    
+    if (!filterType || !filterValue) {
+        console.warn('Tag缺少必要的过滤信息');
+        return;
+    }
+    
+    console.log(`点击了${filterType}标签: ${filterValue}`);
+    
+    // 根据tag类型设置对应的过滤器
+    if (filterType === 'actor') {
+        const actorSelect = document.getElementById('filter-actor');
+        if (actorSelect) {
+            actorSelect.value = filterValue;
+            // 触发change事件来应用过滤
+            const event = new Event('change', { bubbles: true });
+            actorSelect.dispatchEvent(event);
+        }
+    } else if (filterType === 'set') {
+        // 系列过滤通过搜索功能实现，因为系列不是下拉框选项
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.value = filterValue;
+            // 触发input事件来应用搜索过滤
+            const event = new Event('input', { bubbles: true });
+            searchInput.dispatchEvent(event);
+        }
+    }
+    
+    // 显示过滤提示
+    if (window.showInfo) {
+        window.showInfo(`已按${filterType === 'actor' ? '演员' : '系列'} "${filterValue}" 过滤`, 2000);
+    }
+}
+
 module.exports = {
     renderMediaList,
     createMediaElement,
@@ -452,5 +608,6 @@ module.exports = {
     addMediaEventListeners,
     updateContainerPadding,
     setupControlsObserver,
-    cleanupListeners
+    cleanupListeners,
+    handleTagClick
 };

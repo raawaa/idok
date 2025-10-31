@@ -58,6 +58,55 @@
 - **debounce()**: 防抖函数
 - **throttle()**: 节流函数
 
+## 媒体网格组件 (src\renderer\components\media-grid.js)
+
+### 主要函数
+- **renderMediaList(mediaList)**: 渲染媒体列表到网格中
+  - 参数: mediaList (Array) - 媒体数据数组
+  - 功能: 设置网格布局，处理空状态，创建并添加媒体元素到DOM
+
+- **createMediaElement(media, onClick, onContextMenu)**: 创建媒体元素
+  - 参数: media (Object) - 媒体数据对象，onClick (Function) - 点击回调，onContextMenu (Function) - 右键回调
+  - 返回: HTMLElement - 媒体元素
+  - 功能: 创建完整的媒体卡片，包含封面容器和信息容器
+
+- **createCoverContainer(media)**: 创建封面容器
+  - 参数: media (Object) - 媒体数据对象
+  - 返回: HTMLElement - 封面容器元素
+  - 功能: 处理封面图片加载，显示多盘片标记(CD徽章)，错误处理
+
+- **createInfoContainer(media)**: 创建信息容器
+  - 参数: media (Object) - 媒体数据对象
+  - 返回: HTMLElement - 信息容器元素
+  - 功能: 创建包含标题、发布日期、片商、系列标签、演员标签的信息容器
+  - 系列标签: 绿色主题，可点击，点击后按系列名称搜索过滤
+  - 演员标签: 蓝色主题，最多显示3个演员，超出显示"..."，可点击过滤
+
+- **addMediaEventListeners(element, media, onClick, onContextMenu)**: 添加媒体元素事件监听器
+  - 功能: 为媒体元素添加点击和右键事件监听，特别处理tag点击事件
+  - tag点击: 检测点击的是否为media-tag类元素，调用handleTagClick处理
+
+- **handleTagClick(tagElement)**: 处理tag点击事件
+  - 参数: tagElement (HTMLElement) - 被点击的tag元素
+  - 功能: 根据tag类型执行不同过滤操作
+  - 演员标签: 设置演员下拉框值并触发change事件
+  - 系列标签: 设置搜索框值并触发input事件（因为系列不是下拉框选项）
+  - 显示过滤提示信息
+
+- **loadImageThroughIPC(imagePath)**: 通过IPC加载图片
+  - 参数: imagePath (string) - 图片路径
+  - 返回: Promise<string> - 图片URL
+  - 功能: 处理路径格式转换，Windows路径修复，错误处理
+
+- **updateContainerPadding()**: 动态计算影片容器顶部padding
+  - 功能: 根据控制区域高度动态调整内容区域padding，避免内容被遮挡
+
+- **setupControlsObserver()**: 设置控制区域变化监听器
+  - 功能: 使用MutationObserver监听控制区域大小变化，自动调整容器padding
+
+- **cleanupListeners()**: 清理监听器和观察器
+  - 功能: 移除所有事件监听器和MutationObserver，防止内存泄漏
+
 ## 主进程服务 (src\main\services\media-service.js)
 
 ### 主要函数
@@ -66,3 +115,4 @@
   - 返回: Promise<Object> - 电影信息对象
   - 功能: 读取并解析NFO文件的XML内容，提取影片元数据
   - 支持两种set节点格式：对象格式`<set><name>系列名</name></set>`和字符串格式`<set>系列名</set>`
+  - 提取信息包括: 标题、年份、发布日期、片商、系列(set)、演员(actors)、导演、类别
