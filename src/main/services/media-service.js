@@ -122,6 +122,7 @@ async function parseNfoFile(nfoPath) {
             year: null,
             releaseDateFull: null,
             studio: null,
+            set: null,
             actors: [],
             directors: [],
             genres: []
@@ -135,6 +136,14 @@ async function parseNfoFile(nfoPath) {
                 movieInfo.releaseDateFull = movieNode.premiered;
             }
             if (movieNode.studio) movieInfo.studio = movieNode.studio;
+            if (movieNode.set) {
+                // 处理set节点，可能是对象包含name属性，也可能是直接字符串
+                if (typeof movieNode.set === 'object' && movieNode.set.name) {
+                    movieInfo.set = movieNode.set.name;
+                } else if (typeof movieNode.set === 'string') {
+                    movieInfo.set = movieNode.set;
+                }
+            }
 
             if (movieNode.actor) {
                 if (Array.isArray(movieNode.actor)) {
@@ -198,6 +207,7 @@ async function parseNfoFile(nfoPath) {
             year: null,
             releaseDateFull: null,
             studio: null,
+            set: null,
             actors: [],
             directors: [],
             genres: []

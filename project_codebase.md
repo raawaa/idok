@@ -48,9 +48,21 @@
 - **updateMediaGrid()**: 更新媒体网格显示
 - **filterMedia()**: 过滤媒体文件
 - **sortMedia()**: 排序媒体文件
+  - 支持按片名、发布日期、系列名称排序
+  - 系列排序逻辑：优先按系列名称排序，没有系列信息的按标题排序
+  - 支持升序和降序切换
 - **searchMedia()**: 搜索媒体文件
 - **formatFileSize()**: 格式化文件大小
 - **formatDuration()**: 格式化时长
 - **escapeHtml()**: HTML转义
 - **debounce()**: 防抖函数
 - **throttle()**: 节流函数
+
+## 主进程服务 (src\main\services\media-service.js)
+
+### 主要函数
+- **parseNfoFile(nfoPath)**: 解析NFO文件
+  - 参数: nfoPath (string) - NFO文件路径
+  - 返回: Promise<Object> - 电影信息对象
+  - 功能: 读取并解析NFO文件的XML内容，提取影片元数据
+  - 支持两种set节点格式：对象格式`<set><name>系列名</name></set>`和字符串格式`<set>系列名</set>`

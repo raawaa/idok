@@ -741,6 +741,11 @@ function getFilteredMediaList() {
             const dateA = a.releaseDateFull ? new Date(a.releaseDateFull) : new Date(0);
             const dateB = b.releaseDateFull ? new Date(b.releaseDateFull) : new Date(0);
             compareResult = dateA.getTime() - dateB.getTime();
+        } else if (sortBy === 'set') {
+            // 按系列名称排序，如果没有系列则按标题排序
+            const setA = a.set || a.title || '';
+            const setB = b.set || b.title || '';
+            compareResult = setA.localeCompare(setB);
         }
 
         return sortOrder === 'desc' ? -compareResult : compareResult;
