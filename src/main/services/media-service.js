@@ -6,6 +6,30 @@ const fs = require('fs');
 const path = require('path');
 const xml2js = require('xml2js');
 const { isVideoFile, findCoverImage } = require('./file-service');
+const OpenCC = require('opencc-js');
+
+// 创建繁体转简体的转换器实例
+const converter = OpenCC.Converter({ from: 'tw', to: 'cn' });
+
+/**
+ * 使用OpenCC库将繁体中文转换为简体中文
+ * @param {string} text - 包含繁体中文的文本
+ * @returns {string} 转换为简体中文的文本
+ */
+function convertTraditionalToSimplified(text) {
+    if (!text || typeof text !== 'string') {
+        return text;
+    }
+    
+    try {
+        // 使用OpenCC转换器进行繁简转换
+        return converter(text);
+    } catch (error) {
+        console.error('简繁转换出错:', error);
+        // 如果转换失败，返回原始文本
+        return text;
+    }
+}
 
 /**
  * 扫描多个目录
@@ -128,12 +152,41 @@ async function parseNfoFile(nfoPath) {
                 }
             }
 
+            /**
+             * 处理 genre 信息，支持多个 genre 标签和逗号分隔的 genre 条目
+             * 同时将繁体中文类别转换为简体中文
+             */
             if (movieNode.genre) {
+                const allGenres = new Set(); // 使用 Set 去重
+                
+                // 处理 genre 信息，可能是数组或单个值
+                const processGenre = (genreValue) => {
+                    if (typeof genreValue === 'string') {
+                        // 将繁体中文转换为简体中文
+                        const simplifiedGenre = convertTraditionalToSimplified(genreValue);
+                        
+                        // 检查是否包含逗号分隔的多个类别
+                        if (simplifiedGenre.includes(',')) {
+                            // 分割逗号分隔的类别并去除前后空格
+                            const splitGenres = simplifiedGenre.split(',').map(g => g.trim()).filter(g => g);
+                            splitGenres.forEach(g => allGenres.add(g));
+                        } else {
+                            // 单个类别
+                            allGenres.add(simplifiedGenre);
+                        }
+                    }
+                };
+                
                 if (Array.isArray(movieNode.genre)) {
-                    movieInfo.genres = movieNode.genre;
+                    // 多个 genre 标签
+                    movieNode.genre.forEach(genreValue => processGenre(genreValue));
                 } else {
-                    movieInfo.genres = [movieNode.genre];
+                    // 单个 genre 标签
+                    processGenre(movieNode.genre);
                 }
+                
+                // 将 Set 转换为数组
+                movieInfo.genres = Array.from(allGenres);
             }
         }
 
@@ -181,5 +234,6 @@ module.exports = {
     scanDirectories,
     scanDirectoryRecursive,
     parseNfoFile,
-    encodeFilePath
+    encodeFilePath,
+    convertTraditionalToSimplified
 };
