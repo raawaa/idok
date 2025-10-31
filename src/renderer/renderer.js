@@ -46,7 +46,7 @@ try {
 
 // 导入组件
 const { renderMediaList } = require('./src/renderer/components/media-grid');
-const { openSettingsDialog } = require('./src/renderer/components/settings-modal');
+// 设置模态框组件现在通过全局方式访问，不再需要直接导入
 
 // 全局状态
 let allMediaList = [];
@@ -268,7 +268,13 @@ function initializeEventListeners() {
         openSettingsBtn.addEventListener('click', () => {
             console.log('⚙️ 设置按钮被点击！开始打开设置对话框');
             showMessage('设置按钮被点击了！', MESSAGE_TYPES.INFO);
-            openSettingsDialog();
+            // 使用全局的 openSettingsDialog 函数
+            if (window.openSettingsDialog) {
+                window.openSettingsDialog();
+            } else {
+                console.error('openSettingsDialog 函数未找到');
+                showError('设置组件未加载');
+            }
         });
     } else {
         console.error('❌ 未找到设置按钮 #open-settings-btn');

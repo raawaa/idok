@@ -6,18 +6,6 @@
     --accent-color: #007aff;
     --hover-color: #0056b3;
     --border-radius: 12px;
-    --controls-bg: rgba(255, 255, 255, 0.8);
-    --controls-border: rgba(255, 255, 255, 0.3);
-    --controls-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --movie-title-color: #333;
-    --movie-date-color: #666;
-    --movie-studio-color: #888;
-    --search-border: rgba(0, 0, 0, 0.1);
-    --clear-btn-color: #666666;
-    --select-bg: white;
-    --select-border: rgba(0, 0, 0, 0.1);
-    --select-option-bg: white;
-    --select-option-color: #333;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,18 +14,6 @@
         --text-color: #f0f0f0;
         --card-bg: #2c2c2c;
         --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        --controls-bg: rgba(44, 44, 44, 0.8);
-        --controls-border: rgba(255, 255, 255, 0.1);
-        --controls-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        --movie-title-color: #ffffff;
-        --movie-date-color: #e0e0e0;
-        --movie-studio-color: #cccccc;
-        --search-border: rgba(255, 255, 255, 0.1);
-        --clear-btn-color: #cccccc;
-        --select-bg: #2c2c2c;
-        --select-border: rgba(255, 255, 255, 0.1);
-        --select-option-bg: #2c2c2c;
-        --select-option-color: #f0f0f0;
     }
 }
 
@@ -45,6 +21,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    transition: all 0.3s ease;
 }
 
 body {
@@ -81,18 +58,6 @@ body[data-theme='dark'] {
     --text-color: #f0f0f0;
     --card-bg: #2c2c2c;
     --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    --controls-bg: rgba(44, 44, 44, 0.8);
-    --controls-border: rgba(255, 255, 255, 0.1);
-    --controls-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    --movie-title-color: #ffffff;
-    --movie-date-color: #e0e0e0;
-    --movie-studio-color: #cccccc;
-    --search-border: rgba(255, 255, 255, 0.1);
-    --clear-btn-color: #cccccc;
-    --select-bg: #2c2c2c;
-    --select-border: rgba(255, 255, 255, 0.1);
-    --select-option-bg: #2c2c2c;
-    --select-option-color: #f0f0f0;
 }
 
 body[data-theme='light'] {
@@ -100,18 +65,6 @@ body[data-theme='light'] {
     --text-color: #1a1a1a;
     --card-bg: white;
     --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --controls-bg: rgba(255, 255, 255, 0.8);
-    --controls-border: rgba(255, 255, 255, 0.3);
-    --controls-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --movie-title-color: #333;
-    --movie-date-color: #666;
-    --movie-studio-color: #888;
-    --search-border: rgba(0, 0, 0, 0.1);
-    --clear-btn-color: #666666;
-    --select-bg: white;
-    --select-border: rgba(0, 0, 0, 0.1);
-    --select-option-bg: white;
-    --select-option-color: #333;
 }
 
 /* 暗色主题下的影片文字样式强化 */
@@ -211,14 +164,14 @@ h1 {
     gap: 8px;
 
     /* 磨砂玻璃效果 */
-    background: var(--controls-bg);
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
 
     /* 视觉效果 */
-    border: 1px solid var(--controls-border);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--border-radius);
-    box-shadow: var(--controls-shadow);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 
     /* 布局 */
     padding: 12px;
@@ -240,7 +193,7 @@ h1 {
 #search-input {
     width: 100%;
     padding: 6px 30px 6px 10px;
-    border: 1px solid var(--search-border);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 6px;
     background-color: var(--bg-color);
     color: var(--text-color);
@@ -265,7 +218,7 @@ h1 {
     background: transparent !important;
     border: none !important;
     outline: none !important;
-    color: var(--clear-btn-color) !important;
+    color: #666666 !important;
     opacity: 0;
     cursor: pointer;
     font-size: 14px !important;
@@ -366,9 +319,9 @@ body[data-theme='dark'] .clear-search-btn:hover {
 
 #controls select {
     padding: 6px 8px;
-    border: 1px solid var(--select-border);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 6px;
-    background-color: var(--select-bg);
+    background-color: var(--bg-color);
     color: var(--text-color);
     font-size: 0.85em;
     outline: none;
@@ -1025,28 +978,262 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
     z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
 }
 
 .modal-overlay.show {
-    display: block;
+    display: flex;
 }
 
 .modal-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     background-color: var(--card-bg);
-    padding: 20px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
-    width: 600px;
-    max-height: 80%;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
     overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    animation: slideUp 0.3s ease-out;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+}
+
+/* 设置相关样式 */
+.settings-section {
+    background-color: var(--surface-bg, var(--bg-color));
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+}
+
+.settings-heading {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.setting-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 8px;
+}
+
+.setting-description {
+    font-size: 13px;
+    color: var(--secondary-text, rgba(0, 0, 0, 0.6));
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+/* 目录列表样式 */
+.directory-list {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.directory-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background-color: var(--input-bg, var(--card-bg));
+    border-radius: 6px;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+}
+
+.directory-path {
+    flex: 1;
+    padding: 8px 12px;
+    background-color: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: 14px;
+    font-family: inherit;
+    cursor: default;
+}
+
+/* 按钮样式优化 */
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 36px;
+}
+
+.btn:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: var(--hover-color);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background-color: var(--secondary-bg, rgba(0, 0, 0, 0.05));
+    color: var(--text-color);
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: var(--hover-bg, rgba(0, 0, 0, 0.1));
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
+/* 选择框样式 */
+select {
+    padding: 8px 12px;
+    background-color: var(--input-bg, var(--card-bg));
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+    border-radius: 6px;
+    color: var(--text-color);
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+select:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+    border-color: var(--accent-color);
+}
+
+/* 播放器设置容器 */
+.player-setting-container,
+.theme-setting-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.player-select-container {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.player-status {
+    font-size: 13px;
+    color: var(--secondary-text, rgba(0, 0, 0, 0.6));
+    margin-top: 4px;
+}
+
+/* 模态框动作区域 */
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+}
+
+/* 动画 */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 暗色主题特定优化 */
+body[data-theme='dark'] .settings-section {
+    background-color: #2c2c2c;
+    border-color: #555;
+}
+
+body[data-theme='dark'] .directory-item {
+    background-color: #3a3a3a;
+    border-color: #555;
+}
+
+body[data-theme='dark'] .btn-secondary {
+    background-color: #404040;
+    border-color: #555;
+}
+
+body[data-theme='dark'] .btn-secondary:hover:not(:disabled) {
+    background-color: #4a4a4a;
+}
+
+body[data-theme='dark'] select {
+    background-color: #3a3a3a;
+    border-color: #555;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .modal-content {
+        padding: 20px;
+        max-height: 90vh;
+    }
+    
+    .player-select-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .player-select-container select {
+        width: 100%;
+    }
+    
+    .modal-actions {
+        flex-direction: column-reverse;
+    }
 }
 
 .modal-actions {
