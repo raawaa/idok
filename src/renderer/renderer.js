@@ -53,7 +53,7 @@ try {
 }
 
 // 导入组件
-const { renderMediaList } = require('./src/renderer/components/media-grid');
+const { renderMediaList, updateContainerPadding } = require('./src/renderer/components/media-grid');
 // 设置模态框组件现在通过全局方式访问，不再需要直接导入
 
 // 全局状态
@@ -181,6 +181,14 @@ function toggleTheme() {
     // 保存到localStorage
     localStorage.setItem('theme', newTheme);
     console.log(`💾 主题设置已保存: ${newTheme}`);
+    
+    // 主题切换后更新媒体容器的padding
+    try {
+        updateContainerPadding();
+        console.log('✅ 主题切换后已更新媒体容器padding');
+    } catch (error) {
+        console.error('❌ 更新媒体容器padding失败:', error);
+    }
 }
 
 /**

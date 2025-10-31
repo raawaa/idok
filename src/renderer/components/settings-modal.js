@@ -505,6 +505,16 @@ class SettingsModal {
             document.body.removeAttribute('data-theme');
         }
         
+        // 主题切换后更新媒体容器的padding
+        try {
+            // 导入updateContainerPadding函数
+            const { updateContainerPadding } = require('../components/media-grid');
+            updateContainerPadding();
+            console.log('✅ 主题切换后已更新媒体容器padding');
+        } catch (error) {
+            console.error('❌ 更新媒体容器padding失败:', error);
+        }
+        
         this.updateThemeSettings();
     }
 

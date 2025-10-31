@@ -6,6 +6,44 @@ const { safeGetElementById, safeAddEventListener } = require('../../renderer/uti
 // 使用全局ipcRenderer实例（已在renderer.js中设置为window.ipcRenderer）
 // 直接使用window.ipcRenderer，避免重复声明
 
+// 存储窗口大小变化监听器和控制区域观察器
+let resizeListener = null;
+let controlsObserver = null;
+
+/**
+ * 动态计算并设置影片容器的顶部padding
+ * @param {HTMLElement} container - 影片容器元素，如果不提供则自动获取
+ */
+function updateContainerPadding(container = null) {
+    // 如果没有提供容器，尝试获取默认容器
+    if (!container) {
+        container = safeGetElementById('movie-covers');
+        if (!container) {
+            console.warn('媒体容器未找到，无法更新padding');
+            return;
+        }
+    }
+    
+    // 动态计算顶部padding，确保不被控制区域遮挡
+    const controlsElement = document.getElementById('controls');
+    let topPadding = 40; // 默认顶部padding
+    
+    if (controlsElement) {
+        // 获取控制区域的高度和位置
+        const controlsRect = controlsElement.getBoundingClientRect();
+        const controlsHeight = controlsRect.height;
+        const controlsTop = controlsRect.top;
+        
+        // 计算需要的padding：控制区域底部距离页面顶部的距离 + 额外间距
+        // 额外间距确保内容不会紧贴控制区域，响应式设计
+        const extraSpacing = window.innerWidth <= 600 ? 10 : 20;
+        topPadding = Math.max(controlsTop + controlsHeight + extraSpacing, 100);
+    }
+    
+    container.style.paddingTop = `${topPadding}px`;
+    console.log(`更新影片容器顶部padding: ${topPadding}px`);
+}
+
 /**
  * 渲染媒体列表
  * @param {Object[]} mediaList - 媒体文件列表
@@ -30,7 +68,28 @@ function renderMediaList(mediaList, onMediaClick, onMediaContextMenu) {
     container.style.display = 'grid';
     container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(200px, 1fr))';
     container.style.gap = '20px';
-    container.style.padding = '20px';
+    
+    // 设置左右和底部padding，顶部padding由updateContainerPadding函数动态设置
+    container.style.paddingLeft = '20px';
+    container.style.paddingRight = '20px';
+    container.style.paddingBottom = '20px';
+    
+    // 动态计算并设置顶部padding
+    updateContainerPadding(container);
+    
+    // 添加窗口大小变化监听器，确保padding始终正确
+    if (resizeListener) {
+        window.removeEventListener('resize', resizeListener);
+    }
+    
+    resizeListener = () => {
+        updateContainerPadding(container);
+    };
+    
+    window.addEventListener('resize', resizeListener);
+    
+    // 添加控制区域变化监听器，使用MutationObserver监听控制区域的变化
+    setupControlsObserver(container);
 
     mediaList.forEach(media => {
         const mediaElement = createMediaElement(media, onMediaClick, onMediaContextMenu);
@@ -40,6 +99,70 @@ function renderMediaList(mediaList, onMediaClick, onMediaContextMenu) {
     console.log(`渲染了 ${mediaList.length} 个媒体项目`);
 }
 
+/**
+ * 设置控制区域观察器，监听控制区域的变化
+ * @param {HTMLElement} container - 影片容器元素
+ */
+function setupControlsObserver(container) {
+    // 清理之前的观察器
+    if (controlsObserver) {
+        controlsObserver.disconnect();
+    }
+    
+    const controlsElement = document.getElementById('controls');
+    if (!controlsElement) return;
+    
+    // 创建MutationObserver监听控制区域的变化
+    controlsObserver = new MutationObserver((mutations) => {
+        let shouldUpdate = false;
+        
+        mutations.forEach((mutation) => {
+            // 如果控制区域的子节点、属性或样式发生变化，则更新padding
+            if (mutation.type === 'childList' || 
+                mutation.type === 'attributes' || 
+                mutation.type === 'characterData') {
+                shouldUpdate = true;
+            }
+        });
+        
+        if (shouldUpdate) {
+            // 延迟一点时间再更新，确保DOM变化完成
+            setTimeout(() => {
+                updateContainerPadding(container);
+            }, 50);
+        }
+    });
+    
+    // 配置观察器选项
+    const observerConfig = {
+        childList: true,      // 观察子节点的添加或删除
+        attributes: true,      // 观察属性的变化
+        subtree: true,         // 观察所有后代节点
+        characterData: true,  // 观察文本内容的变化
+        attributeFilter: ['style', 'class'] // 只观察特定属性
+    };
+    
+    // 开始观察控制区域
+    controlsObserver.observe(controlsElement, observerConfig);
+    console.log('已设置控制区域变化观察器');
+}
+
+/**
+ * 清理所有监听器和观察器
+ */
+function cleanupListeners() {
+    // 清理窗口大小变化监听器
+    if (resizeListener) {
+        window.removeEventListener('resize', resizeListener);
+        resizeListener = null;
+    }
+    
+    // 清理控制区域观察器
+    if (controlsObserver) {
+        controlsObserver.disconnect();
+        controlsObserver = null;
+    }
+}
 /**
  * 创建媒体元素
  * @param {Object} media - 媒体对象
@@ -289,5 +412,8 @@ module.exports = {
     createMediaElement,
     createCoverContainer,
     createInfoContainer,
-    addMediaEventListeners
+    addMediaEventListeners,
+    updateContainerPadding,
+    setupControlsObserver,
+    cleanupListeners
 };

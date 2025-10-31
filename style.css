@@ -36,8 +36,8 @@ body {
 }
 
 #content-container {
-    padding: 140px 0 20px 0;
-    /* 顶部140px为悬浮控制区域留出充足空间 (20px top + 80px controls + 40px clearance) */
+    padding: 20px 0 20px 0;
+    /* 移除顶部固定padding，改为在movie-covers上动态设置 */
     padding-right: 0;
     /* 移除右侧 padding，让滚动条紧贴窗口 */
     padding-left: 0;
@@ -614,8 +614,8 @@ body[data-theme='dark'] #controls button[id$="-btn"]:not(#clear-search-btn):hove
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
-    padding: 20px;
-    /* 添加水平和垂直 padding */
+    padding: 40px 20px 20px 20px;
+    /* 增加顶部padding，从20px增加到40px，增加与控制区域的间距 */
     justify-items: center;
 }
 
@@ -779,8 +779,8 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
     }
 
     #content-container {
-        padding: 80px 0 20px 0;
-        /* 减少了控制区高度后的内容区域调整 */
+        padding: 20px 0 20px 0;
+        /* 移除顶部固定padding，改为在movie-covers上动态设置 */
     }
 
     .search-container {
@@ -835,8 +835,8 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
     }
 
     #content-container {
-        padding: 120px 0 20px 0;
-        /* 减少了控制区高度后的内容区域调整 */
+        padding: 20px 0 20px 0;
+        /* 移除顶部固定padding，改为在movie-covers上动态设置 */
     }
 
     .search-container {
@@ -878,8 +878,8 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
     }
 
     #content-container {
-        padding: 110px 0 20px 0;
-        /* 进一步减少了控制区高度后的内容区域调整 */
+        padding: 20px 0 20px 0;
+        /* 移除顶部固定padding，改为在movie-covers上动态设置 */
     }
 
     #search-input {
