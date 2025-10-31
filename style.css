@@ -775,6 +775,10 @@ body[data-theme='dark'] #content-container::-webkit-scrollbar-thumb:hover {
     z-index: 1000;
 }
 
+.modal-overlay.show {
+    display: block;
+}
+
 .modal-content {
     position: absolute;
     top: 50%;

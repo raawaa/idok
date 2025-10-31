@@ -1,0 +1,527 @@
+/**
+ * 模块化渲染进程入口文件
+ */
+
+console.log('🎬 模块化渲染进程开始加载...');
+console.log('🎯 测试：基础JavaScript执行正常');
+
+// 测试require是否工作
+try {
+    const { ipcRenderer } = require('electron');
+    console.log('✅ Electron模块加载成功');
+} catch (error) {
+    console.error('❌ Electron模块加载失败:', error);
+}
+
+// 测试相对路径require
+try {
+    const fs = require('fs');
+    console.log('✅ Node.js fs模块加载成功');
+} catch (error) {
+    console.error('❌ Node.js fs模块加载失败:', error);
+}
+
+// 导入工具函数
+try {
+    const { showMessage, debounce } = require('./utils/dom-utils');
+    console.log('✅ dom-utils模块加载成功');
+} catch (error) {
+    console.error('❌ dom-utils模块加载失败:', error);
+}
+
+try {
+    const { MESSAGE_TYPES } = require('../shared/constants');
+    console.log('✅ constants模块加载成功');
+} catch (error) {
+    console.error('❌ constants模块加载失败:', error);
+}
+
+// 导入组件
+const { renderMediaList } = require('./components/media-grid');
+const { openSettingsDialog } = require('./components/settings-modal');
+
+// 全局状态
+let allMediaList = [];
+
+// 快捷消息函数
+const showSuccess = (message, duration) => showMessage(message, MESSAGE_TYPES.SUCCESS, duration);
+const showError = (message, duration) => showMessage(message, MESSAGE_TYPES.ERROR, duration);
+const showWarning = (message, duration) => showMessage(message, MESSAGE_TYPES.WARNING, duration);
+const showInfo = (message, duration) => showMessage(message, MESSAGE_TYPES.INFO, duration);
+
+// DOM加载完成后初始化
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🎯 DOM加载完成，开始初始化模块化应用程序...');
+    console.log('🎯 当前窗口URL:', window.location.href);
+
+    try {
+        initializeApp();
+        console.log('✅ 模块化应用程序初始化成功');
+
+        // 测试按钮是否正确绑定
+        const settingsBtn = document.getElementById('open-settings-btn');
+        const themeToggle = document.getElementById('theme-toggle');
+        console.log('🎯 设置按钮元素:', settingsBtn);
+        console.log('🎯 主题切换元素:', themeToggle);
+
+    } catch (error) {
+        console.error('❌ 模块化应用程序初始化失败:', error);
+        showError(`初始化失败: ${error.message}`);
+    }
+});
+
+/**
+ * 初始化应用程序
+ */
+async function initializeApp() {
+    console.log('开始初始化模块化应用程序...');
+
+    // 初始化事件监听器
+    initializeEventListeners();
+
+    // 初始化主题设置
+    initializeThemeSettings();
+
+    // 初始化窗口控制
+    initializeWindowControls();
+
+    // 初始化搜索功能
+    initializeSearch();
+
+    console.log('模块化应用程序初始化完成');
+}
+
+/**
+ * 初始化事件监听器
+ */
+function initializeEventListeners() {
+    console.log('初始化事件监听器...');
+
+    // 监听主进程事件
+    ipcRenderer.on('app-info', (event, appInfo) => {
+        console.log('收到应用信息:', appInfo);
+        updateAppTitle(appInfo);
+    });
+
+    ipcRenderer.on('start-initial-scan', async (event, directoryPaths) => {
+        console.log('收到初始扫描请求:', directoryPaths);
+        await handleInitialScan(directoryPaths);
+    });
+
+    ipcRenderer.on('no-directories-configured', () => {
+        console.log('没有配置目录');
+        showNoDirectoriesMessage();
+    });
+
+    ipcRenderer.on('video-opened', (event, videoPath) => {
+        console.log('视频打开成功:', videoPath);
+        showSuccess('视频已开始播放', 2000);
+    });
+
+    ipcRenderer.on('video-open-failed', (event, videoPath, errorMessage) => {
+        console.error('视频打开失败:', errorMessage);
+        showError(`无法打开视频: ${errorMessage}`);
+    });
+
+    ipcRenderer.on('confirm-delete', (event, directoryPath) => {
+        console.log('🗑️ 显示删除确认对话框:', directoryPath);
+        showDeleteConfirmDialog(directoryPath);
+    });
+
+    ipcRenderer.on('directory-trashed', (event, directoryPath) => {
+        console.log('✅ 目录已删除:', directoryPath);
+        showSuccess(`目录已删除: ${directoryPath}`);
+    });
+
+    ipcRenderer.on('trash-failed', (event, directoryPath, errorMessage) => {
+        console.error('❌ 删除目录失败:', errorMessage);
+        showError(`删除目录失败: ${errorMessage}`);
+    });
+
+    // DOM事件
+    const sortBySelect = document.getElementById('sort-by');
+    const sortOrderSelect = document.getElementById('sort-order');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+    const openSettingsBtn = document.getElementById('open-settings-btn');
+
+    if (sortBySelect) {
+        sortBySelect.addEventListener('change', handleSortChange);
+    }
+    if (sortOrderSelect) {
+        sortOrderSelect.addEventListener('change', handleSortChange);
+    }
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', clearAllFilters);
+    }
+    if (openSettingsBtn) {
+        console.log('✅ 找到设置按钮，添加事件监听器');
+        openSettingsBtn.addEventListener('click', () => {
+            console.log('⚙️ 设置按钮被点击！开始打开设置对话框');
+            showMessage('设置按钮被点击了！', MESSAGE_TYPES.INFO);
+            openSettingsDialog();
+        });
+    } else {
+        console.error('❌ 未找到设置按钮 #open-settings-btn');
+    }
+
+    console.log('✅ 事件监听器初始化完成');
+}
+
+/**
+ * 初始化主题设置
+ */
+function initializeThemeSettings() {
+    console.log('🎨 开始初始化主题设置...');
+    const themeToggle = document.getElementById('theme-toggle');
+    console.log('🎨 主题切换元素:', themeToggle);
+    if (themeToggle) {
+        // 加载保存的主题设置
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.body.setAttribute('data-theme', savedTheme);
+            themeToggle.checked = savedTheme === 'dark';
+            console.log('加载保存的主题:', savedTheme);
+        } else {
+            // 检查系统主题偏好
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const defaultTheme = prefersDark ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', defaultTheme);
+            themeToggle.checked = prefersDark;
+            console.log('使用系统主题:', defaultTheme);
+        }
+
+        // 监听主题切换
+        themeToggle.addEventListener('change', () => {
+            const newTheme = themeToggle.checked ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            console.log('🎨 主题切换为:', newTheme);
+            showMessage(`主题已切换为${newTheme === 'dark' ? '深色' : '浅色'}模式`, MESSAGE_TYPES.SUCCESS);
+        });
+    }
+}
+
+/**
+ * 初始化窗口控制
+ */
+function initializeWindowControls() {
+    const minimizeBtn = document.getElementById('minimize-btn');
+    const maximizeBtn = document.getElementById('maximize-btn');
+    const closeBtn = document.getElementById('close-btn');
+
+    if (minimizeBtn) {
+        minimizeBtn.addEventListener('click', () => {
+            ipcRenderer.send('minimize-window');
+        });
+    }
+
+    if (maximizeBtn) {
+        maximizeBtn.addEventListener('click', () => {
+            ipcRenderer.send('maximize-restore-window');
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            ipcRenderer.send('close-window');
+        });
+    }
+
+    ipcRenderer.on('window-maximized', (event, isMaximized) => {
+        if (maximizeBtn) {
+            maximizeBtn.textContent = isMaximized ? '❐' : '□';
+        }
+    });
+}
+
+/**
+ * 初始化搜索功能
+ */
+function initializeSearch() {
+    const searchInput = document.getElementById('search-input');
+    const clearSearchBtn = document.getElementById('clear-search-btn');
+
+    if (searchInput) {
+        console.log('搜索输入框找到');
+
+        // 防抖搜索
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                handleSearch(e.target.value);
+            }, 300);
+        });
+
+        // ESC键清除
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && searchInput.value.trim() !== '') {
+                e.preventDefault();
+                searchInput.value = '';
+                searchInput.blur();
+                handleSearch('');
+            }
+        });
+
+        // 全局快捷键
+        document.addEventListener('keydown', (event) => {
+            if (document.activeElement === searchInput) return;
+
+            const activeElement = document.activeElement;
+            const isInputFocused = activeElement && (
+                activeElement.tagName === 'INPUT' ||
+                activeElement.tagName === 'TEXTAREA' ||
+                activeElement.contentEditable === 'true'
+            );
+
+            if (isInputFocused) return;
+
+            if (event.key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
+                event.preventDefault();
+                searchInput.value = event.key;
+                searchInput.focus();
+                const inputEvent = new Event('input', { bubbles: true });
+                searchInput.dispatchEvent(inputEvent);
+            }
+        });
+
+        // 清除按钮
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                handleSearch('');
+            });
+        }
+    } else {
+        console.warn('⚠️ 搜索输入框未找到');
+    }
+}
+
+/**
+ * 处理初始扫描
+ */
+async function handleInitialScan(directoryPaths) {
+    try {
+        console.log('开始初始扫描...', directoryPaths);
+        showInfo('正在扫描媒体文件...');
+
+        const result = await ipcRenderer.invoke('scan-directory', directoryPaths);
+
+        if (result.success) {
+            allMediaList = result.data || [];
+            console.log(`初始扫描完成，找到 ${allMediaList.length} 个媒体文件`);
+
+            // 更新下拉框选项
+            updateFilterDropdowns(allMediaList);
+
+            // 渲染媒体列表
+            renderMediaList(allMediaList, handleMediaClick, handleMediaContextMenu);
+
+            showSuccess(`扫描完成，找到 ${allMediaList.length} 个媒体文件`, 3000);
+        } else {
+            throw new Error(result.error || '扫描失败');
+        }
+    } catch (error) {
+        console.error('初始扫描失败:', error);
+        showError(`扫描失败: ${error.message}`);
+    }
+}
+
+/**
+ * 处理搜索
+ */
+function handleSearch(query) {
+    if (!query || query.trim() === '') {
+        renderMediaList(allMediaList, handleMediaClick, handleMediaContextMenu);
+        return;
+    }
+
+    const filteredList = allMediaList.filter(media => {
+        const searchLower = query.toLowerCase();
+        return (media.title && media.title.toLowerCase().includes(searchLower)) ||
+               (media.id && media.id.toLowerCase().includes(searchLower));
+    });
+
+    renderMediaList(filteredList, handleMediaClick, handleMediaContextMenu);
+    console.log(`搜索 "${query}" 找到 ${filteredList.length} 个结果`);
+}
+
+/**
+ * 处理排序变化
+ */
+function handleSortChange() {
+    const sortBy = document.getElementById('sort-by').value;
+    const sortOrder = document.getElementById('sort-order').value;
+
+    let sortedList = [...allMediaList];
+
+    sortedList.sort((a, b) => {
+        let compareResult = 0;
+
+        if (sortBy === 'title') {
+            compareResult = (a.title || '').localeCompare(b.title || '');
+        } else if (sortBy === 'releaseDate') {
+            const dateA = a.releaseDateFull ? new Date(a.releaseDateFull) : new Date(0);
+            const dateB = b.releaseDateFull ? new Date(b.releaseDateFull) : new Date(0);
+            compareResult = dateA.getTime() - dateB.getTime();
+        }
+
+        return sortOrder === 'desc' ? -compareResult : compareResult;
+    });
+
+    renderMediaList(sortedList, handleMediaClick, handleMediaContextMenu);
+    console.log(`按 ${sortBy} ${sortOrder} 排序完成`);
+}
+
+/**
+ * 清除所有过滤器
+ */
+function clearAllFilters() {
+    document.getElementById('filter-actor').value = '';
+    document.getElementById('filter-studio').value = '';
+    document.getElementById('filter-genre').value = '';
+    document.getElementById('search-input').value = '';
+
+    renderMediaList(allMediaList, handleMediaClick, handleMediaContextMenu);
+    console.log('已清除所有过滤器');
+}
+
+/**
+ * 处理媒体点击
+ */
+function handleMediaClick(media) {
+    ipcRenderer.send('open-video', media.videoPath);
+}
+
+/**
+ * 处理媒体右键菜单
+ */
+function handleMediaContextMenu(event, media) {
+    ipcRenderer.send('show-context-menu', media.videoPath);
+}
+
+/**
+ * 更新应用标题
+ */
+function updateAppTitle(appInfo) {
+    const appTitleElement = document.getElementById('app-title');
+    if (appTitleElement) {
+        appTitleElement.textContent = `${appInfo.name} v${appInfo.version}`;
+    }
+}
+
+/**
+ * 显示无目录消息
+ */
+function showNoDirectoriesMessage() {
+    const movieCoversDiv = document.getElementById('movie-covers');
+    if (movieCoversDiv) {
+        movieCoversDiv.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; color: #666;">
+                <div style="font-size: 64px; margin-bottom: 20px;">📁</div>
+                <h2 style="margin: 0 0 12px 0; color: #333; font-size: 24px;">没有配置影片目录</h2>
+                <p style="margin: 0 0 24px 0; color: #666; font-size: 16px;">请打开设置添加您的影片目录</p>
+                <button onclick="openSettingsDialog()" style="
+                    padding: 12px 24px;
+                    background-color: #2196f3;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    font-size: 16px;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                ">打开设置</button>
+            </div>
+        `;
+    }
+
+    showWarning('尚未配置影片目录，请打开设置添加目录');
+}
+
+/**
+ * 显示删除确认对话框
+ */
+function showDeleteConfirmDialog(directoryPath) {
+    console.log('🗑️ 显示删除确认对话框:', directoryPath);
+
+    if (confirm(`确定要删除以下目录吗？\n\n${directoryPath}\n\n目录将被移动到回收站。`)) {
+        ipcRenderer.send('delete-directory', directoryPath);
+    }
+}
+
+/**
+ * 更新过滤器下拉框
+ */
+function updateFilterDropdowns(mediaList) {
+    updateDropdown('filter-actor', getUniqueActors(mediaList));
+    updateDropdown('filter-studio', getUniqueStudios(mediaList));
+    updateDropdown('filter-genre', getUniqueGenres(mediaList));
+}
+
+/**
+ * 更新下拉框选项
+ */
+function updateDropdown(elementId, options) {
+    const select = document.getElementById(elementId);
+    if (!select) return;
+
+    while (select.options.length > 1) {
+        select.remove(1);
+    }
+
+    options.forEach(option => {
+        const optionElement = document.createElement('option');
+        optionElement.value = option;
+        optionElement.textContent = option;
+        select.appendChild(optionElement);
+    });
+}
+
+/**
+ * 获取唯一的演员列表
+ */
+function getUniqueActors(mediaList) {
+    const actors = new Set();
+    mediaList.forEach(media => {
+        if (media.actors && Array.isArray(media.actors)) {
+            media.actors.forEach(actor => actors.add(actor));
+        }
+    });
+    return Array.from(actors).sort();
+}
+
+/**
+ * 获取唯一的片商列表
+ */
+function getUniqueStudios(mediaList) {
+    const studios = new Set();
+    mediaList.forEach(media => {
+        if (media.studio) {
+            studios.add(media.studio);
+        }
+    });
+    return Array.from(studios).sort();
+}
+
+/**
+ * 获取唯一的类别列表
+ */
+function getUniqueGenres(mediaList) {
+    const genres = new Set();
+    mediaList.forEach(media => {
+        if (media.genres && Array.isArray(media.genres)) {
+            media.genres.forEach(genre => genres.add(genre));
+        }
+    });
+    return Array.from(genres).sort();
+}
+
+// 全局函数供HTML调用
+window.openSettingsDialog = openSettingsDialog;
+
+// 清理资源
+window.addEventListener('beforeunload', () => {
+    console.log('模块化应用程序即将关闭...');
+});
+
+console.log('✅ 模块化渲染进程脚本定义完成');

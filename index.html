@@ -171,7 +171,84 @@
         </div>
     </div>
 
-    <script src="renderer.js"></script>
+    <script>
+        console.log('🔥 内联脚本执行成功！');
+        console.log('🔥 测试：HTML加载正常');
+
+        // 内联设置模态框功能
+        function openSettingsModalInline() {
+            console.log('🔧 开始打开设置模态框（内联版本）');
+            const modal = document.getElementById('settings-modal');
+            if (modal) {
+                modal.style.display = 'block';
+                modal.classList.add('show');
+                console.log('✅ 设置模态框已显示');
+
+                // 添加关闭事件监听器
+                const closeBtn = document.getElementById('cancel-settings-btn');
+                const saveBtn = document.getElementById('save-settings-btn');
+
+                // 移除旧的监听器以避免重复绑定
+                const newCloseBtn = closeBtn.cloneNode(true);
+                const newSaveBtn = saveBtn.cloneNode(true);
+                closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+                saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+
+                // 关闭按钮
+                newCloseBtn.addEventListener('click', function() {
+                    console.log('❌ 关闭设置模态框');
+                    modal.style.display = 'none';
+                    modal.classList.remove('show');
+                });
+
+                // 保存按钮
+                newSaveBtn.addEventListener('click', function() {
+                    console.log('💾 保存设置（内联版本）');
+                    alert('设置保存功能正在开发中...');
+                    modal.style.display = 'none';
+                    modal.classList.remove('show');
+                });
+
+                // 点击模态框外部关闭
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                        modal.classList.remove('show');
+                    }
+                });
+            } else {
+                console.error('❌ 未找到设置模态框元素');
+            }
+        }
+
+        // 测试按钮元素是否存在
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔥 DOM事件触发！');
+            console.log('🔥 设置按钮:', document.getElementById('open-settings-btn'));
+            console.log('🔥 主题切换:', document.getElementById('theme-toggle'));
+
+            // 直接添加按钮点击事件，不依赖任何模块
+            const settingsBtn = document.getElementById('open-settings-btn');
+            const themeToggle = document.getElementById('theme-toggle');
+
+            if (settingsBtn) {
+                settingsBtn.addEventListener('click', function() {
+                    console.log('⚙️ 设置按钮点击成功！（无模块依赖版本）');
+                    openSettingsModalInline();
+                });
+            }
+
+            if (themeToggle) {
+                themeToggle.addEventListener('change', function() {
+                    console.log('🎨 主题切换成功！（无模块依赖版本）');
+                    const newTheme = themeToggle.checked ? 'dark' : 'light';
+                    document.body.setAttribute('data-theme', newTheme);
+                    alert(`主题切换为${newTheme === 'dark' ? '深色' : '浅色'}模式！`);
+                });
+            }
+        });
+    </script>
+    <script src="src/renderer/renderer.js"></script>
 </body>
 
 </html>
