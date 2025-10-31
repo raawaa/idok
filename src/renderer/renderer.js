@@ -289,12 +289,23 @@ function initializeSearch() {
     if (searchInput) {
         console.log('搜索输入框找到');
 
+        // 初始状态：隐藏清除按钮并移除visible类
+        if (clearSearchBtn) {
+            clearSearchBtn.style.display = 'none';
+            clearSearchBtn.classList.remove('visible');
+        }
+
         // 防抖搜索
         let searchTimeout;
         searchInput.addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
+            const searchValue = e.target.value.trim();
+
+            // 动态显示/隐藏清除按钮
+            updateClearButtonVisibility(searchValue);
+
             searchTimeout = setTimeout(() => {
-                handleSearch(e.target.value);
+                handleSearch(searchValue);
             }, 300);
         });
 
@@ -302,7 +313,18 @@ function initializeSearch() {
         searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && searchInput.value.trim() !== '') {
                 e.preventDefault();
+
+                // 添加清楚按钮动画效果
+                const clearSearchBtn = document.getElementById('clear-search-btn');
+                if (clearSearchBtn) {
+                    clearSearchBtn.classList.add('clear-btn-esc-animation');
+                    setTimeout(() => {
+                        clearSearchBtn.classList.remove('clear-btn-esc-animation');
+                    }, 200);
+                }
+
                 searchInput.value = '';
+                updateClearButtonVisibility('');
                 searchInput.blur();
                 handleSearch('');
             }
@@ -324,6 +346,7 @@ function initializeSearch() {
             if (event.key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
                 event.preventDefault();
                 searchInput.value = event.key;
+                updateClearButtonVisibility(event.key);
                 searchInput.focus();
                 const inputEvent = new Event('input', { bubbles: true });
                 searchInput.dispatchEvent(inputEvent);
@@ -333,12 +356,60 @@ function initializeSearch() {
         // 清除按钮
         if (clearSearchBtn) {
             clearSearchBtn.addEventListener('click', () => {
+                // 添加点击反馈动画类
+                clearSearchBtn.classList.add('clear-btn-clicking');
+
+                // 清空搜索内容
                 searchInput.value = '';
+                updateClearButtonVisibility('');
                 handleSearch('');
+
+                // 短暂延迟后恢复焦点和动画
+                setTimeout(() => {
+                    searchInput.focus();
+                    clearSearchBtn.classList.remove('clear-btn-clicking');
+                }, 150);
+            });
+
+            // 添加鼠标按下/释放反馈
+            clearSearchBtn.addEventListener('mousedown', () => {
+                clearSearchBtn.classList.add('clear-btn-pressing');
+            });
+
+            clearSearchBtn.addEventListener('mouseup', () => {
+                clearSearchBtn.classList.remove('clear-btn-pressing');
+            });
+
+            clearSearchBtn.addEventListener('mouseleave', () => {
+                clearSearchBtn.classList.remove('clear-btn-pressing');
             });
         }
     } else {
         console.warn('⚠️ 搜索输入框未找到');
+    }
+}
+
+/**
+ * 更新清除按钮的可见性
+ * @param {string} searchValue - 搜索框的值
+ */
+function updateClearButtonVisibility(searchValue) {
+    const clearSearchBtn = document.getElementById('clear-search-btn');
+    if (!clearSearchBtn) return;
+
+    if (searchValue.trim().length > 0) {
+        // 有内容时显示按钮
+        clearSearchBtn.classList.add('visible');
+        clearSearchBtn.style.display = 'flex';
+    } else {
+        // 无内容时隐藏按钮
+        clearSearchBtn.classList.remove('visible');
+        // 使用CSS transition完成后隐藏
+        setTimeout(() => {
+            if (!clearSearchBtn.classList.contains('visible')) {
+                clearSearchBtn.style.display = 'none';
+            }
+        }, 150); // 匹配CSS transition时间
     }
 }
 
@@ -658,4 +729,4 @@ window.addEventListener('beforeunload', () => {
     console.log('模块化应用程序即将关闭...');
 });
 
-console.log('✅ 模块化渲染进程脚本定义完成');
+console.log('✅ 模块化渲染进程脚本定义完成 - 热重载测试');
