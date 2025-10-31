@@ -112,6 +112,21 @@ function initializeTheme() {
     const savedTheme = localStorage.getItem('theme') || 'auto';
     const themeToggleBtn = document.getElementById('theme-toggle-btn');
 
+    // 确保Lucide图标库已加载
+    if (window.lucide) {
+        console.log('🎯 Lucide图标库已加载，初始化图标...');
+        window.lucide.createIcons();
+    } else {
+        console.warn('⚠️ Lucide图标库未加载，延迟初始化...');
+        // 延迟初始化图标
+        setTimeout(() => {
+            if (window.lucide) {
+                console.log('🎯 延迟初始化Lucide图标...');
+                window.lucide.createIcons();
+            }
+        }, 100);
+    }
+
     if (savedTheme !== 'auto') {
         // 如果用户手动设置了主题，直接应用
         document.body.setAttribute('data-theme', savedTheme);
@@ -119,15 +134,29 @@ function initializeTheme() {
 
         // 设置按钮状态
         if (themeToggleBtn) {
-            const icon = themeToggleBtn.querySelector('i[data-lucide]');
+            // 查找图标元素（可能是原始的i元素或Lucide生成的svg元素）
+            let icon = themeToggleBtn.querySelector('i[data-lucide]') || themeToggleBtn.querySelector('svg[data-lucide]');
+            
+            // 如果没有找到图标元素，创建一个新的i元素
+            if (!icon) {
+                icon = document.createElement('i');
+                icon.style.width = '16px';
+                icon.style.height = '16px';
+                themeToggleBtn.innerHTML = ''; // 清空按钮内容
+                themeToggleBtn.appendChild(icon);
+            }
+            
             if (savedTheme === 'dark') {
-                if (icon) icon.setAttribute('data-lucide', 'moon');
+                icon.setAttribute('data-lucide', 'moon');
                 themeToggleBtn.title = '切换到浅色主题';
             } else {
-                if (icon) icon.setAttribute('data-lucide', 'sun');
+                icon.setAttribute('data-lucide', 'sun');
                 themeToggleBtn.title = '切换到深色主题';
             }
-            if (window.lucide) window.lucide.createIcons();
+            // 延迟初始化图标，确保DOM完全加载
+            setTimeout(() => {
+                if (window.lucide) window.lucide.createIcons();
+            }, 50);
         }
     } else {
         // 如果是自动主题，根据系统偏好设置
@@ -135,19 +164,45 @@ function initializeTheme() {
             document.body.setAttribute('data-theme', 'dark');
             console.log('应用系统深色主题');
             if (themeToggleBtn) {
-                const icon = themeToggleBtn.querySelector('i[data-lucide]');
-                if (icon) icon.setAttribute('data-lucide', 'moon');
+                // 查找图标元素（可能是原始的i元素或Lucide生成的svg元素）
+                let icon = themeToggleBtn.querySelector('i[data-lucide]') || themeToggleBtn.querySelector('svg[data-lucide]');
+                
+                // 如果没有找到图标元素，创建一个新的i元素
+                if (!icon) {
+                    icon = document.createElement('i');
+                    icon.style.width = '16px';
+                    icon.style.height = '16px';
+                    themeToggleBtn.innerHTML = ''; // 清空按钮内容
+                    themeToggleBtn.appendChild(icon);
+                }
+                
+                icon.setAttribute('data-lucide', 'moon');
                 themeToggleBtn.title = '切换到浅色主题';
-                if (window.lucide) window.lucide.createIcons();
+                setTimeout(() => {
+                    if (window.lucide) window.lucide.createIcons();
+                }, 50);
             }
         } else {
             document.body.setAttribute('data-theme', 'light');
             console.log('应用系统浅色主题');
             if (themeToggleBtn) {
-                const icon = themeToggleBtn.querySelector('i[data-lucide]');
-                if (icon) icon.setAttribute('data-lucide', 'sun');
+                // 查找图标元素（可能是原始的i元素或Lucide生成的svg元素）
+                let icon = themeToggleBtn.querySelector('i[data-lucide]') || themeToggleBtn.querySelector('svg[data-lucide]');
+                
+                // 如果没有找到图标元素，创建一个新的i元素
+                if (!icon) {
+                    icon = document.createElement('i');
+                    icon.style.width = '16px';
+                    icon.style.height = '16px';
+                    themeToggleBtn.innerHTML = ''; // 清空按钮内容
+                    themeToggleBtn.appendChild(icon);
+                }
+                
+                icon.setAttribute('data-lucide', 'sun');
                 themeToggleBtn.title = '切换到深色主题';
-                if (window.lucide) window.lucide.createIcons();
+                setTimeout(() => {
+                    if (window.lucide) window.lucide.createIcons();
+                }, 50);
             }
         }
     }
@@ -166,22 +221,10 @@ function toggleTheme() {
     let newTheme;
     if (currentTheme === 'dark') {
         newTheme = 'light';
-        if (themeToggleBtn) {
-            const icon = themeToggleBtn.querySelector('i[data-lucide]');
-            if (icon) icon.setAttribute('data-lucide', 'sun');
-            themeToggleBtn.title = '切换到深色主题';
-            if (window.lucide) window.lucide.createIcons();
-        }
         console.log('🌞 切换到浅色主题');
         showSuccess('已切换到浅色主题', 1500);
     } else {
         newTheme = 'dark';
-        if (themeToggleBtn) {
-            const icon = themeToggleBtn.querySelector('i[data-lucide]');
-            if (icon) icon.setAttribute('data-lucide', 'moon');
-            themeToggleBtn.title = '切换到浅色主题';
-            if (window.lucide) window.lucide.createIcons();
-        }
         console.log('🌙 切换到深色主题');
         showSuccess('已切换到深色主题', 1500);
     }
@@ -194,6 +237,51 @@ function toggleTheme() {
         // 保存到localStorage
         localStorage.setItem('theme', newTheme);
         console.log(`💾 主题设置已保存: ${newTheme}`);
+        
+        // 更新按钮图标和标题（根据新主题设置正确的图标）
+        if (themeToggleBtn) {
+            // 查找图标元素（可能是原始的i元素或Lucide生成的svg元素）
+            let icon = themeToggleBtn.querySelector('i[data-lucide]') || themeToggleBtn.querySelector('svg[data-lucide]');
+            
+            // 如果没有找到图标元素，创建一个新的i元素
+            if (!icon) {
+                icon = document.createElement('i');
+                icon.style.width = '16px';
+                icon.style.height = '16px';
+                themeToggleBtn.innerHTML = ''; // 清空按钮内容
+                themeToggleBtn.appendChild(icon);
+            }
+            
+            if (newTheme === 'dark') {
+                // 当前是深色主题，显示月亮图标，点击会切换到浅色
+                icon.setAttribute('data-lucide', 'moon');
+                themeToggleBtn.title = '切换到浅色主题';
+                console.log('🌙 设置图标为月亮（深色主题）');
+            } else {
+                // 当前是浅色主题，显示太阳图标，点击会切换到深色
+                icon.setAttribute('data-lucide', 'sun');
+                themeToggleBtn.title = '切换到深色主题';
+                console.log('☀️ 设置图标为太阳（浅色主题）');
+            }
+        }
+        
+        // 确保Lucide图标库可用
+        if (window.lucide) {
+            console.log('🎯 Lucide图标库可用，重新渲染图标...');
+            requestAnimationFrame(() => {
+                window.lucide.createIcons();
+                console.log('✅ 图标重新渲染完成');
+            });
+        } else {
+            console.warn('⚠️ Lucide图标库未加载，尝试延迟初始化...');
+            setTimeout(() => {
+                if (window.lucide) {
+                    console.log('🎯 延迟初始化Lucide图标...');
+                    window.lucide.createIcons();
+                    console.log('✅ 延迟图标重新渲染完成');
+                }
+            }, 100);
+        }
         
         // 延迟更新容器padding，避免与主题切换同时进行
         requestAnimationFrame(() => {

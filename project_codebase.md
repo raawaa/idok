@@ -30,11 +30,15 @@
 
 ### 主要函数
 - **initializeTheme()**: 初始化主题设置，根据保存的偏好或系统设置应用主题
-- **toggleTheme()**: 性能优化的主题切换函数，使用requestAnimationFrame和防抖机制来优化性能
+- `toggleTheme()`: 性能优化的主题切换函数，使用requestAnimationFrame和防抖机制来优化性能
   - 使用requestAnimationFrame确保在下一次重绘前应用主题
   - 延迟更新容器padding，避免与主题切换同时进行
   - 保存主题设置到localStorage
   - 更新Lucide图标(moon/sun)和按钮标题
+  - 使用 `window.lucide.createIcons()` 重新渲染图标
+  - 添加延迟初始化和重试机制确保图标正确显示
+  - **图标元素处理**: 兼容Lucide图标库替换机制，同时查找`<i>`和`<svg>`元素，如果找不到则创建新的图标元素
+  - **错误处理**: 添加延迟初始化和重试机制确保图标正确显示，即使Lucide库加载延迟也能正常工作
 - **updateContainerPadding()**: 更新媒体容器padding，根据窗口大小调整内容区域
 - **initializeEventListeners()**: 初始化事件监听器，包括主题切换按钮点击事件
 - **handleFileSelection()**: 处理文件选择事件
