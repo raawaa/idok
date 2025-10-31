@@ -9,28 +9,7 @@
  * @param {string} settingsPath - 设置文件路径
  */
 function registerWindowHandlers(ipcMain, mainWindow, settingsPath) {
-    // 窗口控制处理器
-    ipcMain.on('minimize-window', () => {
-        if (mainWindow) {
-            mainWindow.minimize();
-        }
-    });
-
-    ipcMain.on('maximize-restore-window', () => {
-        if (mainWindow) {
-            if (mainWindow.isMaximized()) {
-                mainWindow.unmaximize();
-            } else {
-                mainWindow.maximize();
-            }
-        }
-    });
-
-    ipcMain.on('close-window', () => {
-        if (mainWindow) {
-            mainWindow.close();
-        }
-    });
+    // 注意：窗口控制处理器已移除，现在使用系统默认标题栏
 
     // 右键菜单处理器
     ipcMain.on('show-context-menu', (event, videoPath) => {

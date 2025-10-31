@@ -50,8 +50,6 @@ function createWindow() {
             contextIsolation: false
         },
         autoHideMenuBar: true,
-        frame: false,
-        titleBarStyle: 'hidden',
         show: false
     });
 

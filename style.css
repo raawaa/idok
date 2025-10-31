@@ -30,177 +30,24 @@ body {
     color: var(--text-color);
     line-height: 1.6;
     padding: 0;
-    /* 默认 padding */
-    padding-top: 30px;
-    /* 为自定义标题栏和顶部内容留出更多空间 */
-    padding-right: 0;
-    /* 为垂直滚动条留出空间 */
+    margin: 0;
     overflow-y: hidden;
     /* 阻止 body 自身出现滚动条 */
 }
 
 #content-container {
-    padding-top: 30px;
-    /* 与标题栏高度相同 */
+    padding-top: 10px;
+    /* 为顶部内容留出少量空间 */
     padding-right: 0;
     /* 移除右侧 padding，让滚动条紧贴窗口 */
     padding-left: 0;
     /* 同时移除左侧 padding */
     overflow-y: auto;
     /* 在内容容器上启用滚动条 */
-    height: calc(100vh - 30px - 1px);
-    /* 减去标题栏高度，并额外减去1px防止溢出 */
+    height: calc(100vh - 1px);
+    /* 使用完整的视窗高度，额外减去1px防止溢出 */
     overscroll-behavior: contain;
     /* 防止滚动到底部时的反弹效果 */
-}
-
-#custom-titlebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 30px;
-    background-color: var(--accent-color) !important; /* 强制使用强调色 */
-    color: white;
-    display: flex;
-    align-items: center;
-    -webkit-app-region: drag;
-    z-index: 1000;
-    transition: background-color 0.3s ease;
-    padding: 0 8px;
-}
-
-/* 为标题栏的子元素添加点击事件 */
-#custom-titlebar > * {
-    pointer-events: auto;
-}
-
-/* 窗口控制按钮容器 */
-#window-controls {
-    display: flex;
-    -webkit-app-region: no-drag;
-    height: 100%;
-    margin-left: auto;
-    align-items: center;
-    background-color: transparent;
-    pointer-events: auto;
-}
-
-/* 窗口控制按钮样式 */
-.window-control-btn {
-    width: 30px;
-    height: 30px;
-    background: transparent;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s;
-    padding: 0;
-    margin: 0;
-    border-radius: 4px;
-}
-
-.window-control-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-#close-btn:hover {
-    background-color: rgba(255, 0, 0, 0.2);
-}
-
-#app-title {
-    -webkit-app-region: drag;
-    font-size: 14px;
-    font-weight: bold;
-    flex-grow: 1;
-    text-align: center;
-    padding: 0 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* 现代化主题切换按钮样式 */
-.theme-toggle-container {
-    -webkit-app-region: no-drag;
-    display: flex;
-    align-items: center;
-    margin-right: 10px;
-}
-
-.theme-toggle-label {
-    font-size: 12px;
-    font-weight: 500;
-    margin-right: 8px;
-    color: white;
-    white-space: nowrap;
-    cursor: default;
-    user-select: none;
-}
-
-.theme-toggle-btn {
-    position: relative;
-    display: inline-block;
-    width: 40px;
-    height: 22px;
-    margin: 0;
-}
-
-.theme-toggle-btn input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.theme-toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .3s;
-    border-radius: 34px;
-}
-
-.theme-toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: .3s;
-    border-radius: 50%;
-}
-
-.theme-toggle-btn input:checked + .theme-toggle-slider {
-    background-color: var(--accent-color);
-}
-
-.theme-toggle-btn input:checked + .theme-toggle-slider:before {
-    transform: translateX(18px);
-}
-
-.theme-toggle-btn:hover .theme-toggle-slider {
-    box-shadow: 0 0 5px rgba(0,0,0,0.2);
-}
-
-/* 暗色模式下的主题切换按钮 */
-@media (prefers-color-scheme: dark) {
-    .theme-toggle-slider {
-        background-color: #555;
-    }
-    
-    .theme-toggle-btn:hover .theme-toggle-slider {
-        box-shadow: 0 0 5px rgba(255,255,255,0.1);
-    }
 }
 
 /* 强制暗色/亮色模式 */
@@ -216,25 +63,6 @@ body[data-theme='light'] {
     --text-color: #1a1a1a;
     --card-bg: white;
     --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-@media (prefers-color-scheme: dark) {
-    #custom-titlebar {
-        background-color: rgba(50, 50, 50, 0.8);
-        color: white;
-    }
-
-    .window-control-btn {
-        color: white;
-    }
-
-    .window-control-btn:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-    }
-
-    #close-btn:hover {
-        background-color: rgba(255, 0, 0, 0.4);
-    }
 }
 
 h1 {

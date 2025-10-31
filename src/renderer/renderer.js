@@ -68,9 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 测试按钮是否正确绑定
         const settingsBtn = document.getElementById('open-settings-btn');
-        const themeToggle = document.getElementById('theme-toggle');
         console.log('🎯 设置按钮元素:', settingsBtn);
-        console.log('🎯 主题切换元素:', themeToggle);
 
     } catch (error) {
         console.error('❌ 模块化应用程序初始化失败:', error);
@@ -86,12 +84,6 @@ async function initializeApp() {
 
     // 初始化事件监听器
     initializeEventListeners();
-
-    // 初始化主题设置
-    initializeThemeSettings();
-
-    // 初始化窗口控制
-    initializeWindowControls();
 
     // 初始化搜索功能
     initializeSearch();
@@ -191,72 +183,7 @@ function initializeEventListeners() {
     console.log('✅ 事件监听器初始化完成');
 }
 
-/**
- * 初始化主题设置
- */
-function initializeThemeSettings() {
-    console.log('🎨 开始初始化主题设置...');
-    const themeToggle = document.getElementById('theme-toggle');
-    console.log('🎨 主题切换元素:', themeToggle);
-    if (themeToggle) {
-        // 加载保存的主题设置
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            document.body.setAttribute('data-theme', savedTheme);
-            themeToggle.checked = savedTheme === 'dark';
-            console.log('加载保存的主题:', savedTheme);
-        } else {
-            // 检查系统主题偏好
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const defaultTheme = prefersDark ? 'dark' : 'light';
-            document.body.setAttribute('data-theme', defaultTheme);
-            themeToggle.checked = prefersDark;
-            console.log('使用系统主题:', defaultTheme);
-        }
 
-        // 监听主题切换
-        themeToggle.addEventListener('change', () => {
-            const newTheme = themeToggle.checked ? 'dark' : 'light';
-            document.body.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            console.log('🎨 主题切换为:', newTheme);
-            showMessage(`主题已切换为${newTheme === 'dark' ? '深色' : '浅色'}模式`, MESSAGE_TYPES.SUCCESS);
-        });
-    }
-}
-
-/**
- * 初始化窗口控制
- */
-function initializeWindowControls() {
-    const minimizeBtn = document.getElementById('minimize-btn');
-    const maximizeBtn = document.getElementById('maximize-btn');
-    const closeBtn = document.getElementById('close-btn');
-
-    if (minimizeBtn) {
-        minimizeBtn.addEventListener('click', () => {
-            ipcRenderer.send('minimize-window');
-        });
-    }
-
-    if (maximizeBtn) {
-        maximizeBtn.addEventListener('click', () => {
-            ipcRenderer.send('maximize-restore-window');
-        });
-    }
-
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            ipcRenderer.send('close-window');
-        });
-    }
-
-    ipcRenderer.on('window-maximized', (event, isMaximized) => {
-        if (maximizeBtn) {
-            maximizeBtn.textContent = isMaximized ? '❐' : '□';
-        }
-    });
-}
 
 /**
  * 初始化搜索功能

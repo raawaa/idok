@@ -6,6 +6,7 @@ const { scanDirectories } = require('../services/media-service');
 const { isPathSafe } = require('../services/file-service');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 /**
  * 注册媒体相关的IPC处理器
@@ -77,30 +78,162 @@ function registerMediaHandlers(ipcMain, settingsPath, mainWindow) {
             if (defaultPlayer && defaultPlayer.trim() !== '') {
                 console.log('🎬 使用自定义播放器:', defaultPlayer);
 
+                // 处理播放器路径
+                let playerPath = defaultPlayer;
+                let foundValidPlayer = false;
+                const { shell } = require('electron');
+
+                // 检查是否为完整路径（自定义播放器）
+                if (defaultPlayer.includes('\\') || defaultPlayer.includes('/')) {
+                    // 用户选择的完整路径
+                    if (fs.existsSync(defaultPlayer) && defaultPlayer.toLowerCase().endsWith('.exe')) {
+                        playerPath = defaultPlayer;
+                        foundValidPlayer = true;
+                        console.log('✅ 找到自定义播放器:', playerPath);
+                    } else {
+                        console.log('⚠️ 自定义播放器路径无效:', defaultPlayer);
+                        console.log('🔄 回退到系统默认播放器');
+                        await shell.openPath(videoPath);
+                        return { success: true };
+                    }
+                }
+                // 预定义播放器名称
+                else if (process.platform === 'win32') {
+                    const playerPaths = {
+                        'vlc': [
+                            'C:\\Program Files\\VideoLAN\\VLC\\vlc.exe',
+                            'C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe',
+                            'C:\\Program Files\\VideoLAN\\VLC\\vlc.bat', // 批处理文件
+                            'C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.bat'
+                        ],
+                        'mpv': [
+                            'C:\\Program Files\\mpv\\mpv.exe',
+                            'C:\\Program Files (x86)\\mpv\\mpv.exe',
+                            'C:\\Program Files\\mpv-x86_64\\mpv.exe',
+                            'C:\\Program Files (x86)\\mpv-x86_64\\mpv.exe',
+                            'C:\\Users\\' + os.userInfo().username + '\\scoop\\apps\\mpv\\current\\mpv.exe',
+                            'C:\\Users\\' + os.userInfo().username + '\\scoop\\apps\\mpv\\*\\mpv.exe',
+                            'C:\\ProgramData\\chocolatey\\bin\\mpv.exe',
+                            'C:\\ProgramData\\chocolatey\\lib\\mpv\\tools\\mpv.exe'
+                        ],
+                        'potplayer': [
+                            'C:\\Program Files\\Daum\\PotPlayer\\PotPlayerMini64.exe',
+                            'C:\\Program Files\\Daum\\PotPlayer\\PotPlayerMini.exe',
+                            'C:\\Program Files (x86)\\Daum\\PotPlayer\\PotPlayerMini64.exe',
+                            'C:\\Program Files (x86)\\Daum\\PotPlayer\\PotPlayerMini.exe',
+                            'C:\\Program Files\\PotPlayer\\PotPlayerMini64.exe',
+                            'C:\\Program Files (x86)\\PotPlayer\\PotPlayerMini64.exe'
+                        ]
+                    };
+
+                    if (playerPaths[defaultPlayer]) {
+                        console.log(`🔍 搜索播放器 "${defaultPlayer}" 的安装路径...`);
+
+                        // 查找存在的播放器路径
+                        for (const searchPath of playerPaths[defaultPlayer]) {
+                            try {
+                                // 处理通配符路径（scoop版本）
+                                if (searchPath.includes('*')) {
+                                    const pathParts = searchPath.split('*');
+                                    const baseDir = pathParts[0];
+                                    if (fs.existsSync(baseDir)) {
+                                        const versions = fs.readdirSync(baseDir);
+                                        for (const version of versions) {
+                                            const versionPath = path.join(baseDir, version, pathParts[1] || 'mpv.exe');
+                                            if (fs.existsSync(versionPath)) {
+                                                playerPath = versionPath;
+                                                foundValidPlayer = true;
+                                                console.log('✅ 找到播放器:', playerPath);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                } else if (fs.existsSync(searchPath)) {
+                                    playerPath = searchPath;
+                                    foundValidPlayer = true;
+                                    console.log('✅ 找到播放器:', playerPath);
+                                    break;
+                                }
+                            } catch (err) {
+                                continue;
+                            }
+                            if (foundValidPlayer) break;
+                        }
+
+                        // 如果找不到预定义播放器，尝试系统PATH
+                        if (!foundValidPlayer) {
+                            console.log('⚠️ 预定义播放器未找到，尝试通过系统PATH启动');
+                            // 这里先不回退，继续尝试用spawn启动
+                        }
+                    }
+                }
+
                 // 使用自定义播放器
                 return new Promise((resolve, reject) => {
-                    const playerProcess = spawn(defaultPlayer, [videoPath], {
+                    console.log(`🚀 尝试启动播放器: "${playerPath}"`);
+
+                    const playerProcess = spawn(playerPath, [videoPath], {
                         detached: true,
-                        stdio: 'ignore'
+                        stdio: 'ignore',
+                        windowsHide: true // Windows下隐藏控制台窗口
                     });
+
+                    let processCompleted = false;
 
                     playerProcess.on('error', (error) => {
-                        console.error('❌ 自定义播放器启动失败:', error);
-                        reject(new Error(`无法启动播放器: ${error.message}`));
+                        if (processCompleted) return;
+                        processCompleted = true;
+
+                        console.error('❌ 自定义播放器启动失败:', error.message);
+
+                        // 如果是找不到文件错误，且有找到有效播放器但路径不对，给出更具体的错误信息
+                        if (error.code === 'ENOENT' && foundValidPlayer) {
+                            console.error(`❌ 播放器文件不存在: ${playerPath}`);
+                        }
+
+                        console.log('🔄 回退到系统默认播放器');
+                        // 回退到系统默认播放器
+                        shell.openPath(videoPath).then(() => {
+                            resolve({ success: true });
+                        }).catch((fallbackError) => {
+                            reject(new Error(`无法启动播放器: ${error.message}，系统播放器也失败: ${fallbackError.message}`));
+                        });
                     });
+
+                    // 设置超时处理
+                    const timeout = setTimeout(() => {
+                        if (processCompleted) return;
+                        processCompleted = true;
+
+                        if (!playerProcess.killed) {
+                            try {
+                                playerProcess.kill();
+                            } catch (killError) {
+                                // 忽略杀死进程时的错误
+                            }
+                        }
+
+                        console.log('⏰ 播放器启动超时 (8秒)，回退到系统默认播放器');
+                        console.log(`🔍 尝试的播放器路径: ${playerPath}`);
+                        console.log(`🔍 是否找到有效播放器: ${foundValidPlayer}`);
+
+                        shell.openPath(videoPath).then(() => {
+                            resolve({ success: true });
+                        }).catch((fallbackError) => {
+                            reject(new Error(`播放器启动超时，系统播放器也失败: ${fallbackError.message}`));
+                        });
+                    }, 8000); // 增加到8秒
 
                     playerProcess.on('spawn', () => {
+                        if (processCompleted) return;
+                        processCompleted = true;
+
+                        clearTimeout(timeout); // 清除超时
                         console.log('✅ 自定义播放器启动成功');
+                        // 不立即杀死进程，让它独立运行
+                        playerProcess.unref();
                         resolve({ success: true });
                     });
-
-                    // 超时处理
-                    setTimeout(() => {
-                        if (!playerProcess.killed) {
-                            playerProcess.kill();
-                            reject(new Error('播放器启动超时'));
-                        }
-                    }, 5000);
                 });
             } else {
                 // 使用系统默认播放器
