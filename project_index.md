@@ -5,7 +5,9 @@
 ### 根目录文件
 - **index.html**: 应用程序主 HTML 文件，包含页面结构和模态框结构，使用HTML模板，已集成Lucide图标库。控制区包含过滤控件、排序选项（片名、发布日期、系列）、清除过滤按钮、主题切换按钮（Lucide moon/sun图标）、设置按钮（Lucide settings图标）
 - **style.css**: 全局样式文件，包含应用程序的样式、设置相关样式和暗色主题适配
-- **package.json**: 项目依赖和脚本配置
+- **package.json**: 项目依赖和脚本配置，包含版本管理脚本（release:patch/minor/major）
+- **CHANGELOG.md**: 版本变更日志，记录每个版本的更新内容
+- **.github/workflows/release_build.yml**: GitHub Actions工作流配置，自动构建发布版本
 
 ### src 目录
 - **main/**: 主进程相关代码

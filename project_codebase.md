@@ -88,9 +88,22 @@
   - 演员标签: 蓝色主题，最多显示3个演员，超出显示"..."，可点击过滤
   - 支持演员标签展开收起功能: 点击"+n"显示全部演员，点击chevron-up图标收起恢复紧凑显示，使用Lucide图标。修复了事件委托问题，使用closest方法确保点击图标时也能正确识别
 
+### 版本管理
+- **版本发布脚本**: package.json中配置了standard-version版本管理工具
+  - `npm run release:patch`: 发布补丁版本（如0.4.0 -> 0.4.1）
+  - `npm run release:minor`: 发布次要版本（如0.4.0 -> 0.5.0）
+  - `npm run release:major`: 发布主要版本（如0.4.0 -> 1.0.0）
+- **版本发布流程**: 
+  1. 运行发布脚本自动更新版本号
+  2. 生成CHANGELOG.md变更日志
+  3. 创建Git标签（如v0.4.1）
+  4. 使用`git push --follow-tags origin main`推送代码和标签
+  5. 触发GitHub Actions自动构建发布包
+
 ### 依赖管理
 - **Electron** - 桌面应用框架
 - **Lucide** - 原生JavaScript图标库，用于UI图标显示
+- **standard-version** - 版本管理和变更日志生成工具
 - **其他依赖** - 详见package.json文件
 
 - **addMediaEventListeners(element, media, onClick, onContextMenu)**: 添加媒体元素事件监听器

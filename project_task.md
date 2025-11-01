@@ -51,3 +51,12 @@
 - 修改默认排序逻辑，从按片名升序改为按发布日期降序
 - 更新HTML默认选中状态
 - 确保新加载的媒体列表默认按日期倒序排列
+
+### [已完成] 发布patch版本v0.4.1
+- 使用standard-version发布patch版本
+- 更新版本号从0.4.0到0.4.1
+- 生成CHANGELOG.md更新记录
+- 推送代码和标签v0.4.1到GitHub
+- 触发GitHub Actions workflow自动构建和发布
+- GitHub CLI安装配置完成，可查看Actions运行状态
+- v0.4.1版本Release创建成功，包含Windows安装包下载
