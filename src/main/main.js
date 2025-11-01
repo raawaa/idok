@@ -44,14 +44,22 @@ let mainWindow = null;
  */
 function clearCacheDirectory() {
     try {
-        const cachePath = path.join(app.getPath('userData'), 'cache');
+        // 不再清理整个缓存目录，只清理特定的缓存文件
+        const cachePath = app.getPath('cache');
         if (fs.existsSync(cachePath)) {
-            console.log('🧹 清理缓存目录...');
-            fs.rmSync(cachePath, { recursive: true, force: true });
-            console.log('✅ 缓存目录清理完成');
+            console.log('🧹 清理缓存文件...');
+            // 只清理特定的临时文件，保留数据库等重要数据
+            const files = fs.readdirSync(cachePath);
+            files.forEach(file => {
+                if (file.endsWith('.tmp') || file.endsWith('.cache')) {
+                    const filePath = path.join(cachePath, file);
+                    fs.unlinkSync(filePath);
+                }
+            });
+            console.log('✅ 缓存文件清理完成');
         }
     } catch (error) {
-        console.warn('⚠️ 清理缓存目录失败:', error.message);
+        console.warn('⚠️ 清理缓存失败:', error.message);
     }
 }
 
@@ -61,11 +69,10 @@ function clearCacheDirectory() {
 function createWindow() {
     console.log('📱 创建主窗口...', '当前窗口数量:', BrowserWindow.getAllWindows().length);
 
-    // 清理缓存目录以避免权限问题
+    // 清理缓存文件以避免权限问题
     clearCacheDirectory();
     
-    // 配置Electron缓存和GPU设置以避免常见错误
-    app.setPath('cache', path.join(app.getPath('userData'), 'cache'));
+    // 不再自定义缓存路径，使用系统默认缓存目录
     
     mainWindow = new BrowserWindow({
         width: 1200,
@@ -165,7 +172,9 @@ async function initializeApplication() {
             setTimeout(() => {
                 if (mainWindow && !mainWindow.isDestroyed()) {
                     console.log('📤 发送初始扫描请求');
+                    const startTime = Date.now();
                     mainWindow.webContents.send('start-initial-scan', settings.directories);
+                    console.log(`⏱️ 启动扫描耗时: ${Date.now() - startTime}ms`);
                 }
             }, 1000);
         } else {

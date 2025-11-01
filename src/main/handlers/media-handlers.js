@@ -35,10 +35,12 @@ function registerMediaHandlers(ipcMain, settingsPath, mainWindow) {
                 return { success: false, error: '没有有效的目录路径' };
             }
 
+            const startTime = Date.now();
             const mediaList = await scanDirectories(cleanedPaths);
-            console.log(`✅ 扫描完成，找到 ${mediaList.length} 个媒体文件`);
+            const scanTime = Date.now() - startTime;
+            console.log(`✅ 扫描完成，找到 ${mediaList.length} 个媒体文件，耗时 ${scanTime}ms`);
 
-            return { success: true, data: mediaList };
+            return { success: true, data: mediaList, scanTime };
         } catch (error) {
             console.error('❌ 扫描失败:', error);
             return { success: false, error: error.message };

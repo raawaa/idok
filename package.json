@@ -6,7 +6,9 @@
     "start": "electron .",
     "dev": "nodemon",
     "dev:verbose": "concurrently \"nodemon --watch src --ext js,json,html,css --exec 'echo \"🔄 重新启动Electron...\" && electron .'\" \"echo \"🔥 热重载已启动，修改文件将自动重新加载\"",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "build": "electron-builder",
     "release": "standard-version",
     "release:minor": "standard-version --release-as minor",
@@ -22,6 +24,7 @@
     "electron": "^36.3.1",
     "electron-builder": "^24.9.1",
     "electron-reloader": "^1.2.3",
+    "jest": "^30.2.0",
     "nodemon": "^3.1.10",
     "standard-version": "^9.5.0"
   },

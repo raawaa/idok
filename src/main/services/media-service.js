@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const xml2js = require('xml2js');
 const { isVideoFile, findCoverImage } = require('./file-service');
+const DatabaseService = require('../../shared/services/database-service');
 const OpenCC = require('opencc-js');
 
 // 创建繁体转简体的转换器实例
@@ -32,18 +33,78 @@ function convertTraditionalToSimplified(text) {
 }
 
 /**
- * 扫描多个目录
+ * 扫描多个目录（支持缓存）
  * @param {string[]} directoryPaths - 目录路径数组
+ * @param {Object} options - 扫描选项
  * @returns {Promise<Object[]>} 媒体文件列表
  */
-async function scanDirectories(directoryPaths) {
+async function scanDirectories(directoryPaths, options = {}) {
     const allMedia = [];
+    let totalScanTime = 0;
+    let cacheHitCount = 0;
+    let cacheMissCount = 0;
+    
+    // 初始化数据库服务
+    const databaseService = new DatabaseService();
+    
+    // 尝试使用Electron的数据目录，如果失败则使用备用路径
+    let dataPath;
+    try {
+      const { app } = require('electron');
+      const userDataPath = app.getPath('userData');
+      dataPath = path.join(userDataPath, 'media-database.json');
+    } catch (electronError) {
+      // 如果Electron不可用，使用当前工作目录
+      console.log('Electron不可用，使用当前工作目录作为数据目录');
+      dataPath = path.join(process.cwd(), 'media-database.json');
+    }
+    
+    await databaseService.initialize(dataPath);
 
     for (const dirPath of directoryPaths) {
         try {
             console.log(`📂 扫描目录: ${dirPath}`);
+            const startTime = Date.now();
+            
+            // 检查是否有有效的缓存
+            if (!options.forceRescan) {
+                // 首先检查文件是否发生变化
+                const hasChanged = await databaseService.hasDirectoryChanged(dirPath);
+                if (!hasChanged) {
+                    const isCacheValid = await databaseService.isScanCacheValid(dirPath);
+                    if (isCacheValid) {
+                        const cache = await databaseService.getScanCache(dirPath);
+                        if (cache && cache.results) {
+                            console.log(`使用缓存数据扫描: ${dirPath}`);
+                            allMedia.push(...cache.results);
+                            const scanTime = Date.now() - startTime;
+                            totalScanTime += scanTime;
+                            cacheHitCount++;
+                            continue;
+                        }
+                    }
+                } else {
+                    console.log(`检测到文件变化，需要重新扫描: ${dirPath}`);
+                }
+            }
+
+            console.log(`执行实际扫描: ${dirPath}`);
             const mediaFiles = await scanDirectoryRecursive(dirPath);
             allMedia.push(...mediaFiles);
+            
+            const scanTime = Date.now() - startTime;
+            totalScanTime += scanTime;
+            cacheMissCount++;
+            
+            // 保存扫描结果到缓存
+            const fileFingerprint = await databaseService.generateDirectoryFingerprint(dirPath);
+            await databaseService.saveScanCache(dirPath, {
+                results: mediaFiles,
+                totalFiles: mediaFiles.length,
+                fileFingerprint: fileFingerprint
+            });
+            console.log(`扫描结果已缓存: ${dirPath}`);
+            
             console.log(`✅ 目录 ${dirPath} 扫描完成，找到 ${mediaFiles.length} 个文件`);
         } catch (error) {
             console.error(`❌ 扫描目录 ${dirPath} 失败:`, error);
@@ -51,6 +112,7 @@ async function scanDirectories(directoryPaths) {
     }
 
     console.log(`🎉 总共找到 ${allMedia.length} 个媒体文件`);
+    console.log(`扫描统计 - 总耗时: ${totalScanTime}ms, 缓存命中: ${cacheHitCount}, 缓存未命中: ${cacheMissCount}`);
     return allMedia;
 }
 

@@ -1,0 +1,51 @@
+{
+  "files": [],
+  "scanCache": {
+    "D:\\Code\\idok\\test-media": {
+      "results": [
+        {
+          "type": "kodi-standard",
+          "directoryPath": "D:\\Code\\idok\\test-media\\movie1",
+          "videoFile": {
+            "path": "D:\\Code\\idok\\test-media\\movie1\\ABC-123.mp4",
+            "name": "ABC-123.mp4",
+            "size": 12,
+            "lastModified": "2025-11-01T14:54:17.913Z"
+          },
+          "nfoFile": {
+            "path": "D:\\Code\\idok\\test-media\\movie1\\ABC-123.nfo",
+            "name": "ABC-123.nfo"
+          },
+          "imageFiles": [
+            {
+              "path": "D:\\Code\\idok\\test-media\\movie1\\poster.jpg",
+              "name": "poster.jpg"
+            }
+          ],
+          "metadata": {
+            "title": "movie1",
+            "plot": "",
+            "genre": [],
+            "actress": [],
+            "studio": "",
+            "releaseDate": null
+          },
+          "scannedAt": "2025-11-01T14:54:19.183Z"
+        }
+      ],
+      "scanOptions": {
+        "recursive": true,
+        "includeImages": false,
+        "forceRescan": false
+      },
+      "totalFiles": 1,
+      "fileFingerprint": "9cebbe2852a45a850b02a3dcb56ee275",
+      "cachedAt": "2025-11-01T14:54:19.185Z"
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "createdAt": "2025-11-01T14:54:17.821Z",
+    "lastUpdated": "2025-11-01T14:54:19.185Z"
+  }
+}
