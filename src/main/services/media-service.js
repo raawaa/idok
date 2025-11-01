@@ -36,13 +36,14 @@ function convertTraditionalToSimplified(text) {
  * 扫描多个目录（支持缓存）
  * @param {string[]} directoryPaths - 目录路径数组
  * @param {Object} options - 扫描选项
- * @returns {Promise<Object[]>} 媒体文件列表
+ * @returns {Promise<Object>} 扫描结果对象 { data: 媒体文件列表, usedCache: 是否使用了缓存 }
  */
 async function scanDirectories(directoryPaths, options = {}) {
     const allMedia = [];
     let totalScanTime = 0;
     let cacheHitCount = 0;
     let cacheMissCount = 0;
+    let usedCache = false;
     
     // 初始化数据库服务
     const databaseService = new DatabaseService();
@@ -63,7 +64,7 @@ async function scanDirectories(directoryPaths, options = {}) {
 
     for (const dirPath of directoryPaths) {
         try {
-            console.log(`📂 扫描目录: ${dirPath}`);
+            console.log(`📂 加载目录数据: ${dirPath}`);
             const startTime = Date.now();
             
             // 检查是否有有效的缓存
@@ -75,20 +76,180 @@ async function scanDirectories(directoryPaths, options = {}) {
                     if (isCacheValid) {
                         const cache = await databaseService.getScanCache(dirPath);
                         if (cache && cache.results) {
-                            console.log(`使用缓存数据扫描: ${dirPath}`);
-                            allMedia.push(...cache.results);
+                            console.log(`✅ 使用缓存数据加载: ${dirPath}`);
+                            
+                            // 将缓存数据转换为渲染器期望的格式
+                            const convertedResults = cache.results.map(cacheItem => {
+                                // 检查缓存数据格式：新格式直接包含媒体信息，旧格式需要转换
+                                if (cacheItem.videoPath) {
+                                    // 新格式：已经是转换后的媒体格式，直接使用
+                                    return {
+                                        title: cacheItem.title,
+                                        videoPath: cacheItem.videoPath,
+                                        videoFiles: cacheItem.videoFiles || [cacheItem.videoPath],
+                                        coverImagePath: cacheItem.coverImagePath,
+                                        studio: cacheItem.studio,
+                                        actors: cacheItem.actors || [],
+                                        releaseDateFull: cacheItem.releaseDateFull,
+                                        year: cacheItem.year,
+                                        set: cacheItem.set,
+                                        genres: cacheItem.genres || [],
+                                        directors: cacheItem.directors || [],
+                                        totalParts: cacheItem.totalParts || 1
+                                    };
+                                } else {
+                                    // 旧格式：需要从原始文件信息转换
+                                    const videoFiles = [];
+                                    let videoPath = '';
+                                    let coverImagePath = null;
+                                    
+                                    // 提取视频文件路径
+                                    if (cacheItem.videoFile && cacheItem.videoFile.path) {
+                                        videoPath = cacheItem.videoFile.path;
+                                        videoFiles.push(cacheItem.videoFile.path);
+                                    }
+                                    
+                                    // 提取封面图片路径
+                                    if (cacheItem.imageFiles && cacheItem.imageFiles.length > 0) {
+                                        // 优先使用poster.jpg或fanart.jpg
+                                        const posterImage = cacheItem.imageFiles.find(img => 
+                                            img.name.toLowerCase().includes('poster') || 
+                                            img.name.toLowerCase().includes('fanart')
+                                        );
+                                        if (posterImage) {
+                                            coverImagePath = encodeFilePath(posterImage.path);
+                                        }
+                                    }
+                                    
+                                    // 解析NFO文件获取元数据（如果存在）
+                                    let title = path.basename(videoPath, path.extname(videoPath));
+                                    let studio = null;
+                                    let actors = [];
+                                    let releaseDateFull = null;
+                                    let year = null;
+                                    let set = null;
+                                    let genres = [];
+                                    let directors = [];
+                                    
+                                    if (cacheItem.nfoFile && cacheItem.nfoFile.path) {
+                                        try {
+                                            const xml = fs.readFileSync(cacheItem.nfoFile.path, 'utf-8');
+                                            const parser = new xml2js.Parser({ explicitArray: false, ignoreAttrs: true });
+                                            const result = parser.parseStringSync(xml);
+                                            
+                                            if (result.movie) {
+                                                const movieNode = result.movie;
+                                                if (movieNode.title) title = movieNode.title;
+                                                if (movieNode.premiered) {
+                                                    year = movieNode.premiered.substring(0, 4);
+                                                    releaseDateFull = movieNode.premiered;
+                                                }
+                                                if (movieNode.studio) studio = movieNode.studio;
+                                                if (movieNode.set) {
+                                                    if (typeof movieNode.set === 'object' && movieNode.set.name) {
+                                                        set = movieNode.set.name;
+                                                    } else if (typeof movieNode.set === 'string') {
+                                                        set = movieNode.set;
+                                                    }
+                                                }
+                                                
+                                                if (movieNode.actor) {
+                                                    if (Array.isArray(movieNode.actor)) {
+                                                        actors = movieNode.actor.map(actor => actor.name).filter(name => name);
+                                                    } else if (movieNode.actor.name) {
+                                                        actors.push(movieNode.actor.name);
+                                                    }
+                                                }
+                                                
+                                                if (movieNode.director) {
+                                                    if (Array.isArray(movieNode.director)) {
+                                                        directors = movieNode.director;
+                                                    } else {
+                                                        directors.push(movieNode.director);
+                                                    }
+                                                }
+                                                
+                                                if (movieNode.genre) {
+                                                    const allGenres = new Set();
+                                                    const processGenre = (genreValue) => {
+                                                        if (typeof genreValue === 'string') {
+                                                            const simplifiedGenre = convertTraditionalToSimplified(genreValue);
+                                                            if (simplifiedGenre.includes(',')) {
+                                                                simplifiedGenre.split(',').forEach(g => allGenres.add(g.trim()));
+                                                            } else {
+                                                                allGenres.add(simplifiedGenre.trim());
+                                                            }
+                                                        }
+                                                    };
+                                                    
+                                                    if (Array.isArray(movieNode.genre)) {
+                                                        movieNode.genre.forEach(genre => processGenre(genre));
+                                                    } else {
+                                                        processGenre(movieNode.genre);
+                                                    }
+                                                    genres = Array.from(allGenres);
+                                                }
+                                            }
+                                        } catch (nfoError) {
+                                            console.warn(`解析NFO文件失败: ${cacheItem.nfoFile.path}`, nfoError);
+                                        }
+                                    }
+                                    
+                                    return {
+                                        title: title,
+                                        videoPath: videoPath,
+                                        videoFiles: videoFiles,
+                                        coverImagePath: coverImagePath,
+                                        studio: studio,
+                                        actors: actors,
+                                        releaseDateFull: releaseDateFull,
+                                        year: year,
+                                        set: set,
+                                        genres: genres,
+                                        directors: directors,
+                                        totalParts: videoFiles.length
+                                    };
+                                }
+                            });
+                            
+                            allMedia.push(...convertedResults);
+                            
+                            // 同时将转换后的媒体文件保存到主数据库的files数组
+                            for (const mediaFile of convertedResults) {
+                                await databaseService.saveFile({
+                                    filePath: mediaFile.videoPath,
+                                    fileName: mediaFile.title || path.basename(mediaFile.videoPath),
+                                    title: mediaFile.title,
+                                    avid: extractAvId(mediaFile.title),
+                                    actors: mediaFile.actors || [],  // 修复：actress -> actors
+                                    studio: mediaFile.studio,
+                                    releaseDateFull: mediaFile.releaseDateFull,  // 修复：releaseDate -> releaseDateFull
+                                    metadata: {
+                                        year: mediaFile.year,
+                                        genres: mediaFile.genres || [],
+                                        directors: mediaFile.directors || [],
+                                        set: mediaFile.set,
+                                        totalParts: mediaFile.totalParts,
+                                        videoFiles: mediaFile.videoFiles,
+                                        coverImagePath: mediaFile.coverImagePath
+                                    }
+                                });
+                            }
+                            console.log(`💾 已将缓存中的 ${convertedResults.length} 个媒体文件转换并保存到主数据库`);
+                            
                             const scanTime = Date.now() - startTime;
                             totalScanTime += scanTime;
                             cacheHitCount++;
+                            usedCache = true;
                             continue;
                         }
                     }
                 } else {
-                    console.log(`检测到文件变化，需要重新扫描: ${dirPath}`);
+                    console.log(`🔄 检测到文件变化，执行重新扫描: ${dirPath}`);
                 }
             }
 
-            console.log(`执行实际扫描: ${dirPath}`);
+            console.log(`🔍 执行实际扫描: ${dirPath}`);
             const mediaFiles = await scanDirectoryRecursive(dirPath);
             allMedia.push(...mediaFiles);
             
@@ -103,17 +264,51 @@ async function scanDirectories(directoryPaths, options = {}) {
                 totalFiles: mediaFiles.length,
                 fileFingerprint: fileFingerprint
             });
-            console.log(`扫描结果已缓存: ${dirPath}`);
+            console.log(`💾 扫描结果已缓存: ${dirPath}`);
             
-            console.log(`✅ 目录 ${dirPath} 扫描完成，找到 ${mediaFiles.length} 个文件`);
+            // 同时将媒体文件保存到主数据库的files数组
+            for (const media of mediaFiles) {
+                try {
+                    // 提取番号信息
+                    const avid = extractAvId(media.title);
+                    
+                    await databaseService.saveFile({
+                        filePath: media.videoPath,
+                        fileName: media.title || path.basename(media.videoPath),
+                        title: media.title,
+                        avid: avid,
+                        actors: media.actors || [],  // 修复：actress -> actors
+                        studio: media.studio,
+                        releaseDateFull: media.releaseDateFull,  // 修复：releaseDate -> releaseDateFull
+                        metadata: {
+                            year: media.year,
+                            genres: media.genres || [],
+                            directors: media.directors || [],
+                            set: media.set,
+                            totalParts: media.totalParts,
+                            videoFiles: media.videoFiles,
+                            coverImagePath: media.coverImagePath
+                        }
+                    });
+                } catch (error) {
+                    console.error(`保存媒体文件失败: ${media.videoPath}`, error);
+                }
+            }
+            console.log(`💾 已将 ${mediaFiles.length} 个媒体文件保存到主数据库`);
+            
+            console.log(`✅ 目录 ${dirPath} 数据加载完成，找到 ${mediaFiles.length} 个文件`);
         } catch (error) {
             console.error(`❌ 扫描目录 ${dirPath} 失败:`, error);
         }
     }
 
     console.log(`🎉 总共找到 ${allMedia.length} 个媒体文件`);
-    console.log(`扫描统计 - 总耗时: ${totalScanTime}ms, 缓存命中: ${cacheHitCount}, 缓存未命中: ${cacheMissCount}`);
-    return allMedia;
+    if (usedCache) {
+        console.log(`⚡ 数据加载完成 - 总耗时: ${totalScanTime}ms, 缓存命中: ${cacheHitCount}, 缓存未命中: ${cacheMissCount}`);
+    } else {
+        console.log(`📊 扫描完成 - 总耗时: ${totalScanTime}ms, 缓存命中: ${cacheHitCount}, 缓存未命中: ${cacheMissCount}`);
+    }
+    return { data: allMedia, usedCache: usedCache };
 }
 
 /**
@@ -283,6 +478,29 @@ async function parseNfoFile(nfoPath) {
 }
 
 /**
+ * 从文件名中提取番号
+ * @param {string} fileName - 文件名
+ * @returns {string|null} 提取的番号
+ */
+function extractAvId(fileName) {
+    // 番号匹配模式
+    const avIdPatterns = [
+        /^[A-Z]{2,5}-\d{3,5}/i,  // ABC-123, ABCD-1234
+        /^\d{6}_\d{3,4}/,        // 123456_789
+        /^[A-Z]{3,6}\d{3,6}/i,   // ABC123, ABCD1234
+        /^\d{3,4}[A-Z]{2,5}/i,   // 123ABC, 1234ABCD
+        /^[A-Z]+\d+[A-Z]+/i      // ABC123DEF
+    ];
+    
+    for (const pattern of avIdPatterns) {
+        if (pattern.test(fileName)) {
+            return fileName.match(pattern)[0];
+        }
+    }
+    return null;
+}
+
+/**
  * 编码文件路径为正确的file:// URL格式
  * @param {string} filePath - 文件路径
  * @returns {string} 编码后的file:// URL
@@ -312,5 +530,6 @@ module.exports = {
     scanDirectoryRecursive,
     parseNfoFile,
     encodeFilePath,
-    convertTraditionalToSimplified
+    convertTraditionalToSimplified,
+    extractAvId
 };

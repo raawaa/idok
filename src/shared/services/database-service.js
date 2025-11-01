@@ -129,9 +129,9 @@ class DatabaseService {
         lastModified: fileData.lastModified || new Date().toISOString(),
         avid: fileData.avid || null,
         title: fileData.title || null,
-        actress: fileData.actress || [],
+        actors: fileData.actors || [],  // 修复字段名：actress -> actors
         studio: fileData.studio || null,
-        releaseDate: fileData.releaseDate || null,
+        releaseDateFull: fileData.releaseDateFull || null,  // 修复字段名：releaseDate -> releaseDateFull
         metadata: fileData.metadata || {},
         scannedAt: new Date().toISOString(),
         ...fileData
@@ -519,8 +519,8 @@ class DatabaseService {
         }
         
         // 搜索女优
-        if (file.actress && file.actress.some(actress => 
-          actress.toLowerCase().includes(searchTerm)
+        if (file.actors && file.actors.some(actor =>
+          actor.toLowerCase().includes(searchTerm)
         )) {
           return true;
         }
@@ -566,6 +566,14 @@ class DatabaseService {
   generateFileId(filePath) {
     // 使用文件路径的哈希值作为ID
     const crypto = require('crypto');
+
+    // 添加空值检查，防止undefined导致错误
+    if (!filePath || typeof filePath !== 'string') {
+      console.error('generateFileId: 文件路径无效', filePath);
+      // 使用时间戳和随机数作为备用ID
+      return crypto.createHash('md5').update(Date.now() + Math.random().toString()).digest('hex');
+    }
+
     return crypto.createHash('md5').update(filePath).digest('hex');
   }
 

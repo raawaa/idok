@@ -15,6 +15,75 @@ const os = require('os');
  * @param {Electron.BrowserWindow} mainWindow - 主窗口实例
  */
 function registerMediaHandlers(ipcMain, settingsPath, mainWindow) {
+    // 刷新缓存处理器
+    ipcMain.handle('refresh-cache', async (event) => {
+        try {
+            console.log('🔄 收到刷新缓存请求');
+            
+            // 读取设置获取目录路径
+            const fs = require('fs').promises;
+            let settings = {};
+            try {
+                const settingsData = await fs.readFile(settingsPath, 'utf-8');
+                settings = JSON.parse(settingsData);
+            } catch (error) {
+                console.log('⚠️ 无法读取设置');
+            }
+
+            if (!settings.directories || settings.directories.length === 0) {
+                return { 
+                    success: false, 
+                    error: '没有配置扫描目录，请先配置目录' 
+                };
+            }
+
+            // 导入媒体扫描服务
+            const MediaScannerService = require('../../shared/services/media-scanner-service');
+            const DatabaseService = require('../../shared/services/database-service');
+            
+            // 初始化数据库服务
+            const databaseService = new DatabaseService();
+            const { app } = require('electron');
+            const userDataPath = app.getPath('userData');
+            const dataPath = path.join(userDataPath, 'media-database.json');
+            await databaseService.initialize(dataPath);
+            
+            const scannerService = new MediaScannerService(databaseService);
+            
+            const startTime = Date.now();
+            
+            // 对每个目录执行刷新缓存
+            const results = [];
+            for (const directoryPath of settings.directories) {
+                console.log(`🔄 刷新目录缓存: ${directoryPath}`);
+                const result = await scannerService.refreshDirectoryCache(directoryPath);
+                results.push(result);
+            }
+            
+            const totalDuration = Date.now() - startTime;
+            const totalFiles = results.reduce((sum, result) => sum + (result.totalFiles || 0), 0);
+            const hasChanges = results.some(result => result.hasChanged);
+            const scannedPaths = settings.directories;
+            
+            console.log(`✅ 缓存刷新完成，扫描了 ${totalFiles} 个文件，耗时 ${totalDuration}ms`);
+            
+            return { 
+                success: true,
+                hasChanges,
+                fileCount: totalFiles,
+                duration: totalDuration,
+                scannedPaths
+            };
+            
+        } catch (error) {
+            console.error('❌ 刷新缓存失败:', error);
+            return { 
+                success: false, 
+                error: error.message 
+            };
+        }
+    });
+
     // 扫描目录处理器
     ipcMain.handle('scan-directory', async (event, directoryPaths) => {
         try {
@@ -36,11 +105,16 @@ function registerMediaHandlers(ipcMain, settingsPath, mainWindow) {
             }
 
             const startTime = Date.now();
-            const mediaList = await scanDirectories(cleanedPaths);
+            const scanResult = await scanDirectories(cleanedPaths);
             const scanTime = Date.now() - startTime;
-            console.log(`✅ 扫描完成，找到 ${mediaList.length} 个媒体文件，耗时 ${scanTime}ms`);
+            
+            if (scanResult.usedCache) {
+                console.log(`⚡ 数据加载完成，找到 ${scanResult.data.length} 个媒体文件，耗时 ${scanTime}ms`);
+            } else {
+                console.log(`✅ 扫描完成，找到 ${scanResult.data.length} 个媒体文件，耗时 ${scanTime}ms`);
+            }
 
-            return { success: true, data: mediaList, scanTime };
+            return { success: true, data: scanResult.data, scanTime, usedCache: scanResult.usedCache };
         } catch (error) {
             console.error('❌ 扫描失败:', error);
             return { success: false, error: error.message };

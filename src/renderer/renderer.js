@@ -346,6 +346,7 @@ function initializeEventListeners() {
     const sortBySelect = document.getElementById('sort-by');
     const sortOrderSelect = document.getElementById('sort-order');
     const clearFiltersBtn = document.getElementById('clear-filters');
+    const refreshCacheBtn = document.getElementById('refresh-cache-btn');
     const themeToggleBtn = document.getElementById('theme-toggle-btn');
     const openSettingsBtn = document.getElementById('open-settings-btn');
 
@@ -363,6 +364,9 @@ function initializeEventListeners() {
     }
     if (clearFiltersBtn) {
         clearFiltersBtn.addEventListener('click', clearAllFilters);
+    }
+    if (refreshCacheBtn) {
+        refreshCacheBtn.addEventListener('click', handleRefreshCache);
     }
 
     // 添加过滤事件监听器
@@ -549,13 +553,13 @@ function updateClearButtonVisibility(searchValue) {
 async function handleInitialScan(directoryPaths) {
     try {
         console.log('开始初始扫描...', directoryPaths);
-        showInfo('正在扫描媒体文件...');
+        showInfo('正在加载媒体数据...');
 
         const result = await window.ipcRenderer.invoke('scan-directory', directoryPaths);
 
         if (result.success) {
             allMediaList = result.data || [];
-            console.log(`初始扫描完成，找到 ${allMediaList.length} 个媒体文件`);
+            console.log(`数据加载完成，找到 ${allMediaList.length} 个媒体文件`);
 
             // 更新下拉框选项
             updateFilterDropdowns(allMediaList);
@@ -563,13 +567,26 @@ async function handleInitialScan(directoryPaths) {
             // 渲染媒体列表
             renderMediaList(allMediaList, handleMediaClick, handleMediaContextMenu);
 
-            showSuccess(`扫描完成，找到 ${allMediaList.length} 个媒体文件`, 3000);
+            // 根据数据来源显示不同的成功消息
+            if (result.usedCache) {
+                showSuccess(`✨ 数据加载完成！从缓存中快速加载了 ${allMediaList.length} 个媒体文件`, 4000);
+            } else {
+                showSuccess(`🔍 扫描完成！重新扫描发现 ${allMediaList.length} 个媒体文件`, 4000);
+            }
+            
+            // 显示性能信息（扫描时间）
+            if (result.scanTime) {
+                const timeMsg = result.scanTime < 1000 
+                    ? `${result.scanTime}ms` 
+                    : `${(result.scanTime / 1000).toFixed(1)}秒`;
+                showInfo(`⏱️ 本次加载耗时：${timeMsg}`, 2000);
+            }
         } else {
-            throw new Error(result.error || '扫描失败');
+            throw new Error(result.error || '数据加载失败');
         }
     } catch (error) {
         console.error('初始扫描失败:', error);
-        showError(`扫描失败: ${error.message}`);
+        showError(`数据加载失败: ${error.message}`);
     }
 }
 
@@ -948,6 +965,73 @@ function openSettingsDialog() {
         window.settingsModal.open();
     } else {
         console.error('设置模态框未初始化');
+    }
+}
+
+/**
+ * 处理刷新缓存按钮点击
+ */
+async function handleRefreshCache() {
+    console.log('🔄 开始手动刷新缓存...');
+    const refreshBtn = document.getElementById('refresh-cache-btn');
+    const originalIcon = refreshBtn.innerHTML;
+    
+    // 显示加载状态
+    refreshBtn.innerHTML = '<i data-lucide="loader" class="animate-spin" style="width: 16px; height: 16px;"></i>';
+    refreshBtn.disabled = true;
+    refreshBtn.title = '正在刷新缓存...';
+    
+    // 重新渲染图标
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+    
+    try {
+        showInfo('正在刷新缓存，请稍候...', 3000);
+        
+        // 调用主进程刷新缓存
+        const result = await window.ipcRenderer.invoke('refresh-cache');
+        
+        console.log('✅ 缓存刷新完成:', result);
+        
+        if (result.success) {
+            // 显示详细的刷新结果信息
+            if (result.hasChanges) {
+                showSuccess(`🔄 缓存刷新完成！重新扫描了 ${result.fileCount} 个文件，发现文件变化`, 5000);
+            } else {
+                showSuccess(`✅ 缓存刷新完成！扫描了 ${result.fileCount} 个文件，无文件变化`, 5000);
+            }
+            
+            // 显示性能信息
+            if (result.duration) {
+                const timeMsg = result.duration < 1000 
+                    ? `${result.duration}ms` 
+                    : `${(result.duration / 1000).toFixed(1)}秒`;
+                showInfo(`⏱️ 本次刷新耗时：${timeMsg}`, 2000);
+            }
+            
+            // 如果有文件变化，重新渲染列表
+            if (result.hasChanges) {
+                console.log('📁 检测到文件变化，正在重新加载数据');
+                showInfo('检测到文件变化，正在重新加载数据...');
+                await handleInitialScan(result.scannedPaths);
+            }
+        } else {
+            showError(`缓存刷新失败: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('❌ 缓存刷新失败:', error);
+        showError(`缓存刷新失败: ${error.message}`);
+    } finally {
+        // 恢复按钮状态
+        refreshBtn.innerHTML = originalIcon;
+        refreshBtn.disabled = false;
+        refreshBtn.title = '刷新缓存';
+        
+        // 重新渲染图标
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
     }
 }
 

@@ -22,6 +22,62 @@ class MediaScannerService {
   }
 
   /**
+   * 手动刷新指定目录的缓存（包含文件变化检测）
+   * @param {string} scanPath - 要刷新的目录路径
+   * @param {Object} options - 扫描选项
+   * @returns {Promise<Object>} 刷新结果
+   */
+  async refreshDirectoryCache(scanPath, options = {}) {
+    try {
+      console.log(`🔄 手动刷新缓存: ${scanPath}`);
+      
+      // 先检查文件变化
+      let hasChanged = false;
+      if (this.databaseService) {
+        const cache = await this.databaseService.getScanCache(scanPath);
+        if (cache && cache.fileFingerprint) {
+          console.log(`🔍 检测文件变化...`);
+          hasChanged = await this.databaseService.hasDirectoryChanged(scanPath);
+          if (hasChanged) {
+            console.log(`⚠️  检测到文件变化，需要重新扫描`);
+          } else {
+            console.log(`✅ 文件未发生变化`);
+          }
+        } else {
+          console.log(`ℹ️  无缓存指纹，视为文件变化`);
+          hasChanged = true;
+        }
+      } else {
+        console.log(`⚠️  数据库服务不可用，强制重新扫描`);
+        hasChanged = true;
+      }
+      
+      // 执行重新扫描
+      const startTime = Date.now();
+      const results = await this.scanDirectory(scanPath, { ...options, forceRescan: true });
+      const scanTime = Date.now() - startTime;
+      
+      return {
+        success: true,
+        scanPath,
+        results,
+        hasChanged,
+        scanTime,
+        totalFiles: results.length,
+        message: hasChanged ? '检测到文件变化，已重新扫描' : '文件未变化，已强制刷新缓存'
+      };
+    } catch (error) {
+      console.error(`刷新缓存失败: ${scanPath}`, error);
+      return {
+        success: false,
+        scanPath,
+        error: error.message,
+        message: '刷新缓存失败'
+      };
+    }
+  }
+
+  /**
    * 扫描指定目录（支持缓存和文件变化检测）
    * @param {string} scanPath - 要扫描的目录路径
    * @param {Object} options - 扫描选项
@@ -32,18 +88,16 @@ class MediaScannerService {
       console.log(`🔍 开始扫描目录: ${scanPath}`);
       console.log(`📊 扫描选项: recursive=${options.recursive !== false}, forceRescan=${options.forceRescan || false}`);
       
-      // 检查是否有有效的缓存
+      // 检查是否有缓存数据（跳过文件变化检测）
       if (this.databaseService && !options.forceRescan) {
-        console.log(`🔍 检查缓存有效性...`);
-        const isCacheValid = await this.databaseService.isScanCacheValid(scanPath);
-        if (isCacheValid) {
-          const cache = await this.databaseService.getScanCache(scanPath);
-          if (cache && cache.results) {
-            console.log(`✅ 使用缓存数据扫描: ${scanPath} (找到 ${cache.results.length} 个文件)`);
-            return cache.results;
-          }
+        console.log(`🔍 检查缓存数据...`);
+        const cache = await this.databaseService.getScanCache(scanPath);
+        if (cache && cache.results) {
+          console.log(`✅ 使用缓存数据: ${scanPath} (找到 ${cache.results.length} 个文件)`);
+          console.log(`💡 提示：如需检测文件变化，请使用手动刷新功能`);
+          return cache.results;
         }
-        console.log(`⚠️  缓存无效或不存在，执行实际扫描`);
+        console.log(`⚠️  缓存不存在，执行实际扫描`);
       } else {
         console.log(`🔄 强制重新扫描或数据库服务不可用`);
       }
@@ -149,11 +203,9 @@ class MediaScannerService {
         return kodiResult;
       }
       
-      // 2. 处理独立视频文件
-      const standaloneResult = await this.processStandaloneVideos(dirPath, files, options);
-      if (standaloneResult) {
-        return standaloneResult;
-      }
+      // 2. 发现独立视频文件 → 非标准处理（目前先什么都不做，以后再具体实现）
+      // 目前跳过独立视频文件的处理，直接返回null
+      return null;
       
       return null;
     } catch (error) {
@@ -231,9 +283,9 @@ class MediaScannerService {
           title: nfoData.title || path.basename(dirPath),
           plot: nfoData.plot || '',
           genre: nfoData.genre || [],
-          actress: nfoData.actress || [],
+          actors: nfoData.actress || nfoData.actors || [],  // 修复：支持actress和actors两种字段
           studio: nfoData.studio || '',
-          releaseDate: nfoData.releaseDate || null,
+          releaseDateFull: nfoData.releaseDate || nfoData.releaseDateFull || null,  // 修复：支持releaseDate和releaseDateFull两种字段
           ...nfoData
         },
         scannedAt: new Date().toISOString()

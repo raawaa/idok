@@ -171,10 +171,10 @@ async function initializeApplication() {
         if (settings.directories && settings.directories.length > 0) {
             setTimeout(() => {
                 if (mainWindow && !mainWindow.isDestroyed()) {
-                    console.log('📤 发送初始扫描请求');
+                    console.log('📤 发送初始数据加载请求');
                     const startTime = Date.now();
                     mainWindow.webContents.send('start-initial-scan', settings.directories);
-                    console.log(`⏱️ 启动扫描耗时: ${Date.now() - startTime}ms`);
+                    console.log(`⏱️ 启动数据加载耗时: ${Date.now() - startTime}ms`);
                 }
             }, 1000);
         } else {
