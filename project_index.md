@@ -22,6 +22,8 @@
   - **services/**: 主进程专属服务
     - **file-service.js**: 文件系统操作
     - **media-service.js**: 媒体扫描服务（基于NFO），负责扫描目录、解析NFO文件、提取影片信息（包括标题、发布日期、演员、片商、类别、系列等）
+    - **javsp-detector/**: AVID番号检测器模块
+      - **avid-detector.js**: 番号识别核心，支持FC2、HEYDOUGA、GETCHU、标准番号等多种格式识别
 - **renderer/**: 渲染进程相关代码
   - **renderer.js**: 渲染进程入口文件，包含主题切换、媒体过滤排序、事件处理等核心功能。支持按片名、发布日期、系列名称排序
   - **components/**: UI 组件
@@ -35,6 +37,17 @@
     - **database-service.js**: 数据存储(JSON存储)，支持扫描结果缓存和文件变化检测
     - **media-scanner-service.js**: 媒体扫描（新架构），支持Kodi标准目录和独立视频文件处理
     - **javsp-service.js**: 番号识别，集成JavSP进行番号自动识别
+    - **web-scraper/**: 网络爬虫模块（Claude Code新增）
+      - **index.js**: 爬虫模块入口，导出所有抓取器和相关工具
+      - **base-scraper.js**: 基础抓取器类，提供通用爬虫功能
+      - **javbus-scraper.js**: JavBus网站专用抓取器
+      - **web-scraper-manager.js**: 爬虫管理器，协调多个抓取器
+      - **anti-bot-detector.js**: 反爬虫检测器，检测和应对各种反爬虫机制
+      - **rate-limiter.js**: 速率限制器，控制请求频率
+      - **proxy-manager.js**: 代理管理器，管理代理池
+      - **error-handler.js**: 错误处理器，统一错误处理
+      - **utils.js**: 工具函数，包含番号提取和验证功能
+      - **movie-info.js**: 影片信息模型
 - **electron/**: Electron相关配置
   - **main/**
   - **renderer/**
@@ -46,9 +59,19 @@ tests/
 ├── unit/                       # 单元测试
 │   ├── database.test.js       # 数据库服务测试
 │   ├── media-scanner.test.js  # 媒体扫描服务测试
-│   └── javsp-service.test.js  # JavSP服务测试
+│   ├── javsp-service.test.js  # JavSP服务测试
+│   ├── javsp-detector/       # AVID检测器测试
+│   │   └── avid-detector.test.js  # AVID检测器单元测试（19个测试用例）
+│   ├── web-scraper.test.js    # 网页爬虫测试
+│   ├── av-id-validator.test.js # 番号验证器测试
+│   ├── config-manager.test.js  # 配置管理器测试
+│   ├── anti-bot-detector.test.js # 反爬虫检测器测试
+│   ├── proxy-manager.test.js   # 代理管理器测试
+│   ├── error-handler.test.js   # 错误处理器测试
+│   └── media-scanner.test.js   # 媒体扫描器测试（重复，需要清理）
 └── integration/                # 集成测试
-    └── services-integration.test.js  # 服务集成测试
+    ├── services-integration.test.js  # 服务集成测试
+    └── web-scraper-integration.test.js  # 网页爬虫集成测试
 ```
 
 ### 文档目录

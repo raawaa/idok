@@ -8,13 +8,10 @@ const xml2js = require('xml2js');
 const { isVideoFile, findCoverImage } = require('./file-service');
 const DatabaseService = require('../../shared/services/database-service');
 const OpenCC = require('opencc-js');
-const AVIDDetector = require('./javsp-detector/avid-detector-simplified');
+const { extractAvId } = require('../../shared/services/web-scraper/utils');
 
 // 创建繁体转简体的转换器实例
 const converter = OpenCC.Converter({ from: 'tw', to: 'cn' });
-
-// 创建AVID检测器实例
-const avidDetector = new AVIDDetector();
 
 /**
  * 使用OpenCC库将繁体中文转换为简体中文
@@ -117,11 +114,16 @@ async function scanDirectories(directoryPaths, options = {}) {
                                     
                                     // 提取封面图片路径
                                     if (cacheItem.imageFiles && cacheItem.imageFiles.length > 0) {
-                                        // 优先使用poster.jpg或fanart.jpg
-                                        const posterImage = cacheItem.imageFiles.find(img => 
-                                            img.name.toLowerCase().includes('poster') || 
-                                            img.name.toLowerCase().includes('fanart')
+                                        // 优先选择poster.jpg，其次才是fanart/folder
+                                        let posterImage = cacheItem.imageFiles.find(img =>
+                                            img.name.toLowerCase().includes('poster')
                                         );
+                                        if (!posterImage) {
+                                            posterImage = cacheItem.imageFiles.find(img =>
+                                                img.name.toLowerCase().includes('fanart') ||
+                                                img.name.toLowerCase().includes('folder')
+                                            );
+                                        }
                                         if (posterImage) {
                                             coverImagePath = encodeFilePath(posterImage.path);
                                         }
@@ -228,7 +230,7 @@ async function scanDirectories(directoryPaths, options = {}) {
                                     filePath: mediaFile.videoPath,
                                     fileName: mediaFile.title || path.basename(mediaFile.videoPath),
                                     title: mediaFile.title,
-                                    avid: extractAvId(mediaFile.title),
+                                    avid: extractAvIdWrapper(mediaFile.title),
                                     actors: mediaFile.actors || [],  // 修复：actress -> actors
                                     studio: mediaFile.studio,
                                     releaseDateFull: mediaFile.releaseDateFull,  // 修复：releaseDate -> releaseDateFull
@@ -278,7 +280,7 @@ async function scanDirectories(directoryPaths, options = {}) {
             for (const media of mediaFiles) {
                 try {
                     // 提取番号信息
-                    const avid = extractAvId(media.title);
+                    const avid = extractAvIdWrapper(media.title);
                     
                     await databaseService.saveFile({
                         filePath: media.videoPath,
@@ -381,7 +383,7 @@ async function scanDirectoryRecursive(directoryPath) {
             for (const videoFile of videoFiles) {
                 try {
                     const fileName = path.basename(videoFile, path.extname(videoFile));
-                    const avid = extractAvId(fileName);
+                    const avid = extractAvIdWrapper(fileName);
 
                     // 只有能识别出番号的文件才处理
                     if (avid) {
@@ -548,18 +550,18 @@ async function parseNfoFile(nfoPath) {
 }
 
 /**
- * 从文件名中提取番号（使用经过TDD测试的AVID检测器）
+ * 从文件名中提取番号（使用web-scraper的番号识别功能）
  * @param {string} fileName - 文件名
  * @returns {string|null} 提取的番号
  */
-function extractAvId(fileName) {
+function extractAvIdWrapper(fileName) {
     if (!fileName || typeof fileName !== 'string') {
         return null;
     }
 
     try {
-        // 使用经过TDD测试验证的AVID检测器
-        const avid = avidDetector.get_id(fileName);
+        // 使用web-scraper中的番号识别功能
+        const avid = extractAvId(fileName);
         return avid || null;
     } catch (error) {
         console.error('番号提取出错:', error);
@@ -598,5 +600,5 @@ module.exports = {
     parseNfoFile,
     encodeFilePath,
     convertTraditionalToSimplified,
-    extractAvId
+    extractAvId: extractAvIdWrapper // 保持接口兼容性，导出为 extractAvId
 };

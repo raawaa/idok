@@ -1,0 +1,46 @@
+{
+  "name": "@idok/web-scraper",
+  "version": "1.0.0",
+  "description": "高级网络爬虫服务，支持反爬虫、代理、限流等功能",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "web-scraper",
+    "anti-bot",
+    "proxy",
+    "rate-limiting",
+    "crawler",
+    "scraping"
+  ],
+  "author": "IDok Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "jsdom": "^23.0.0",
+    "iconv-lite": "^0.6.3",
+    "eventemitter3": "^5.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "eslint": "^8.56.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/idok/web-scraper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/idok/web-scraper/issues"
+  },
+  "homepage": "https://github.com/idok/web-scraper#readme"
+}

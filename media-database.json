@@ -1,0 +1,153 @@
+{
+  "files": [
+    {
+      "id": "3d85c54bc5d9fd61d5b3ddd6c4af551b",
+      "filePath": "temp_test\\FC2-PPV-123456.avi",
+      "fileName": "FC2-PPV-123456",
+      "fileSize": 0,
+      "lastModified": "2025-11-02T14:03:33.204Z",
+      "avid": "FC2-PPV-123456",
+      "title": "FC2-PPV-123456",
+      "actors": [],
+      "studio": null,
+      "releaseDateFull": null,
+      "hasMetadata": false,
+      "isStandaloneVideo": true,
+      "metadata": {
+        "year": null,
+        "genres": [],
+        "directors": [],
+        "set": null,
+        "totalParts": 1,
+        "videoFiles": [
+          "temp_test\\FC2-PPV-123456.avi"
+        ],
+        "coverImagePath": null
+      },
+      "scannedAt": "2025-11-02T14:03:33.204Z"
+    },
+    {
+      "id": "92857353a272a1d0b9f229629247e7f1",
+      "filePath": "temp_test\\IPX-177.mp4",
+      "fileName": "IPX-177",
+      "fileSize": 0,
+      "lastModified": "2025-11-02T14:03:33.378Z",
+      "avid": "IPX-177",
+      "title": "IPX-177",
+      "actors": [],
+      "studio": null,
+      "releaseDateFull": null,
+      "hasMetadata": false,
+      "isStandaloneVideo": true,
+      "metadata": {
+        "year": null,
+        "genres": [],
+        "directors": [],
+        "set": null,
+        "totalParts": 1,
+        "videoFiles": [
+          "temp_test\\IPX-177.mp4"
+        ],
+        "coverImagePath": null
+      },
+      "scannedAt": "2025-11-02T14:03:33.378Z"
+    },
+    {
+      "id": "17f7081f455502dbcbe44ba0e3f401a0",
+      "filePath": "temp_test\\SSNI-999.mkv",
+      "fileName": "SSNI-999",
+      "fileSize": 0,
+      "lastModified": "2025-11-02T14:03:33.617Z",
+      "avid": "SSNI-999",
+      "title": "SSNI-999",
+      "actors": [],
+      "studio": null,
+      "releaseDateFull": null,
+      "hasMetadata": false,
+      "isStandaloneVideo": true,
+      "metadata": {
+        "year": null,
+        "genres": [],
+        "directors": [],
+        "set": null,
+        "totalParts": 1,
+        "videoFiles": [
+          "temp_test\\SSNI-999.mkv"
+        ],
+        "coverImagePath": null
+      },
+      "scannedAt": "2025-11-02T14:03:33.617Z"
+    }
+  ],
+  "scanCache": {
+    "temp_test": {
+      "results": [
+        {
+          "title": "FC2-PPV-123456",
+          "videoPath": "temp_test\\FC2-PPV-123456.avi",
+          "videoFiles": [
+            "temp_test\\FC2-PPV-123456.avi"
+          ],
+          "totalParts": 1,
+          "coverImagePath": null,
+          "avid": "FC2-PPV-123456",
+          "actors": [],
+          "studio": null,
+          "releaseDateFull": null,
+          "year": null,
+          "genres": [],
+          "directors": [],
+          "set": null,
+          "hasMetadata": false,
+          "isStandaloneVideo": true
+        },
+        {
+          "title": "IPX-177",
+          "videoPath": "temp_test\\IPX-177.mp4",
+          "videoFiles": [
+            "temp_test\\IPX-177.mp4"
+          ],
+          "totalParts": 1,
+          "coverImagePath": null,
+          "avid": "IPX-177",
+          "actors": [],
+          "studio": null,
+          "releaseDateFull": null,
+          "year": null,
+          "genres": [],
+          "directors": [],
+          "set": null,
+          "hasMetadata": false,
+          "isStandaloneVideo": true
+        },
+        {
+          "title": "SSNI-999",
+          "videoPath": "temp_test\\SSNI-999.mkv",
+          "videoFiles": [
+            "temp_test\\SSNI-999.mkv"
+          ],
+          "totalParts": 1,
+          "coverImagePath": null,
+          "avid": "SSNI-999",
+          "actors": [],
+          "studio": null,
+          "releaseDateFull": null,
+          "year": null,
+          "genres": [],
+          "directors": [],
+          "set": null,
+          "hasMetadata": false,
+          "isStandaloneVideo": true
+        }
+      ],
+      "totalFiles": 3,
+      "fileFingerprint": "3a140e4c817f8dae03ca35d14acdd2ac",
+      "cachedAt": "2025-11-02T14:03:33.125Z"
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "createdAt": "2025-11-02T14:03:32.940Z",
+    "lastUpdated": "2025-11-02T14:03:33.624Z"
+  }
+}

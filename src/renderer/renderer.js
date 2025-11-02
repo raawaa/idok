@@ -723,10 +723,20 @@ async function playVideoFilesInSequence(videoFiles) {
  */
 function handleMediaContextMenu(event, media) {
     try {
-        console.log('📋 显示右键菜单:', media.videoPath);
-        window.ipcRenderer.send('show-context-menu', media.videoPath);
+        // 获取正确的视频路径 - 优先使用videoPath，其次是filePath，最后是videoFiles数组的第一个
+        let videoPath = media.videoPath || media.filePath || (media.videoFiles && media.videoFiles.length > 0 ? media.videoFiles[0] : null);
+
+        if (!videoPath) {
+            console.error('❌ 无法获取视频路径:', media);
+            showError('无法获取视频路径');
+            return;
+        }
+
+        console.log('📋 显示右键菜单:', videoPath);
+        window.ipcRenderer.send('show-context-menu', videoPath);
     } catch (error) {
         console.error('❌ 显示右键菜单失败:', error);
+        showError('显示右键菜单失败');
     }
 }
 

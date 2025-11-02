@@ -320,9 +320,9 @@ function createInfoContainer(media) {
         flex-direction: column;
     `;
 
-    // 标题
+    // 标题 - 独立视频文件显示番号，否则显示标题
     const titleElement = document.createElement('h3');
-    titleElement.textContent = media.title;
+    titleElement.textContent = media.isStandaloneVideo ? (media.avid || media.fileName || '未知番号') : (media.title || '未知标题');
     titleElement.style.cssText = `
         margin: 0 0 8px 0;
         font-size: 14px;
@@ -341,10 +341,10 @@ function createInfoContainer(media) {
     infoContainer.appendChild(titleElement);
 
     // 如果是独立视频文件，显示番号作为标题
-    if (media.type === 'standalone-video' || media.metadata?.type === 'standalone-video') {
-        if (media.id || media.avid) {
+    if (media.isStandaloneVideo) {
+        if (media.avid) {
             const avidElement = document.createElement('div');
-            avidElement.textContent = `番号: ${media.id || media.avid}`;
+            avidElement.textContent = `番号: ${media.avid}`;
             avidElement.style.cssText = `
                 font-size: 12px;
                 color: var(--movie-date-color);

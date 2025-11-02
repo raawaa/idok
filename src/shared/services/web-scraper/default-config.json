@@ -1,0 +1,211 @@
+{
+  "base": {
+    "timeout": 30000,
+    "retries": 3,
+    "retryDelay": 1000,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "acceptLanguage": "zh-CN,zh;q=0.9,en;q=0.8,ja;q=0.7",
+    "acceptEncoding": "gzip, deflate, br",
+    "maxRedirects": 5,
+    "validateSSL": false,
+    "followRedirects": true
+  },
+  "rateLimit": {
+    "enabled": true,
+    "maxRequests": 10,
+    "timeWindow": 1000,
+    "burstCapacity": 20,
+    "adaptive": true,
+    "adaptiveConfig": {
+      "minRate": 1,
+      "maxRate": 30,
+      "adjustmentFactor": 0.1,
+      "responseTimeThreshold": 2000,
+      "errorRateThreshold": 0.1
+    },
+    "siteSpecific": {
+      "javbus.com": {
+        "maxRequests": 5,
+        "timeWindow": 1000,
+        "burstCapacity": 10
+      },
+      "javlibrary.com": {
+        "maxRequests": 3,
+        "timeWindow": 1000,
+        "burstCapacity": 6
+      },
+      "dmm.co.jp": {
+        "maxRequests": 2,
+        "timeWindow": 1000,
+        "burstCapacity": 4
+      }
+    }
+  },
+  "proxy": {
+    "enabled": true,
+    "rotation": true,
+    "healthCheck": true,
+    "healthCheckInterval": 300000,
+    "healthCheckTimeout": 10000,
+    "maxFailures": 5,
+    "failurePenalty": 300000,
+    "geoLocation": {
+      "preferJapanese": true,
+      "fallbackToGlobal": true
+    },
+    "proxies": [
+      {
+        "host": "127.0.0.1",
+        "port": 1080,
+        "protocol": "socks5",
+        "weight": 1,
+        "region": "local",
+        "enabled": true
+      },
+      {
+        "host": "127.0.0.1",
+        "port": 1081,
+        "protocol": "socks5",
+        "weight": 1,
+        "region": "local",
+        "enabled": true
+      }
+    ]
+  },
+  "antiBot": {
+    "enabled": true,
+    "userAgentRotation": true,
+    "headerSpoofing": true,
+    "randomHeaders": {
+      "DNT": "1",
+      "Sec-GPC": "1",
+      "Upgrade-Insecure-Requests": "1"
+    },
+    "userAgents": [
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0"
+    ],
+    "detectionRules": {
+      "statusCodes": [403, 429, 503],
+      "contentPatterns": [
+        "403 Forbidden",
+        "Access Denied",
+        "Rate Limited",
+        "Too Many Requests",
+        "Cloudflare",
+        "DDoS Protection",
+        "Security Check"
+      ],
+      "headerPatterns": [
+        "cf-ray",
+        "x-rate-limit",
+        "x-ddos-protection"
+      ],
+      "responseTimeThreshold": 5000
+    },
+    "bypassStrategies": {
+      "retryWithDelay": true,
+      "switchUserAgent": true,
+      "switchProxy": true,
+      "addRandomDelay": true,
+      "simulateHumanBehavior": true
+    }
+  },
+  "cache": {
+    "enabled": true,
+    "ttl": 3600000,
+    "maxSize": 1000,
+    "cleanupInterval": 300000
+  },
+  "monitoring": {
+    "enabled": true,
+    "metricsInterval": 60000,
+    "alertThresholds": {
+      "errorRate": 0.1,
+      "responseTime": 3000,
+      "failedRequests": 10,
+      "consecutiveFailures": 5
+    },
+    "logLevel": "info",
+    "logFile": "logs/web-scraper.log"
+  },
+  "sites": {
+    "javbus.com": {
+      "baseUrl": "https://www.javbus.com",
+      "searchPath": "/search/{query}",
+      "moviePath": "/{id}",
+      "headers": {
+        "Referer": "https://www.javbus.com"
+      },
+      "selectors": {
+        "title": "h3",
+        "cover": ".bigImage img",
+        "releaseDate": ".info p:contains('發行日期')",
+        "duration": ".info p:contains('長度')",
+        "director": ".info p:contains('導演') a",
+        "studio": ".info p:contains('製作商') a",
+        "label": ".info p:contains('發行商') a",
+        "series": ".info p:contains('系列') a",
+        "genres": ".info p:contains('類別') a",
+        "cast": ".star-name a",
+        "sampleImages": ".sample-box img"
+      },
+      "rateLimit": {
+        "maxRequests": 5,
+        "timeWindow": 1000
+      }
+    },
+    "javlibrary.com": {
+      "baseUrl": "https://www.javlibrary.com",
+      "searchPath": "/vl_searchbyid.php?keyword={query}",
+      "moviePath": "/?v={id}",
+      "headers": {
+        "Referer": "https://www.javlibrary.com"
+      },
+      "selectors": {
+        "title": "#video_title h3 a",
+        "cover": "#video_jacket_img",
+        "releaseDate": "#video_date .text",
+        "duration": "#video_length .text",
+        "director": "#video_director .text a",
+        "studio": "#video_maker .text a",
+        "label": "#video_label .text a",
+        "series": "#video_series .text a",
+        "genres": ".genre a",
+        "cast": ".cast a",
+        "sampleImages": ".previewthumbs img"
+      },
+      "rateLimit": {
+        "maxRequests": 3,
+        "timeWindow": 1000
+      }
+    },
+    "dmm.co.jp": {
+      "baseUrl": "https://www.dmm.co.jp",
+      "searchPath": "/search/=/searchstr={query}/",
+      "moviePath": "/mono/dvd/-/detail/=/cid={id}/",
+      "headers": {
+        "Referer": "https://www.dmm.co.jp"
+      },
+      "selectors": {
+        "title": "#title",
+        "cover": ".tdmm img",
+        "releaseDate": ".mgn:contains('発売日') .date",
+        "duration": ".mgn:contains('収録時間') .min",
+        "director": ".mgn:contains('監督') a",
+        "studio": ".mgn:contains('メーカー') a",
+        "label": ".mgn:contains('レーベル') a",
+        "series": ".mgn:contains('シリーズ') a",
+        "genres": ".genre a",
+        "cast": ".performer a"
+      },
+      "rateLimit": {
+        "maxRequests": 2,
+        "timeWindow": 1000
+      }
+    }
+  }
+}
