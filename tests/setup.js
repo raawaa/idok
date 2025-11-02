@@ -41,6 +41,24 @@ jest.mock('electron', () => ({
   }
 }));
 
+// 导入自定义匹配器
+require('./utils/matchers');
+
+// 导入测试工具
+const {
+  FilePathFactory,
+  MovieInfoFactory,
+  HttpResponseFactory,
+  ConfigFactory
+} = require('./utils/factories');
+
+const {
+  HttpMocker,
+  FsMocker,
+  DatabaseMocker,
+  TestEnvironment
+} = require('./utils/mocks');
+
 // 全局的测试辅助函数
 global.testHelpers = {
   // 创建模拟文件信息
@@ -74,11 +92,47 @@ global.testHelpers = {
     readFileSync: jest.fn(() => 'mock file content'),
     writeFileSync: jest.fn(),
     readdirSync: jest.fn(() => []),
-    statSync: jest.fn(() => ({ 
-      isFile: () => true, 
+    statSync: jest.fn(() => ({
+      isFile: () => true,
       isDirectory: () => false,
       size: 1024,
       mtime: new Date()
     }))
+  },
+
+  // 测试数据工厂
+  factories: {
+    FilePathFactory,
+    MovieInfoFactory,
+    HttpResponseFactory,
+    ConfigFactory
+  },
+
+  // 模拟工具
+  mocks: {
+    HttpMocker,
+    FsMocker,
+    DatabaseMocker,
+    TestEnvironment
   }
 };
+
+// 每个测试后清理nock
+afterEach(() => {
+  const nock = require('nock');
+  nock.cleanAll();
+  nock.enableNetConnect();
+});
+
+// 全局测试环境管理
+global.testEnv = new TestEnvironment();
+
+// 在所有测试开始前设置环境
+beforeAll(() => {
+  global.testEnv.setup();
+});
+
+// 在所有测试结束后清理环境
+afterAll(() => {
+  global.testEnv.teardown();
+});

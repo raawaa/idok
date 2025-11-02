@@ -8,9 +8,13 @@ const xml2js = require('xml2js');
 const { isVideoFile, findCoverImage } = require('./file-service');
 const DatabaseService = require('../../shared/services/database-service');
 const OpenCC = require('opencc-js');
+const AVIDDetector = require('./javsp-detector/avid-detector-simplified');
 
 // 创建繁体转简体的转换器实例
 const converter = OpenCC.Converter({ from: 'tw', to: 'cn' });
+
+// 创建AVID检测器实例
+const avidDetector = new AVIDDetector();
 
 /**
  * 使用OpenCC库将繁体中文转换为简体中文
@@ -544,26 +548,23 @@ async function parseNfoFile(nfoPath) {
 }
 
 /**
- * 从文件名中提取番号
+ * 从文件名中提取番号（使用经过TDD测试的AVID检测器）
  * @param {string} fileName - 文件名
  * @returns {string|null} 提取的番号
  */
 function extractAvId(fileName) {
-    // 番号匹配模式
-    const avIdPatterns = [
-        /^[A-Z]{2,5}-\d{3,5}/i,  // ABC-123, ABCD-1234
-        /^\d{6}_\d{3,4}/,        // 123456_789
-        /^[A-Z]{3,6}\d{3,6}/i,   // ABC123, ABCD1234
-        /^\d{3,4}[A-Z]{2,5}/i,   // 123ABC, 1234ABCD
-        /^[A-Z]+\d+[A-Z]+/i      // ABC123DEF
-    ];
-    
-    for (const pattern of avIdPatterns) {
-        if (pattern.test(fileName)) {
-            return fileName.match(pattern)[0];
-        }
+    if (!fileName || typeof fileName !== 'string') {
+        return null;
     }
-    return null;
+
+    try {
+        // 使用经过TDD测试验证的AVID检测器
+        const avid = avidDetector.get_id(fileName);
+        return avid || null;
+    } catch (error) {
+        console.error('番号提取出错:', error);
+        return null;
+    }
 }
 
 /**

@@ -18,7 +18,8 @@ class AVIDDetector {
      * @returns {string} 番号，如果未找到返回空字符串
      */
     get_id(filepath) {
-        if (!filepath) return '';
+        // 处理非字符串输入
+        if (!filepath || typeof filepath !== 'string') return '';
 
         const filepath_obj = path.parse(filepath);
         const ignore_pattern = this.ignoredPattern;

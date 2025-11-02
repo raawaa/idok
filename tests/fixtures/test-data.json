@@ -1,0 +1,44 @@
+{
+  "testAvNumbers": {
+    "valid": [
+      "JBS-018",
+      "SSNI-254",
+      "FC2-123456",
+      "FC2-PPV-789012",
+      "heydouga-4017-123",
+      "GETCHU-123456",
+      "YRZ-011"
+    ],
+    "invalid": [
+      "random-video-file",
+      "test123",
+      "INVALID-FORMAT",
+      "123-ABC",
+      "FC2-123", // too short
+      "FC2-12345678" // too long
+    ]
+  },
+  "testFilePaths": [
+    "/path/to/JBS-018.mp4",
+    "/path/to/SSNI-254.avi",
+    "/path/to/FC2-PPV123456.mp4",
+    "/path/to/heydouga-4017-123.mkv",
+    "/path/to/random-video.mp4"
+  ],
+  "mockResponses": {
+    "JBS-018": {
+      "title": "働くオンナ3 Vol.04",
+      "actress": ["河愛雪乃"],
+      "studio": "プレステージ",
+      "release": "2022-01-01",
+      "genre": ["制服", "OL", "成熟的女人"]
+    },
+    "SSNI-254": {
+      "title": "絶対領域",
+      "actress": ["三上悠亚"],
+      "studio": "S1 NO.1 STYLE",
+      "release": "2018-02-01",
+      "genre": ["美少女", "单体作品"]
+    }
+  }
+}

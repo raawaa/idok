@@ -98,3 +98,5 @@ Custom frameless window with:
 - Extensive console logging for debugging (visible in dev tools)
 - Chinese comments and UI text throughout the codebase
 - Currently on refactor branch with modular architecture improvements
+- 这个应用的缓存数据文件存在这里：C:\Users\yuwen\AppData\Roaming\idok\media-database.json
+- 这个应用的缓存数据文件存在这里：C:\Users\yuwen\AppData\Roaming\idok\media-database.json
