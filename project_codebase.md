@@ -52,6 +52,8 @@ iDok 是一个基于 Electron 的番号管理应用，主要用于扫描、识�
   - `shouldIgnoreFile(filePath)` - 判断是否应该忽略该文件
   - `getFileHash(filePath)` - 计算文件哈希值
   - `hasFileChanged(filePath)` - 检查文件是否发生变化
+  - `processStandaloneVideos(videoFiles)` - 处理独立视频文件，调用JavSP进行番号识别
+  - `scanDirectory(directoryPath, options)` - 增强扫描方法，支持Kodi标准和独立文件处理
 
 ### 扫描结果缓存机制
 
@@ -78,15 +80,17 @@ iDok 是一个基于 Electron 的番号管理应用，主要用于扫描、识�
 
 #### JavSPService (JavSP番号识别服务)
 - **文件位置**: `src/shared/services/javsp-service.js`
-- **核心功能**: 番号识别和验证，支持多种番号格式
+- **核心功能**: 番号识别和验证，支持多种番号格式，集成JavSP进行智能番号识别
 - **主要方法**:
-  - `constructor()` - 初始化JavSP服务
-  - `detectCode(filePath)` - 检测单个文件的番号
-  - `detectCodes(filePaths)` - 批量检测多个文件的番号
+  - `constructor()` - 初始化JavSP服务，支持真实模式和模拟模式
+  - `detectCode(filePath)` - 检测单个文件的番号，支持智能降级机制
+  - `detectCodes(filePaths)` - 批量检测多个文件的番号，支持并行处理
   - `validateCode(code)` - 验证番号格式是否正确
   - `isStandardCode(code)` - 判断是否为标准番号格式
   - `isFC2Code(code)` - 判断是否为FC2番号格式
   - `isHeydougaCode(code)` - 判断是否为Hey動画番号格式
+  - `isSimulationMode()` - 判断是否处于模拟模式
+  - `getMockResult()` - 获取模拟识别结果
 
 ### 主进程专属服务 (Main Process Services)
 
@@ -186,3 +190,21 @@ iDok 是一个基于 Electron 的番号管理应用，主要用于扫描、识�
 - 防抖处理避免消息重复
 - 安全的DOM操作和内存管理
 - 响应式设计，适配移动端
+
+#### MediaGrid (媒体网格组件)
+- **文件位置**: `src/renderer/components/media-grid.js`
+- **核心功能**: 媒体卡片网格渲染，支持封面显示、信息展示、事件处理，独立视频文件特殊标识
+- **主要方法**:
+  - `renderMediaList(mediaList, containerId)` - 渲染媒体列表到指定容器
+  - `createMediaElement(media, index)` - 创建单个媒体元素，支持独立视频文件特殊样式
+  - `createCoverContainer(media)` - 创建封面容器
+  - `createInfoContainer(media)` - 创建信息容器，独立视频文件显示番号信息
+  - `addMediaEventListeners(element, media)` - 添加媒体事件监听器
+  - `loadImageThroughIPC(imagePath)` - 通过IPC加载图片
+  - `handleTagClick(tag, type)` - 处理标签点击事件
+  - `handleActorExpand(media, container)` - 处理演员展开/收起
+
+**独立视频文件支持**:
+- 特殊视觉样式：透明度0.8、虚线边框(#999 2px dashed)
+- 悬停显示"待刮削"状态提示
+- 番号信息以橙色背景突出显示

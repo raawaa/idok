@@ -79,7 +79,7 @@ async function scanDirectories(directoryPaths, options = {}) {
                             console.log(`✅ 使用缓存数据加载: ${dirPath}`);
                             
                             // 将缓存数据转换为渲染器期望的格式
-                            const convertedResults = cache.results.map(cacheItem => {
+                            const convertedResults = await Promise.all(cache.results.map(async (cacheItem) => {
                                 // 检查缓存数据格式：新格式直接包含媒体信息，旧格式需要转换
                                 if (cacheItem.videoPath) {
                                     // 新格式：已经是转换后的媒体格式，直接使用
@@ -95,7 +95,9 @@ async function scanDirectories(directoryPaths, options = {}) {
                                         set: cacheItem.set,
                                         genres: cacheItem.genres || [],
                                         directors: cacheItem.directors || [],
-                                        totalParts: cacheItem.totalParts || 1
+                                        totalParts: cacheItem.totalParts || 1,
+                                        hasMetadata: cacheItem.hasMetadata !== undefined ? cacheItem.hasMetadata : false,
+                                        isStandaloneVideo: cacheItem.isStandaloneVideo || false
                                     };
                                 } else {
                                     // 旧格式：需要从原始文件信息转换
@@ -135,7 +137,7 @@ async function scanDirectories(directoryPaths, options = {}) {
                                         try {
                                             const xml = fs.readFileSync(cacheItem.nfoFile.path, 'utf-8');
                                             const parser = new xml2js.Parser({ explicitArray: false, ignoreAttrs: true });
-                                            const result = parser.parseStringSync(xml);
+                                            const result = await parser.parseStringPromise(xml);
                                             
                                             if (result.movie) {
                                                 const movieNode = result.movie;
@@ -207,10 +209,12 @@ async function scanDirectories(directoryPaths, options = {}) {
                                         set: set,
                                         genres: genres,
                                         directors: directors,
-                                        totalParts: videoFiles.length
+                                        totalParts: videoFiles.length,
+                                        hasMetadata: true, // 从NFO文件解析的都有完整元数据
+                                        isStandaloneVideo: false // 这是Kodi标准文件，不是独立视频
                                     };
                                 }
-                            });
+                            }));
                             
                             allMedia.push(...convertedResults);
                             
@@ -277,9 +281,11 @@ async function scanDirectories(directoryPaths, options = {}) {
                         fileName: media.title || path.basename(media.videoPath),
                         title: media.title,
                         avid: avid,
-                        actors: media.actors || [],  // 修复：actress -> actors
+                        actors: media.actors || [],
                         studio: media.studio,
-                        releaseDateFull: media.releaseDateFull,  // 修复：releaseDate -> releaseDateFull
+                        releaseDateFull: media.releaseDateFull,
+                        hasMetadata: media.hasMetadata !== undefined ? media.hasMetadata : false, // 标记是否有完整元数据
+                        isStandaloneVideo: media.isStandaloneVideo || false, // 标记是否为独立视频文件
                         metadata: {
                             year: media.year,
                             genres: media.genres || [],
@@ -341,7 +347,7 @@ async function scanDirectoryRecursive(directoryPath) {
             }
         }
 
-        // 如果找到视频文件和 NFO 文件
+        // 如果找到视频文件和 NFO 文件 (Kodi标准)
         if (videoFiles.length > 0 && nfoFile) {
             try {
                 const movieInfo = await parseNfoFile(nfoFile);
@@ -349,16 +355,76 @@ async function scanDirectoryRecursive(directoryPath) {
 
                 // 无论有多少个视频文件，都只创建一个媒体项
                 videoFiles.sort((a, b) => a.localeCompare(b)); // 按文件名排序
-                
+
                 mediaList.push({
                     ...movieInfo,
                     videoPath: videoFiles[0], // 使用第一个视频文件作为主路径
                     videoFiles: videoFiles, // 保存所有视频文件列表，用于播放
                     totalParts: videoFiles.length, // 总部分数
-                    coverImagePath: coverImagePath ? encodeFilePath(coverImagePath) : null
+                    coverImagePath: coverImagePath ? encodeFilePath(coverImagePath) : null,
+                    hasMetadata: true // 标记有完整的元数据
                 });
             } catch (error) {
                 console.error('处理媒体文件失败:', error);
+            }
+        }
+
+        // 处理独立视频文件（没有NFO文件）
+        else if (videoFiles.length > 0 && !nfoFile) {
+            console.log(`🎬 发现独立视频文件: ${directoryPath}, 数量: ${videoFiles.length}`);
+
+            // 对每个视频文件进行处理
+            for (const videoFile of videoFiles) {
+                try {
+                    const fileName = path.basename(videoFile, path.extname(videoFile));
+                    const avid = extractAvId(fileName);
+
+                    // 只有能识别出番号的文件才处理
+                    if (avid) {
+                        console.log(`✅ 识别到番号: ${avid} -> ${path.basename(videoFile)}`);
+
+                        // 查找相关的封面图片（同名）
+                        const videoDir = path.dirname(videoFile);
+                        let coverImagePath = null;
+
+                        try {
+                            const coverFiles = await fs.promises.readdir(videoDir);
+                            const coverFile = coverFiles.find(file => {
+                                const baseName = path.parse(file).name;
+                                const ext = path.parse(file).ext.toLowerCase();
+                                return (baseName === fileName && ['.jpg', '.jpeg', '.png', '.bmp'].includes(ext));
+                            });
+
+                            if (coverFile) {
+                                coverImagePath = encodeFilePath(path.join(videoDir, coverFile));
+                            }
+                        } catch (coverError) {
+                            console.warn(`查找封面失败: ${videoFile}`, coverError.message);
+                        }
+
+                        mediaList.push({
+                            title: avid, // 使用番号作为标题
+                            videoPath: videoFile,
+                            videoFiles: [videoFile],
+                            totalParts: 1,
+                            coverImagePath: coverImagePath,
+                            avid: avid,
+                            actors: [], // 空的女优列表，待刮削
+                            studio: null,
+                            releaseDateFull: null,
+                            year: null,
+                            genres: [],
+                            directors: [],
+                            set: null,
+                            hasMetadata: false, // 标记为缺少元数据，需要刮削
+                            isStandaloneVideo: true // 标记为独立视频文件
+                        });
+                    } else {
+                        console.log(`❌ 无法识别番号，跳过: ${path.basename(videoFile)}`);
+                    }
+                } catch (error) {
+                    console.error(`处理独立视频文件失败: ${videoFile}`, error);
+                }
             }
         }
     } catch (error) {

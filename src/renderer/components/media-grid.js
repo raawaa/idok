@@ -178,6 +178,48 @@ function createMediaElement(media, onClick, onContextMenu) {
     // 添加鼠标悬停效果
     div.style.cursor = 'pointer';
 
+    // 如果是独立视频文件或缺少元数据，添加特殊样式
+    if (media.isStandaloneVideo || !media.hasMetadata) {
+        div.classList.add('standalone-video');
+        div.style.opacity = '0.8'; // 降低透明度表示待刮削状态
+        div.style.border = '2px dashed #999'; // 虚线边框表示待刮削
+        div.style.borderRadius = '8px';
+        div.style.position = 'relative';
+        
+        // 添加待刮削标识
+        const pendingBadge = document.createElement('div');
+        pendingBadge.textContent = '待刮削';
+        pendingBadge.style.cssText = `
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(255, 165, 0, 0.9);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 10;
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+        `;
+        
+        // 添加悬停效果
+        pendingBadge.addEventListener('mouseenter', () => {
+            pendingBadge.style.background = 'rgba(255, 140, 0, 0.95)';
+            pendingBadge.style.transform = 'scale(1.05)';
+        });
+        
+        pendingBadge.addEventListener('mouseleave', () => {
+            pendingBadge.style.background = 'rgba(255, 165, 0, 0.9)';
+            pendingBadge.style.transform = 'scale(1)';
+        });
+        
+        div.appendChild(pendingBadge);
+    }
+
     // 封面容器
     const coverContainer = createCoverContainer(media);
     div.appendChild(coverContainer);
@@ -298,7 +340,24 @@ function createInfoContainer(media) {
     `;
     infoContainer.appendChild(titleElement);
 
-
+    // 如果是独立视频文件，显示番号作为标题
+    if (media.type === 'standalone-video' || media.metadata?.type === 'standalone-video') {
+        if (media.id || media.avid) {
+            const avidElement = document.createElement('div');
+            avidElement.textContent = `番号: ${media.id || media.avid}`;
+            avidElement.style.cssText = `
+                font-size: 12px;
+                color: var(--movie-date-color);
+                margin-bottom: 4px;
+                font-weight: 500;
+                background: rgba(255, 165, 0, 0.1);
+                padding: 2px 6px;
+                border-radius: 4px;
+                display: inline-block;
+            `;
+            infoContainer.appendChild(avidElement);
+        }
+    }
 
     // 发布日期
     if (media.releaseDateFull) {

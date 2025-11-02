@@ -32,9 +32,9 @@
 - **shared/**: 共享层（主进程和渲染进程都可访问）
   - **constants.js**: 常量定义
   - **services/**: 共享服务层
-    - **database-service.js**: 数据存储(JSON存储)
-    - **media-scanner-service.js**: 媒体扫描（新架构）
-    - **javsp-service.js**: 番号识别
+    - **database-service.js**: 数据存储(JSON存储)，支持扫描结果缓存和文件变化检测
+    - **media-scanner-service.js**: 媒体扫描（新架构），支持Kodi标准目录和独立视频文件处理
+    - **javsp-service.js**: 番号识别，集成JavSP进行番号自动识别
 - **electron/**: Electron相关配置
   - **main/**
   - **renderer/**

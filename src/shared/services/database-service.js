@@ -129,9 +129,11 @@ class DatabaseService {
         lastModified: fileData.lastModified || new Date().toISOString(),
         avid: fileData.avid || null,
         title: fileData.title || null,
-        actors: fileData.actors || [],  // 修复字段名：actress -> actors
+        actors: fileData.actors || [],
         studio: fileData.studio || null,
-        releaseDateFull: fileData.releaseDateFull || null,  // 修复字段名：releaseDate -> releaseDateFull
+        releaseDateFull: fileData.releaseDateFull || null,
+        hasMetadata: fileData.hasMetadata !== undefined ? fileData.hasMetadata : false,
+        isStandaloneVideo: fileData.isStandaloneVideo || false,
         metadata: fileData.metadata || {},
         scannedAt: new Date().toISOString(),
         ...fileData

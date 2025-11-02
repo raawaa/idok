@@ -203,9 +203,11 @@ class MediaScannerService {
         return kodiResult;
       }
       
-      // 2. 发现独立视频文件 → 非标准处理（目前先什么都不做，以后再具体实现）
-      // 目前跳过独立视频文件的处理，直接返回null
-      return null;
+      // 2. 发现独立视频文件 → 非标准处理
+      const standaloneResult = await this.processStandaloneVideos(dirPath, files, options);
+      if (standaloneResult) {
+        return standaloneResult;
+      }
       
       return null;
     } catch (error) {
