@@ -2,6 +2,98 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const cloudscraper = require('cloudscraper');
 const { URL } = require('url');
+const SystemProxyDetector = require('./system-proxy-detector');
+const iconv = require('iconv-lite');
+
+// 导入新创建的模块
+const { config } = require('./config-manager');
+const { HttpClient } = require('./http-client');
+const { CacheManager, TextProcessor, UrlBuilder, EncodingDetector } = require('./utils/index');
+
+/**
+ * 网页抓取相关的异常基类
+ * 参考Python JavSP的web/exceptions.py实现
+ */
+class CrawlerError extends Error {
+  constructor(message, module = null, avId = null) {
+    super(message);
+    this.name = 'CrawlerError';
+    this.module = module;
+    this.avId = avId;
+  }
+}
+
+/**
+ * 影片未找到异常
+ */
+class MovieNotFoundError extends CrawlerError {
+  constructor(module, avId) {
+    super(`${module}: 未找到影片: '${avId}'`, module, avId);
+    this.name = 'MovieNotFoundError';
+  }
+}
+
+/**
+ * 影片重复异常
+ */
+class MovieDuplicateError extends CrawlerError {
+  constructor(module, avId, dupCount) {
+    super(`${module}: '${avId}': 存在${dupCount}个完全匹配目标番号的搜索结果`, module, avId);
+    this.name = 'MovieDuplicateError';
+    this.dupCount = dupCount;
+  }
+}
+
+/**
+ * 站点封锁异常
+ */
+class SiteBlocked extends CrawlerError {
+  constructor(message = '由于IP段或者触发反爬机制等原因导致用户被站点封锁', module = null, avId = null) {
+    super(message, module, avId);
+    this.name = 'SiteBlocked';
+  }
+}
+
+/**
+ * 站点权限异常
+ */
+class SitePermissionError extends CrawlerError {
+  constructor(message = '由于缺少权限而无法访问影片资源', module = null, avId = null) {
+    super(message, module, avId);
+    this.name = 'SitePermissionError';
+  }
+}
+
+/**
+ * 凭据异常
+ */
+class CredentialError extends CrawlerError {
+  constructor(message = '由于缺少Cookies等凭据而无法访问影片资源', module = null, avId = null) {
+    super(message, module, avId);
+    this.name = 'CredentialError';
+  }
+}
+
+/**
+ * 网站错误异常
+ */
+class WebsiteError extends CrawlerError {
+  constructor(message = '非预期的状态码等网页故障', module = null, avId = null, statusCode = null) {
+    super(message, module, avId);
+    this.name = 'WebsiteError';
+    this.statusCode = statusCode;
+  }
+}
+
+/**
+ * 其他未分类异常
+ */
+class OtherError extends CrawlerError {
+  constructor(message = '其他尚未分类的错误', module = null, avId = null) {
+    super(message, module, avId);
+    this.name = 'OtherError';
+  }
+}
 
 /**
  * 网络抓取基础模块
@@ -14,48 +106,83 @@ class BaseScraper {
     this.name = options.name || 'base';
     this.baseUrl = options.baseUrl || '';
     this.searchUrl = options.searchUrl || '';
-    
-    // 请求配置
-    this.timeout = options.timeout || 30000; // 30秒默认超时
-    this.retries = options.retries || 3; // 默认重试3次
-    this.retryDelay = options.retryDelay || 1000; // 重试延迟1秒
-    
-    // 代理配置
+
+    // 合并配置
+    const mergedConfig = config.mergeOptions(options);
+
+    // 初始化模块化组件
+    this.httpClient = new HttpClient(mergedConfig);
+    this.cacheManager = new CacheManager(mergedConfig);
+    this.textProcessor = new TextProcessor();
+    this.urlBuilder = new UrlBuilder(this.baseUrl);
+    this.encodingDetector = new EncodingDetector(mergedConfig);
+
+    // 代理配置（保持向后兼容）
     this.proxy = options.proxy || null;
-    this.userAgent = options.userAgent || this.getRandomUserAgent();
-    
-    // 反爬虫配置
-    this.useCloudScraper = options.useCloudScraper !== false; // 默认启用
-    this.delayRange = options.delayRange || [1000, 3000]; // 随机延迟范围
-    
-    // 缓存配置
-    this.enableCache = options.enableCache !== false;
-    this.cache = new Map();
-    this.cacheExpiry = options.cacheExpiry || 3600000; // 1小时缓存
-    
-    // 统计信息
+    this.useSystemProxy = options.useSystemProxy !== false;
+    this.systemProxyDetector = null;
+
+    if (this.useSystemProxy && !this.proxy) {
+      this.systemProxyDetector = new SystemProxyDetector();
+    }
+
+    // HTML清理配置（保持向后兼容）
+    this.enableHtmlCleaning = options.enableHtmlCleaning !== false;
+    this.htmlCleaner = {
+      // 删除的标签列表
+      removeTags: ['script', 'noscript', 'iframe', 'object', 'embed', 'style'],
+      // 保留属性的标签列表
+      keepAttributes: {
+        'a': ['href', 'title'],
+        'img': ['src', 'alt', 'title', 'data-original'],
+        'div': ['id', 'class'],
+        'span': ['id', 'class'],
+        'p': ['id', 'class']
+      }
+    };
+
+    // Cookie管理配置（保持向后兼容）
+    this.cookieJar = new Map();
+    this.cookiePersistence = options.cookiePersistence !== false;
+    this.cookieDomain = options.cookieDomain || null;
+
+    // 统计信息（合并各模块统计）
+    this.updateCombinedStats();
+
+    // 保持向后兼容的属性
+    this.timeout = this.httpClient.timeout;
+    this.retries = this.httpClient.retries;
+    this.retryDelay = this.httpClient.retryDelay;
+    this.useCloudScraper = this.httpClient.useCloudScraper;
+    this.enableCache = this.cacheManager.enableCache;
+    this.delayRange = mergedConfig.browser?.delayRange || [1000, 3000];
+  }
+
+  /**
+   * 合并各模块的统计信息
+   */
+  updateCombinedStats() {
+    const httpStats = this.httpClient.getStats();
+    const cacheStats = this.cacheManager.getCacheStats();
+    const encodingStats = this.encodingDetector.getStats();
+
     this.stats = {
-      requests: 0,
-      successfulRequests: 0,
-      failedRequests: 0,
-      cacheHits: 0,
-      cloudflareBypasses: 0,
-      totalTime: 0
+      requests: httpStats.requests,
+      successfulRequests: httpStats.successfulRequests,
+      failedRequests: httpStats.failedRequests,
+      cacheHits: cacheStats.cacheHits,
+      cloudflareBypasses: httpStats.cloudflareBypasses,
+      totalTime: httpStats.totalTime,
+      htmlCleanings: this.stats?.htmlCleanings || 0,
+      encodingDetections: encodingStats.detections
     };
   }
 
   /**
-   * 获取随机User-Agent
+   * 获取随机User-Agent（委托给HttpClient）
    */
   getRandomUserAgent() {
-    const userAgents = [
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0',
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/121.0'
-    ];
-    return userAgents[Math.floor(Math.random() * userAgents.length)];
+    return this.httpClient.getRandomUserAgent();
   }
 
   /**
@@ -80,7 +207,96 @@ class BaseScraper {
       headers['Referer'] = referer;
     }
 
+    // 添加Cookie
+    if (this.cookiePersistence && this.cookieJar.size > 0) {
+      const cookies = this.getCookiesForDomain(referer || this.baseUrl);
+      if (cookies.length > 0) {
+        headers['Cookie'] = cookies.map(c => `${c.name}=${c.value}`).join('; ');
+      }
+    }
+
     return headers;
+  }
+
+  /**
+   * 解析并保存Cookie
+   * @param {string} cookieString - Cookie字符串
+   * @param {string} url - 请求URL
+   */
+  parseAndSaveCookies(cookieString, url) {
+    if (!this.cookiePersistence || !cookieString) return;
+
+    try {
+      const domain = this.extractDomain(url);
+      const cookies = cookieString.split(',').map(cookie => cookie.trim());
+
+      cookies.forEach(cookieStr => {
+        const parts = cookieStr.split(';')[0].split('=');
+        if (parts.length >= 2) {
+          const name = parts.shift().trim();
+          const value = parts.join('=').trim();
+          
+          this.cookieJar.set(`${domain}:${name}`, {
+            name,
+            value,
+            domain,
+            url,
+            timestamp: Date.now()
+          });
+        }
+      });
+    } catch (error) {
+      console.warn('解析Cookie失败:', error.message);
+    }
+  }
+
+  /**
+   * 获取指定域名的Cookie
+   * @param {string} url - 请求URL
+   * @returns {Array} Cookie列表
+   */
+  getCookiesForDomain(url) {
+    const domain = this.extractDomain(url);
+    const cookies = [];
+
+    this.cookieJar.forEach((cookie, key) => {
+      if (cookie.domain === domain || domain.endsWith(cookie.domain)) {
+        cookies.push(cookie);
+      }
+    });
+
+    return cookies;
+  }
+
+  /**
+   * 提取域名
+   * @param {string} url - URL
+   * @returns {string} 域名
+   */
+  extractDomain(url) {
+    try {
+      const { hostname } = new URL(url);
+      return hostname;
+    } catch (error) {
+      return '';
+    }
+  }
+
+  /**
+   * 清理过期Cookie
+   */
+  cleanExpiredCookies() {
+    const now = Date.now();
+    const expiredKeys = [];
+
+    this.cookieJar.forEach((cookie, key) => {
+      // Cookie默认过期时间为30天
+      if (now - cookie.timestamp > 30 * 24 * 60 * 60 * 1000) {
+        expiredKeys.push(key);
+      }
+    });
+
+    expiredKeys.forEach(key => this.cookieJar.delete(key));
   }
 
   /**
@@ -105,80 +321,38 @@ class BaseScraper {
   }
 
   /**
-   * 检查URL是否有效
+   * 检查URL是否有效（委托给UrlBuilder）
    */
   isValidUrl(url) {
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
+    return this.urlBuilder.isValidUrl(url);
   }
 
   /**
-   * 构建完整URL
+   * 构建完整URL（委托给UrlBuilder）
    */
   buildUrl(path, params = {}) {
-    if (this.isValidUrl(path)) {
-      return path;
-    }
-
-    const baseUrl = this.baseUrl.replace(/\/$/, '');
-    const cleanPath = path.replace(/^\//, '');
-    const url = `${baseUrl}/${cleanPath}`;
-
-    if (Object.keys(params).length > 0) {
-      const urlObj = new URL(url);
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== null && value !== undefined) {
-          urlObj.searchParams.append(key, value);
-        }
-      });
-      return urlObj.toString();
-    }
-
-    return url;
+    return this.urlBuilder.buildUrl(path, params);
   }
 
   /**
-   * 生成缓存键
+   * 生成缓存键（委托给CacheManager）
    */
   getCacheKey(url, options = {}) {
-    const keyData = {
-      url,
-      method: options.method || 'GET',
-      headers: options.headers || {},
-      data: options.data || null
-    };
-    return JSON.stringify(keyData);
+    return this.cacheManager.getCacheKey(url, options);
   }
 
   /**
-   * 检查缓存
+   * 检查缓存（委托给CacheManager）
    */
   getFromCache(cacheKey) {
-    if (!this.enableCache) return null;
-    
-    const cached = this.cache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < this.cacheExpiry) {
-      this.stats.cacheHits++;
-      return cached.data;
-    }
-    
-    return null;
+    return this.cacheManager.getFromCache(cacheKey);
   }
 
   /**
-   * 保存到缓存
+   * 保存到缓存（委托给CacheManager）
    */
   saveToCache(cacheKey, data) {
-    if (!this.enableCache) return;
-    
-    this.cache.set(cacheKey, {
-      data,
-      timestamp: Date.now()
-    });
+    this.cacheManager.saveToCache(cacheKey, data);
   }
 
   /**
@@ -200,70 +374,17 @@ class BaseScraper {
   }
 
   /**
-   * 清空缓存（兼容接口）
+   * 清空缓存（委托给CacheManager）
    */
   clearCache() {
-    this.cache.clear();
+    this.cacheManager.clearCache();
   }
 
   /**
-   * 使用CloudScraper绕过CloudFlare
-   */
-  async requestWithCloudScraper(url, options = {}) {
-    try {
-      const cloudScraperOptions = {
-        uri: url,
-        method: options.method || 'GET',
-        headers: options.headers || this.getHeaders(),
-        timeout: this.timeout,
-        ...options
-      };
-
-      if (this.proxy) {
-        cloudScraperOptions.proxy = this.proxy;
-      }
-
-      const response = await cloudscraper(cloudScraperOptions);
-      this.stats.cloudflareBypasses++;
-      
-      return {
-        status: 200,
-        data: response,
-        headers: {},
-        config: cloudScraperOptions
-      };
-    } catch (error) {
-      throw new Error(`CloudScraper请求失败: ${error.message}`);
-    }
-  }
-
-  /**
-   * 使用Axios进行标准HTTP请求
-   */
-  async requestWithAxios(url, options = {}) {
-    const axiosOptions = {
-      method: options.method || 'GET',
-      url,
-      headers: options.headers || this.getHeaders(),
-      timeout: this.timeout,
-      maxRedirects: 5,
-      validateStatus: (status) => status < 500, // 不抛出4xx错误
-      ...options
-    };
-
-    if (this.proxy) {
-      axiosOptions.proxy = this.proxy;
-    }
-
-    return await axios(axiosOptions);
-  }
-
-  /**
-   * 执行HTTP请求（带重试机制）
+   * 执行HTTP请求（委托给HttpClient，简化接口）
    */
   async request(url, options = {}) {
     const startTime = Date.now();
-    this.stats.requests++;
 
     try {
       // 检查缓存
@@ -273,60 +394,32 @@ class BaseScraper {
         return cachedResponse;
       }
 
-      let lastError;
-      
-      for (let attempt = 1; attempt <= this.retries; attempt++) {
-        try {
-          // 添加随机延迟（除了第一次尝试）
-          if (attempt > 1) {
-            await this.randomDelay();
-          }
+      // 添加模块和avId信息到选项中
+      const requestOptions = {
+        ...options,
+        module: this.name,
+        avId: options.avId || null
+      };
 
-          let response;
-          
-          // 选择请求方式
-          if (this.useCloudScraper) {
-            response = await this.requestWithCloudScraper(url, options);
-          } else {
-            response = await this.requestWithAxios(url, options);
-          }
+      // 委托给HttpClient
+      let response = await this.httpClient.request(url, requestOptions);
 
-          // 检查响应状态
-          if (response.status >= 200 && response.status < 300) {
-            this.stats.successfulRequests++;
-            this.stats.totalTime += Date.now() - startTime;
-            
-            // 保存到缓存
-            this.saveToCache(cacheKey, response);
-            
-            return response;
-          } else if (response.status === 404) {
-            throw new Error('页面不存在 (404)');
-          } else if (response.status === 403) {
-            throw new Error('访问被拒绝 (403)');
-          } else if (response.status >= 400) {
-            throw new Error(`HTTP错误 ${response.status}`);
-          }
-
-        } catch (error) {
-          lastError = error;
-          
-          // 如果是最后一次尝试，记录失败
-          if (attempt === this.retries) {
-            this.stats.failedRequests++;
-            throw error;
-          }
-          
-          // 等待更长的延迟再重试
-          await new Promise(resolve => setTimeout(resolve, this.retryDelay * attempt));
-        }
+      // 处理编码问题
+      if (options.responseType !== 'json' && response.data) {
+        response.data = this.encodingDetector.handleEncoding(response.data, response.headers);
       }
 
-      throw lastError;
+      // 保存到缓存
+      this.saveToCache(cacheKey, response);
+
+      // 更新统计信息
+      this.updateCombinedStats();
+
+      return response;
 
     } catch (error) {
-      this.stats.totalTime += Date.now() - startTime;
-      throw new Error(`请求失败 [${this.name}]: ${error.message}`);
+      this.updateCombinedStats();
+      throw error;
     }
   }
 
@@ -335,7 +428,18 @@ class BaseScraper {
    */
   async fetchHtml(url, options = {}) {
     const response = await this.request(url, options);
-    return cheerio.load(response.data);
+    const html = this.handleEncoding(response.data, response.headers);
+    return cheerio.load(html);
+  }
+
+  /**
+   * 处理编码问题（委托给EncodingDetector）
+   * @param {Buffer|string} data - 响应数据
+   * @param {Object} headers - 响应头
+   * @returns {string} 解码后的文本
+   */
+  handleEncoding(data, headers = {}) {
+    return this.encodingDetector.handleEncoding(data, headers);
   }
 
   /**
@@ -394,99 +498,142 @@ class BaseScraper {
   }
 
   /**
-   * 获取统计信息
+   * 获取统计信息（合并各模块统计）
    */
   getStats() {
-    const avgResponseTime = this.stats.successfulRequests > 0 
+    // 更新统计信息
+    this.updateCombinedStats();
+
+    const httpStats = this.httpClient.getStats();
+    const cacheStats = this.cacheManager.getCacheStats();
+
+    const avgResponseTime = this.stats.successfulRequests > 0
       ? Math.round(this.stats.totalTime / this.stats.successfulRequests)
       : 0;
 
     return {
       ...this.stats,
       avgResponseTime,
-      successRate: this.stats.requests > 0 
+      successRate: this.stats.requests > 0
         ? Math.round((this.stats.successfulRequests / this.stats.requests) * 100)
         : 0,
-      cacheSize: this.cache.size,
-      cacheHitRate: this.stats.requests > 0
-        ? Math.round((this.stats.cacheHits / this.stats.requests) * 100)
-        : 0
+      cacheSize: cacheStats.cacheSize,
+      cacheHitRate: cacheStats.hitRate
     };
   }
 
   /**
-   * 清理缓存
-   */
-  clearCache() {
-    this.cache.clear();
-  }
-
-  /**
-   * 重置统计信息
+   * 重置统计信息（重置所有模块统计）
    */
   resetStats() {
-    this.stats = {
-      requests: 0,
-      successfulRequests: 0,
-      failedRequests: 0,
-      cacheHits: 0,
-      cloudflareBypasses: 0,
-      totalTime: 0
-    };
+    this.httpClient.resetStats();
+    this.cacheManager.resetStats();
+    this.encodingDetector.resetStats();
+
+    // 重置自身统计
+    this.stats.htmlCleanings = 0;
+
+    this.updateCombinedStats();
   }
 
   /**
-   * 清理文本内容
+   * 清理HTML内容
+   * @param {string|CheerioAPI} html - HTML内容或Cheerio实例
+   * @returns {CheerioAPI} 清理后的Cheerio实例
+   */
+  cleanHtml(html) {
+    if (!this.enableHtmlCleaning) {
+      return typeof html === 'string' ? cheerio.load(html) : html;
+    }
+    
+    this.stats.htmlCleanings++;
+    
+    let $;
+    if (typeof html === 'string') {
+      $ = cheerio.load(html);
+    } else {
+      $ = html;
+    }
+    
+    // 删除指定标签
+    this.htmlCleaner.removeTags.forEach(tag => {
+      $(tag).remove();
+    });
+    
+    // 清理属性
+    $('*').each((i, elem) => {
+      const tagName = elem.tagName.toLowerCase();
+      const keepAttrs = this.htmlCleaner.keepAttributes[tagName];
+      
+      if (keepAttrs) {
+        // 只保留指定的属性
+        const attrs = $(elem).attr();
+        Object.keys(attrs).forEach(attr => {
+          if (!keepAttrs.includes(attr)) {
+            $(elem).removeAttr(attr);
+          }
+        });
+      } else if (this.htmlCleaner.keepAttributes[tagName] === undefined) {
+        // 如果标签不在保留列表中，删除所有属性（除了id和class）
+        const attrs = $(elem).attr();
+        Object.keys(attrs).forEach(attr => {
+          if (attr !== 'id' && attr !== 'class') {
+            $(elem).removeAttr(attr);
+          }
+        });
+      }
+    });
+    
+    return $;
+  }
+
+  /**
+   * 清理文本内容（委托给TextProcessor）
    * @param {string} text - 原始文本
    * @returns {string} 清理后的文本
    */
   cleanText(text) {
-    return text
-      .replace(/\s+/g, ' ')
-      .replace(/^\s+|\s+$/g, '');
+    return this.textProcessor.cleanText(text);
   }
 
   /**
-   * 从文本中提取数字
-   * @param {string} text - 包含数字的文本
+   * 高级文本清理（委托给TextProcessor）
+   * @param {string} text - 原始文本
+   * @param {Object} options - 清理选项
+   * @returns {string} 清理后的文本
+   */
+  advancedCleanText(text, options = {}) {
+    return this.textProcessor.advancedCleanText(text, options);
+  }
+
+  /**
+   * 提取数字（委托给TextProcessor）
+   * @param {string} text - 文本
    * @returns {number|null} 提取的数字
    */
   extractNumber(text) {
-    const match = text.match(/\d+(\.\d+)?/);
-    return match ? parseFloat(match[0]) : null;
+    return this.textProcessor.extractNumber(text);
   }
 
   /**
-   * 解析日期字符串
+   * 解析日期字符串（委托给TextProcessor）
    * @param {string} dateStr - 日期字符串
    * @returns {string|null} 标准格式的日期(YYYY-MM-DD)
    */
   parseDate(dateStr) {
-    if (!dateStr) return null;
-    
-    // 尝试多种日期格式
-    const formats = [
-      /^(\d{4})-(\d{1,2})-(\d{1,2})$/,     // YYYY-MM-DD
-      /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/,   // YYYY/MM/DD
-      /^(\d{4})\.(\d{1,2})\.(\d{1,2})$/    // YYYY.MM.DD
-    ];
-
-    for (const format of formats) {
-      const match = dateStr.match(format);
-      if (match) {
-        const year = parseInt(match[1]);
-        const month = parseInt(match[2]);
-        const day = parseInt(match[3]);
-        
-        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-          return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-        }
-      }
-    }
-    
-    return null;
+    return this.textProcessor.parseDate(dateStr);
   }
 
+  /**
+   * 转换时长字符串为分钟数（委托给TextProcessor）
+   * @param {string} durationStr - 时长字符串
+   * @returns {number|null} 时长（分钟）
+   */
+  parseDuration(durationStr) {
+    return this.textProcessor.parseDuration(durationStr);
+  }
+
+  
   /**
    * 解析HTML内容
    * @param {string} html - HTML内容
@@ -544,17 +691,42 @@ class BaseScraper {
    * 获取站点信息
    */
   getSiteInfo() {
+    const httpStats = this.httpClient.getStats();
+    const cacheStats = this.cacheManager.getCacheStats();
+
     return {
       name: this.name,
       baseUrl: this.baseUrl,
       searchUrl: this.searchUrl,
-      useCloudScraper: this.useCloudScraper,
-      proxyEnabled: !!this.proxy,
-      timeout: this.timeout,
-      retries: this.retries,
-      cacheEnabled: this.enableCache
+      useCloudScraper: this.httpClient.useCloudScraper,
+      proxyEnabled: !!this.httpClient.proxy,
+      timeout: this.httpClient.timeout,
+      retries: this.httpClient.retries,
+      cacheEnabled: this.cacheManager.enableCache,
+      stats: {
+        requests: httpStats.requests,
+        successRate: httpStats.successRate,
+        cacheHitRate: cacheStats.hitRate,
+        avgResponseTime: httpStats.avgResponseTime
+      }
     };
   }
 }
 
-module.exports = BaseScraper;
+module.exports = {
+  BaseScraper,
+  CrawlerError,
+  NetworkError: WebsiteError,
+  TimeoutError: WebsiteError,
+  NotFoundError: MovieNotFoundError,
+  AccessDeniedError: SitePermissionError,
+  ServerError: WebsiteError,
+  SiteBlockedError: SiteBlocked,
+  CloudflareError: SiteBlocked,
+  MovieNotFoundError,
+  MovieDuplicateError,
+  SitePermissionError,
+  CredentialError,
+  WebsiteError,
+  OtherError
+};

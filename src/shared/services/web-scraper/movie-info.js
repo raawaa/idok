@@ -6,7 +6,7 @@
 class MovieInfo {
   constructor(data = {}) {
     // 基础信息
-    this.avid = data.avid || '';
+    this.avid = data.avid || data.avId || '';
     this.title = data.title || '';
     this.cover = data.cover || '';
     this.releaseDate = data.releaseDate || '';
@@ -17,6 +17,7 @@ class MovieInfo {
     this.label = data.label || '';
     this.series = data.series || '';
     this.plot = data.plot || '';
+    this.uncensored = data.uncensored || false; // 无码影片标识
     
     // 演员信息
     this.actress = Array.isArray(data.actress) ? data.actress : [];
@@ -26,6 +27,11 @@ class MovieInfo {
     
     // 预览图片
     this.previewPics = Array.isArray(data.previewPics) ? data.previewPics : [];
+
+    // 额外的数组属性（兼容性）
+    this.genreNorm = Array.isArray(data.genreNorm) ? data.genreNorm : [];
+    this.genreId = Array.isArray(data.genreId) ? data.genreId : [];
+    this.actressPics = data.actressPics || {};
     
     // 元数据
     this.metadata = {
@@ -254,6 +260,7 @@ class MovieInfo {
       label: this.label,
       series: this.series,
       plot: this.plot,
+      uncensored: this.uncensored,
       actress: this.actress,
       genre: this.genre,
       previewPics: this.previewPics,
@@ -285,6 +292,7 @@ class MovieInfo {
       studio: this.studio,
       label: this.label,
       series: this.series,
+      uncensored: this.uncensored,
       actress: this.actress,
       genre: this.genre,
       previewPics: this.previewPics,

@@ -1,0 +1,516 @@
+{
+  "summary": {
+    "totalTests": 1,
+    "passed": 0,
+    "failed": 1,
+    "errors": 0,
+    "skipped": 0,
+    "successRate": 0,
+    "failureRate": 100,
+    "duration": 814,
+    "status": "failed",
+    "recommendations": [
+      {
+        "type": "warning",
+        "message": "1 个测试失败，建议检查相关功能"
+      },
+      {
+        "type": "info",
+        "message": "整体成功率较低 (0%)，建议全面检查系统稳定性"
+      }
+    ]
+  },
+  "suites": [
+    {
+      "name": "爬虫回归测试",
+      "info": {
+        "totalTests": 3,
+        "scrapers": [
+          "javbus"
+        ],
+        "description": "JavSP风格爬虫回归测试",
+        "environment": "development"
+      },
+      "startTime": "2025-11-03T14:47:19.935Z",
+      "testCases": [
+        {
+          "testName": "IPX-177: javbus",
+          "avid": "IPX-177",
+          "scraper": "javbus",
+          "status": "failed",
+          "startTime": "2025-11-03T14:47:19.935Z",
+          "comparisonResult": {
+            "isMatch": false,
+            "differences": [
+              {
+                "field": "avid",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": "IPX-177",
+                "difference": "当前值为空，基准值: \"IPX-177\""
+              },
+              {
+                "field": "url",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": "https://www.javbus.com/IPX-177",
+                "difference": "当前值为空，基准值: \"https://www.javbus.com/IPX-177\""
+              },
+              {
+                "field": "title",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": "生意気な妹にニーハイを履かせ僕だけの「絶対領域」を誕生させ僕好みに痴女らせた。 相沢みなみ",
+                "difference": "当前值为空，基准值: \"生意気な妹にニーハイを履かせ僕だけの「絶対領域」を誕生させ僕好みに痴女らせた。 相沢みなみ\""
+              },
+              {
+                "field": "cover",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": "https://www.javbus.com/pics/cover/6n54_b.jpg",
+                "difference": "当前值为空，基准值: \"https://www.javbus.com/pics/cover/6n54_b.jpg\""
+              },
+              {
+                "field": "genre",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": [
+                  "單體作品",
+                  "DMM獨家",
+                  "打手槍",
+                  "蕩婦",
+                  "戀腿癖",
+                  "美少女",
+                  "數位馬賽克",
+                  "高畫質"
+                ],
+                "difference": "当前值为空，基准值: [\"單體作品\",\"DMM獨家\",\"打手槍\",\"蕩婦\",\"戀腿癖\",\"美少女\",\"數位馬賽克\",\"高畫質\"]"
+              },
+              {
+                "field": "genreNorm",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": [
+                  "单体作品",
+                  "打手枪",
+                  "荡妇",
+                  "恋腿癖",
+                  "美少女"
+                ],
+                "difference": "当前值为空，基准值: [\"单体作品\",\"打手枪\",\"荡妇\",\"恋腿癖\",\"美少女\"]"
+              },
+              {
+                "field": "actress",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": [
+                  "相沢みなみ"
+                ],
+                "difference": "当前值为空，基准值: [\"相沢みなみ\"]"
+              },
+              {
+                "field": "actressPics",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": {
+                  "相沢みなみ": "https://www.javbus.com/pics/actress/qfy_a.jpg"
+                },
+                "difference": "当前值为空，基准值: {\"相沢みなみ\":\"https://www.javbus.com/pics/actress/qfy_a.jpg\"}"
+              },
+              {
+                "field": "previewPics",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": [
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-1.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-2.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-3.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-4.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-5.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-6.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-7.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-8.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-9.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-10.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-11.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-12.jpg"
+                ],
+                "difference": "当前值为空，基准值: [\"https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-1.jpg\",\"https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-2.jpg\",\"https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-3.jpg\",\"https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-4.jpg\",\"https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-5.jpg\",\"https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-6.jpg\",\"https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-7.jpg\",\"https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-8.jpg\",\"https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-9.jpg\",\"https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-10.jpg\",\"https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-11.jpg\",\"https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-12.jpg\"]"
+              },
+              {
+                "field": "duration",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": "170",
+                "difference": "当前值为空，基准值: \"170\""
+              },
+              {
+                "field": "producer",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": "アイデアポケット",
+                "difference": "当前值为空，基准值: \"アイデアポケット\""
+              },
+              {
+                "field": "director",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": "まえだのかほり",
+                "difference": "当前值为空，基准值: \"まえだのかほり\""
+              },
+              {
+                "field": "0",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "h",
+                "difference": "基准值为空，当前值: \"h\""
+              },
+              {
+                "field": "1",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "t",
+                "difference": "基准值为空，当前值: \"t\""
+              },
+              {
+                "field": "2",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "t",
+                "difference": "基准值为空，当前值: \"t\""
+              },
+              {
+                "field": "3",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "p",
+                "difference": "基准值为空，当前值: \"p\""
+              },
+              {
+                "field": "4",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "s",
+                "difference": "基准值为空，当前值: \"s\""
+              },
+              {
+                "field": "5",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": ":",
+                "difference": "基准值为空，当前值: \":\""
+              },
+              {
+                "field": "6",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "/",
+                "difference": "基准值为空，当前值: \"/\""
+              },
+              {
+                "field": "7",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "/",
+                "difference": "基准值为空，当前值: \"/\""
+              },
+              {
+                "field": "8",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "w",
+                "difference": "基准值为空，当前值: \"w\""
+              },
+              {
+                "field": "9",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "w",
+                "difference": "基准值为空，当前值: \"w\""
+              },
+              {
+                "field": "10",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "w",
+                "difference": "基准值为空，当前值: \"w\""
+              },
+              {
+                "field": "11",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": ".",
+                "difference": "基准值为空，当前值: \".\""
+              },
+              {
+                "field": "12",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "j",
+                "difference": "基准值为空，当前值: \"j\""
+              },
+              {
+                "field": "13",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "a",
+                "difference": "基准值为空，当前值: \"a\""
+              },
+              {
+                "field": "14",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "v",
+                "difference": "基准值为空，当前值: \"v\""
+              },
+              {
+                "field": "15",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "b",
+                "difference": "基准值为空，当前值: \"b\""
+              },
+              {
+                "field": "16",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "u",
+                "difference": "基准值为空，当前值: \"u\""
+              },
+              {
+                "field": "17",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "s",
+                "difference": "基准值为空，当前值: \"s\""
+              },
+              {
+                "field": "18",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": ".",
+                "difference": "基准值为空，当前值: \".\""
+              },
+              {
+                "field": "19",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "c",
+                "difference": "基准值为空，当前值: \"c\""
+              },
+              {
+                "field": "20",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "o",
+                "difference": "基准值为空，当前值: \"o\""
+              },
+              {
+                "field": "21",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "m",
+                "difference": "基准值为空，当前值: \"m\""
+              },
+              {
+                "field": "22",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "/",
+                "difference": "基准值为空，当前值: \"/\""
+              },
+              {
+                "field": "23",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "I",
+                "difference": "基准值为空，当前值: \"I\""
+              },
+              {
+                "field": "24",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "P",
+                "difference": "基准值为空，当前值: \"P\""
+              },
+              {
+                "field": "25",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "X",
+                "difference": "基准值为空，当前值: \"X\""
+              },
+              {
+                "field": "26",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "-",
+                "difference": "基准值为空，当前值: \"-\""
+              },
+              {
+                "field": "27",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "1",
+                "difference": "基准值为空，当前值: \"1\""
+              },
+              {
+                "field": "28",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "7",
+                "difference": "基准值为空，当前值: \"7\""
+              },
+              {
+                "field": "29",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "7",
+                "difference": "基准值为空，当前值: \"7\""
+              }
+            ],
+            "summary": {
+              "totalFields": 49,
+              "matchedFields": 7,
+              "ignoredFields": 0,
+              "differentFields": 42,
+              "matchRate": 14
+            }
+          },
+          "baselineData": {
+            "avid": "IPX-177",
+            "cid": null,
+            "url": "https://www.javbus.com/IPX-177",
+            "title": "生意気な妹にニーハイを履かせ僕だけの「絶対領域」を誕生させ僕好みに痴女らせた。 相沢みなみ",
+            "cover": "https://www.javbus.com/pics/cover/6n54_b.jpg",
+            "bigCover": null,
+            "plot": null,
+            "genre": [
+              "單體作品",
+              "DMM獨家",
+              "打手槍",
+              "蕩婦",
+              "戀腿癖",
+              "美少女",
+              "數位馬賽克",
+              "高畫質"
+            ],
+            "genreId": null,
+            "genreNorm": [
+              "单体作品",
+              "打手枪",
+              "荡妇",
+              "恋腿癖",
+              "美少女"
+            ],
+            "actress": [
+              "相沢みなみ"
+            ],
+            "actressPics": {
+              "相沢みなみ": "https://www.javbus.com/pics/actress/qfy_a.jpg"
+            },
+            "previewPics": [
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-1.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-2.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-3.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-4.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-5.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-6.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-7.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-8.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-9.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-10.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-11.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-12.jpg"
+            ],
+            "previewVideo": null,
+            "score": null,
+            "magnet": null,
+            "duration": "170",
+            "producer": "アイデアポケット",
+            "director": "まえだのかほり"
+          },
+          "currentData": "https://www.javbus.com/IPX-177",
+          "duration": 811,
+          "timestamp": "2025-11-03T14:47:20.746Z"
+        }
+      ],
+      "stats": {
+        "total": 1,
+        "passed": 0,
+        "failed": 1,
+        "skipped": 0,
+        "errors": 0
+      },
+      "endTime": "2025-11-03T14:47:20.746Z",
+      "duration": 811
+    }
+  ],
+  "globalStats": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "errors": 0,
+    "startTime": "2025-11-03T14:47:19.933Z",
+    "endTime": "2025-11-03T14:47:20.747Z",
+    "duration": 814
+  },
+  "generatedAt": "2025-11-03T14:47:20.747Z",
+  "environment": {
+    "os": "win32",
+    "nodeVersion": "v22.21.0",
+    "memory": {
+      "rss": 91471872,
+      "heapTotal": 56705024,
+      "heapUsed": 23385480,
+      "external": 3654785,
+      "arrayBuffers": 148490
+    },
+    "cwd": "D:\\Code\\idok",
+    "testFramework": "JavSP-style Regression Testing",
+    "reportVersion": "1.0.0"
+  }
+}

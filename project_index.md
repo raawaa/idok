@@ -47,7 +47,9 @@
       - **proxy-manager.js**: 代理管理器，管理代理池
       - **error-handler.js**: 错误处理器，统一错误处理
       - **utils.js**: 工具函数，包含番号提取和验证功能
-      - **movie-info.js**: 影片信息模型
+      - **movie-info.js**: 影片信息模型，支持无码影片标识(uncensored属性)
+      - **base-scraper.js**: 基础抓取器，集成Python JavSP错误处理机制，包含CrawlerError系列异常类
+      - **javbus-scraper.js**: JavBus专用抓取器，支持头像过滤、无码影片检测、高清大图提取、磁力链接提取、用户评分评论提取、相关影片推荐、批量处理和搜索功能
 - **electron/**: Electron相关配置
   - **main/**
   - **renderer/**
@@ -56,6 +58,11 @@
 ```
 tests/
 ├── setup.js                    # 测试环境配置
+├── utils/                      # 测试工具类
+│   ├── mocks.js               # 测试模拟工具（HttpMocker, FsMocker, DatabaseMocker, TestEnvironment）
+│   ├── test-data-manager.js   # 测试数据管理器，支持JSON基准数据存储和加载
+│   ├── data-comparator.js     # 数据比较器，对比在线抓取与基准数据
+│   └── test-reporter.js       # 测试报告生成器，支持多格式报告输出
 ├── unit/                       # 单元测试
 │   ├── database.test.js       # 数据库服务测试
 │   ├── media-scanner.test.js  # 媒体扫描服务测试
@@ -71,7 +78,16 @@ tests/
 │   └── media-scanner.test.js   # 媒体扫描器测试（重复，需要清理）
 └── integration/                # 集成测试
     ├── services-integration.test.js  # 服务集成测试
-    └── web-scraper-integration.test.js  # 网页爬虫集成测试
+    ├── web-scraper-integration.test.js  # 网页爬虫集成测试
+    └── data/                     # 测试基准数据
+        ├── IPX-177 (javbus).json   # IPX-177番号基准数据
+        ├── ABP-588 (javbus).json   # ABP-588番号基准数据
+        ├── AGEMIX-175 (javbus).json # AGEMIX-175番号基准数据
+        ├── KING-048 (javbus).json  # KING-048番号基准数据
+        ├── MTF-020 (javbus).json   # MTF-020番号基准数据
+        ├── NANP-030 (javbus).json  # NANP-030番号基准数据
+        ├── SQTE-148 (javbus).json  # SQTE-148番号基准数据
+        └── STAR-676 (javbus).json  # STAR-676番号基准数据
 ```
 
 ### 文档目录

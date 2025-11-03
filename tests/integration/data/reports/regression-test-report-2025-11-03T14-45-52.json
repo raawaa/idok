@@ -1,0 +1,83 @@
+{
+  "summary": {
+    "totalTests": 1,
+    "passed": 0,
+    "failed": 0,
+    "errors": 1,
+    "skipped": 0,
+    "successRate": 0,
+    "failureRate": 100,
+    "duration": 15,
+    "status": "critical",
+    "recommendations": [
+      {
+        "type": "critical",
+        "message": "存在 1 个严重错误，需要立即修复"
+      },
+      {
+        "type": "info",
+        "message": "整体成功率较低 (0%)，建议全面检查系统稳定性"
+      }
+    ]
+  },
+  "suites": [
+    {
+      "name": "爬虫回归测试",
+      "info": {
+        "totalTests": 3,
+        "scrapers": [
+          "javbus"
+        ],
+        "description": "JavSP风格爬虫回归测试",
+        "environment": "development"
+      },
+      "startTime": "2025-11-03T14:45:52.411Z",
+      "testCases": [
+        {
+          "testName": "IPX-177: javbus",
+          "avid": "IPX-177",
+          "scraper": "javbus",
+          "status": "error",
+          "startTime": "2025-11-03T14:45:52.412Z",
+          "error": {},
+          "duration": 12,
+          "timestamp": "2025-11-03T14:45:52.424Z"
+        }
+      ],
+      "stats": {
+        "total": 1,
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 1
+      },
+      "endTime": "2025-11-03T14:45:52.425Z",
+      "duration": 14
+    }
+  ],
+  "globalStats": {
+    "total": 1,
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 1,
+    "startTime": "2025-11-03T14:45:52.410Z",
+    "endTime": "2025-11-03T14:45:52.425Z",
+    "duration": 15
+  },
+  "generatedAt": "2025-11-03T14:45:52.425Z",
+  "environment": {
+    "os": "win32",
+    "nodeVersion": "v22.21.0",
+    "memory": {
+      "rss": 86888448,
+      "heapTotal": 37310464,
+      "heapUsed": 24183728,
+      "external": 3639467,
+      "arrayBuffers": 133172
+    },
+    "cwd": "D:\\Code\\idok",
+    "testFramework": "JavSP-style Regression Testing",
+    "reportVersion": "1.0.0"
+  }
+}

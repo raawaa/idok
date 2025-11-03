@@ -1,0 +1,451 @@
+{
+  "summary": {
+    "totalTests": 1,
+    "passed": 0,
+    "failed": 1,
+    "errors": 0,
+    "skipped": 0,
+    "successRate": 0,
+    "failureRate": 100,
+    "duration": 3141,
+    "status": "failed",
+    "recommendations": [
+      {
+        "type": "warning",
+        "message": "1 个测试失败，建议检查相关功能"
+      },
+      {
+        "type": "info",
+        "message": "整体成功率较低 (0%)，建议全面检查系统稳定性"
+      }
+    ]
+  },
+  "suites": [
+    {
+      "name": "爬虫回归测试",
+      "info": {
+        "totalTests": 3,
+        "scrapers": [
+          "javbus"
+        ],
+        "description": "JavSP风格爬虫回归测试",
+        "environment": "development"
+      },
+      "startTime": "2025-11-03T14:49:11.630Z",
+      "testCases": [
+        {
+          "testName": "IPX-177: javbus",
+          "avid": "IPX-177",
+          "scraper": "javbus",
+          "status": "failed",
+          "startTime": "2025-11-03T14:49:11.631Z",
+          "comparisonResult": {
+            "isMatch": false,
+            "differences": [
+              {
+                "field": "title",
+                "matched": false,
+                "ignored": false,
+                "type": "text_mismatch",
+                "baselineValue": "生意気な妹にニーハイを履かせ僕だけの「絶対領域」を誕生させ僕好みに痴女らせた。 相沢みなみ",
+                "currentValue": "IPX177 生意気な妹にニーハイを履かせ僕だけの絶対領域を誕生させ僕好みに痴女らせた 相沢みなみ",
+                "difference": "文本不匹配 (相似度: NaN%)"
+              },
+              {
+                "field": "cover",
+                "matched": false,
+                "ignored": false,
+                "type": "url_string_mismatch",
+                "baselineValue": "https://www.javbus.com/pics/cover/6n54_b.jpg",
+                "currentValue": "",
+                "difference": "URL字符串不匹配"
+              },
+              {
+                "field": "plot",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": null,
+                "currentValue": "",
+                "difference": "基准值为空，当前值: \"\""
+              },
+              {
+                "field": "genre",
+                "matched": false,
+                "ignored": false,
+                "type": "list_mismatch",
+                "baselineValue": [
+                  "單體作品",
+                  "DMM獨家",
+                  "打手槍",
+                  "蕩婦",
+                  "戀腿癖",
+                  "美少女",
+                  "數位馬賽克",
+                  "高畫質"
+                ],
+                "currentValue": [
+                  "單體作品",
+                  "DMM獨家",
+                  "打手槍",
+                  "蕩婦",
+                  "戀腿癖",
+                  "美少女",
+                  "數位馬賽克",
+                  "高畫質",
+                  "相沢みなみ"
+                ],
+                "difference": "多余: [相沢みなみ]"
+              },
+              {
+                "field": "genreId",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": null,
+                "currentValue": [
+                  "f",
+                  "g",
+                  "x",
+                  "10",
+                  "2x",
+                  "30",
+                  "31",
+                  "4o"
+                ],
+                "difference": "基准值为空，当前值: [\"f\",\"g\",\"x\",\"10\",\"2x\",\"30\",\"31\",\"4o\"]"
+              },
+              {
+                "field": "genreNorm",
+                "matched": false,
+                "ignored": false,
+                "type": "default_mismatch",
+                "baselineValue": [
+                  "单体作品",
+                  "打手枪",
+                  "荡妇",
+                  "恋腿癖",
+                  "美少女"
+                ],
+                "currentValue": [],
+                "difference": "对象不匹配"
+              },
+              {
+                "field": "actressPics",
+                "matched": false,
+                "ignored": false,
+                "type": "default_mismatch",
+                "baselineValue": {
+                  "相沢みなみ": "https://www.javbus.com/pics/actress/qfy_a.jpg"
+                },
+                "currentValue": {
+                  "相沢みなみ": "/pics/actress/qfy_a.jpg"
+                },
+                "difference": "对象不匹配"
+              },
+              {
+                "field": "previewPics",
+                "matched": false,
+                "ignored": false,
+                "type": "default_mismatch",
+                "baselineValue": [
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-1.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-2.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-3.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-4.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-5.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-6.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-7.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-8.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-9.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-10.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-11.jpg",
+                  "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-12.jpg"
+                ],
+                "currentValue": [],
+                "difference": "对象不匹配"
+              },
+              {
+                "field": "score",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": null,
+                "currentValue": "",
+                "difference": "基准值为空，当前值: \"\""
+              },
+              {
+                "field": "duration",
+                "matched": false,
+                "ignored": false,
+                "type": "default_mismatch",
+                "baselineValue": "170",
+                "currentValue": 0,
+                "difference": "值不匹配: 基准=\"\"170\"\", 当前=\"0\""
+              },
+              {
+                "field": "producer",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "baselineValue": "アイデアポケット",
+                "difference": "当前值为空，基准值: \"アイデアポケット\""
+              },
+              {
+                "field": "director",
+                "matched": false,
+                "ignored": false,
+                "type": "default_mismatch",
+                "baselineValue": "まえだのかほり",
+                "currentValue": "製作商 アイデアポケット",
+                "difference": "值不匹配: 基准=\"\"まえだのかほり\"\", 当前=\"\"製作商 アイデアポケット\"\""
+              },
+              {
+                "field": "releaseDate",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "長度: 170分鐘",
+                "difference": "基准值为空，当前值: \"長度: 170分鐘\""
+              },
+              {
+                "field": "runtime",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": 0,
+                "difference": "基准值为空，当前值: 0"
+              },
+              {
+                "field": "studio",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "發行商 ティッシュ",
+                "difference": "基准值为空，当前值: \"發行商 ティッシュ\""
+              },
+              {
+                "field": "label",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "",
+                "difference": "基准值为空，当前值: \"\""
+              },
+              {
+                "field": "series",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "",
+                "difference": "基准值为空，当前值: \"\""
+              },
+              {
+                "field": "uncensored",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": false,
+                "difference": "基准值为空，当前值: false"
+              },
+              {
+                "field": "metadata",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": {
+                  "source": "",
+                  "scrapedAt": "2025-11-03T14:49:14.653Z",
+                  "scraper": "",
+                  "confidence": 0
+                },
+                "difference": "基准值为空，当前值: {\"source\":\"\",\"scrapedAt\":\"2025-11-03T14:49:14.653Z\",\"scraper\":\"\",\"confidence\":0}"
+              },
+              {
+                "field": "extra",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": {},
+                "difference": "基准值为空，当前值: {}"
+              },
+              {
+                "field": "originalTitle",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "IPX177 生意気な妹にニーハイを履かせ僕だけの絶対領域を誕生させ僕好みに痴女らせた 相沢みなみ",
+                "difference": "基准值为空，当前值: \"IPX177 生意気な妹にニーハイを履かせ僕だけの絶対領域を誕生させ僕好みに痴女らせた 相沢みなみ\""
+              },
+              {
+                "field": "avId",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "發行日期 20180714",
+                "difference": "基准值为空，当前值: \"發行日期 20180714\""
+              },
+              {
+                "field": "publisher",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "類別",
+                "difference": "基准值为空，当前值: \"類別\""
+              },
+              {
+                "field": "scrapedAt",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": "2025-11-03T14:49:14.680Z",
+                "difference": "基准值为空，当前值: \"2025-11-03T14:49:14.680Z\""
+              },
+              {
+                "field": "hasMetadata",
+                "matched": false,
+                "ignored": false,
+                "type": "null_mismatch",
+                "currentValue": true,
+                "difference": "基准值为空，当前值: true"
+              }
+            ],
+            "summary": {
+              "totalFields": 32,
+              "matchedFields": 7,
+              "ignoredFields": 0,
+              "differentFields": 25,
+              "matchRate": 22
+            }
+          },
+          "baselineData": {
+            "avid": "IPX-177",
+            "cid": null,
+            "url": "https://www.javbus.com/IPX-177",
+            "title": "生意気な妹にニーハイを履かせ僕だけの「絶対領域」を誕生させ僕好みに痴女らせた。 相沢みなみ",
+            "cover": "https://www.javbus.com/pics/cover/6n54_b.jpg",
+            "bigCover": null,
+            "plot": null,
+            "genre": [
+              "單體作品",
+              "DMM獨家",
+              "打手槍",
+              "蕩婦",
+              "戀腿癖",
+              "美少女",
+              "數位馬賽克",
+              "高畫質"
+            ],
+            "genreId": null,
+            "genreNorm": [
+              "单体作品",
+              "打手枪",
+              "荡妇",
+              "恋腿癖",
+              "美少女"
+            ],
+            "actress": [
+              "相沢みなみ"
+            ],
+            "actressPics": {
+              "相沢みなみ": "https://www.javbus.com/pics/actress/qfy_a.jpg"
+            },
+            "previewPics": [
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-1.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-2.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-3.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-4.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-5.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-6.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-7.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-8.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-9.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-10.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-11.jpg",
+              "https://pics.dmm.co.jp/digital/video/ipx00177/ipx00177jp-12.jpg"
+            ],
+            "previewVideo": null,
+            "score": null,
+            "magnet": null,
+            "duration": "170",
+            "producer": "アイデアポケット",
+            "director": "まえだのかほり"
+          },
+          "currentData": {
+            "avid": "IPX-177",
+            "title": "IPX177 生意気な妹にニーハイを履かせ僕だけの絶対領域を誕生させ僕好みに痴女らせた 相沢みなみ",
+            "cover": "",
+            "releaseDate": "長度: 170分鐘",
+            "runtime": 0,
+            "score": "",
+            "director": "製作商 アイデアポケット",
+            "studio": "發行商 ティッシュ",
+            "label": "",
+            "series": "",
+            "plot": "",
+            "uncensored": false,
+            "actress": [
+              "相沢みなみ"
+            ],
+            "genre": [
+              "單體作品",
+              "DMM獨家",
+              "打手槍",
+              "蕩婦",
+              "戀腿癖",
+              "美少女",
+              "數位馬賽克",
+              "高畫質",
+              "相沢みなみ"
+            ],
+            "previewPics": [],
+            "metadata": {
+              "source": "",
+              "scrapedAt": "2025-11-03T14:49:14.653Z",
+              "scraper": "",
+              "confidence": 0
+            },
+            "extra": {},
+            "completenessScore": 37
+          },
+          "duration": 3137,
+          "timestamp": "2025-11-03T14:49:14.769Z"
+        }
+      ],
+      "stats": {
+        "total": 1,
+        "passed": 0,
+        "failed": 1,
+        "skipped": 0,
+        "errors": 0
+      },
+      "endTime": "2025-11-03T14:49:14.770Z",
+      "duration": 3140
+    }
+  ],
+  "globalStats": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "errors": 0,
+    "startTime": "2025-11-03T14:49:11.629Z",
+    "endTime": "2025-11-03T14:49:14.770Z",
+    "duration": 3141
+  },
+  "generatedAt": "2025-11-03T14:49:14.771Z",
+  "environment": {
+    "os": "win32",
+    "nodeVersion": "v22.21.0",
+    "memory": {
+      "rss": 90652672,
+      "heapTotal": 55623680,
+      "heapUsed": 28228120,
+      "external": 3797575,
+      "arrayBuffers": 291280
+    },
+    "cwd": "D:\\Code\\idok",
+    "testFramework": "JavSP-style Regression Testing",
+    "reportVersion": "1.0.0"
+  }
+}

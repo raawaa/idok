@@ -100,3 +100,4 @@ Custom frameless window with:
 - Currently on refactor branch with modular architecture improvements
 - 这个应用的缓存数据文件存在这里：C:\Users\yuwen\AppData\Roaming\idok\media-database.json
 - 这个应用的缓存数据文件存在这里：C:\Users\yuwen\AppData\Roaming\idok\media-database.json
+- 在本项目需要联网时（无论是测试还是调试），都使用代理服务器，http和https的代理服务器地址都是：http://127.0.0.1:10809

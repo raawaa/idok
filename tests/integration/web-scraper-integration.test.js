@@ -115,7 +115,8 @@ describe('Web Scraper Integration Tests', () => {
       retries: 2,
       useCloudScraper: true,
       enableCache: false, // 测试时禁用缓存
-      delayRange: [1000, 2000]
+      delayRange: [1000, 2000],
+      useSystemProxy: process.env.USE_SYSTEM_PROXY !== 'false' // 默认启用系统代理
     });
   });
 

@@ -1,0 +1,402 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>爬虫回归测试报告 - 2025/11/3 22:49:14</title>
+    <style>
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .meta span {
+            margin: 0 15px;
+            opacity: 0.9;
+        }
+
+        .summary {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .summary h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .card .number {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+        }
+
+        .card.total { background: #6c757d; }
+        .card.passed { background: #28a745; }
+        .card.failed { background: #dc3545; }
+        .card.errors { background: #fd7e14; }
+        .card.duration { background: #17a2b8; }
+
+        .progress-bar {
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .progress {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .progress.passed { background: #28a745; }
+        .progress.failed { background: #dc3545; }
+        .progress.errors { background: #fd7e14; }
+
+        .suites {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .suite {
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .suite-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .suite-header:hover {
+            background: #e9ecef;
+        }
+
+        .suite-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9em;
+        }
+
+        .stat.passed { color: #28a745; }
+        .stat.failed { color: #dc3545; }
+        .stat.errors { color: #fd7e14; }
+        .stat.rate { color: #6c757d; }
+        .stat.duration { color: #17a2b8; }
+
+        .suite-content {
+            padding: 20px;
+        }
+
+        .test {
+            margin-bottom: 15px;
+            border-left: 4px solid #dee2e6;
+            background: #f8f9fa;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .test.passed { border-left-color: #28a745; }
+        .test.failed { border-left-color: #dc3545; }
+        .test.error { border-left-color: #fd7e14; }
+        .test.skipped { border-left-color: #6c757d; }
+
+        .test-header {
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-header:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .status { font-size: 1.2em; }
+        .name { flex: 1; font-weight: 500; }
+        .duration { color: #6c757d; font-size: 0.9em; }
+
+        .test-details {
+            padding: 15px;
+            border-top: 1px solid #dee2e6;
+            background: white;
+        }
+
+        .detail-group {
+            margin-bottom: 20px;
+        }
+
+        .detail-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-item {
+            margin-bottom: 5px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #dc3545;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .stack-trace {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.8em;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        .comparison-summary {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .diff-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .diff-table th,
+        .diff-table td {
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .diff-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .severity {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .severity.success { background: #d4edda; color: #155724; }
+        .severity.warning { background: #fff3cd; color: #856404; }
+        .severity.error { background: #f8d7da; color: #721c24; }
+        .severity.critical { background: #f5c6cb; color: #721c24; }
+
+        .severity-success { background-color: rgba(40, 167, 69, 0.1); }
+        .severity-warning { background-color: rgba(255, 193, 7, 0.1); }
+        .severity-error { background-color: rgba(220, 53, 69, 0.1); }
+        .severity-critical { background-color: rgba(253, 126, 20, 0.1); }
+
+        .baseline-value,
+        .current-value {
+            font-family: monospace;
+            font-size: 0.8em;
+            max-width: 200px;
+            word-break: break-all;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .summary-cards {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 10px;
+            }
+
+            .suite-stats {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .comparison-summary {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+        }
+    
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>爬虫回归测试报告</h1>
+            <div class="meta">
+                <span>生成时间: 2025/11/3 22:49:14</span>
+                <span>环境: win32 v22.21.0</span>
+            </div>
+        </header>
+
+        <section class="summary">
+            <h2>测试摘要</h2>
+            <div class="summary-cards">
+                <div class="card total">
+                    <div class="number">1</div>
+                    <div class="label">总测试数</div>
+                </div>
+                <div class="card passed">
+                    <div class="number">0</div>
+                    <div class="label">通过</div>
+                </div>
+                <div class="card failed">
+                    <div class="number">1</div>
+                    <div class="label">失败</div>
+                </div>
+                <div class="card errors">
+                    <div class="number">0</div>
+                    <div class="label">错误</div>
+                </div>
+                <div class="card duration">
+                    <div class="number">3.14s</div>
+                    <div class="label">总耗时</div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress passed" style="width: 0%"></div>
+                <div class="progress failed" style="width: 100%"></div>
+                <div class="progress errors" style="width: 0%"></div>
+            </div>
+        </section>
+
+        <section class="suites">
+            <h2>测试套件详情</h2>
+            
+        <div class="suite">
+            <div class="suite-header" onclick="toggleSuite('suite-------')">
+                <h3>爬虫回归测试</h3>
+                <div class="suite-stats">
+                    <span class="stat passed">0 通过</span>
+                    <span class="stat failed">1 失败</span>
+                    <span class="stat errors">0 错误</span>
+                    <span class="stat rate">0% 成功率</span>
+                    <span class="stat duration">(3.14s)</span>
+                </div>
+            </div>
+
+            <div class="suite-content" id="suite-------">
+                
+        <div class="test failed">
+            <div class="test-header" onclick="toggleTest('test-IPX-177--javbus')">
+                <span class="status failed">❌</span>
+                <span class="name">IPX-177: javbus</span>
+                <span class="duration">3137ms</span>
+            </div>
+
+            <div class="test-details" id="test-IPX-177--javbus" style="display: none;">
+                <div class="detail-group"><div class="detail-item"><strong>AVID:</strong> IPX-177</div><div class="detail-item"><strong>爬虫:</strong> javbus</div></div><div class="detail-group comparison"><h4>数据比较结果</h4><div class="comparison-summary"><span>匹配率: <strong>22%</strong></span><span>总字段: 32</span><span>匹配: 7</span><span>差异: 25</span></div><div class="differences"><h5>字段差异详情</h5><table class="diff-table"><thead><tr><th>字段</th><th>类型</th><th>严重程度</th><th>差异描述</th><th>基准值</th><th>当前值</th></tr></thead><tbody><tr class="severity-error"><td>title</td><td>text_mismatch</td><td><span class="severity error">error</span></td><td>文本不匹配 (相似度: NaN%)</td><td class="baseline-value"><span class="string">生意気な妹にニーハイを履かせ僕だけの「絶対領域」を誕生させ僕好みに痴女らせた。 相沢みなみ</span></td><td class="current-value"><span class="string">IPX177 生意気な妹にニーハイを履かせ僕だけの絶対領域を誕生させ僕好みに痴女らせた 相沢みなみ</span></td></tr><tr class="severity-info"><td>cover</td><td>url_string_mismatch</td><td><span class="severity info">info</span></td><td>URL字符串不匹配</td><td class="baseline-value"><span class="string">https://www.javbus.com/pics/cover/6n54_b.jpg</span></td><td class="current-value"><span class="string"></span></td></tr><tr class="severity-error"><td>plot</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: ""</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="string"></span></td></tr><tr class="severity-error"><td>genre</td><td>list_mismatch</td><td><span class="severity error">error</span></td><td>多余: [相沢みなみ]</td><td class="baseline-value"><span class="array">[8 items]</span></td><td class="current-value"><span class="array">[9 items]</span></td></tr><tr class="severity-error"><td>genreId</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: ["f","g","x","10","2x","30","31","4o"]</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="array">[8 items]</span></td></tr><tr class="severity-error"><td>genreNorm</td><td>default_mismatch</td><td><span class="severity error">error</span></td><td>对象不匹配</td><td class="baseline-value"><span class="array">[5 items]</span></td><td class="current-value"><span class="empty">[]</span></td></tr><tr class="severity-error"><td>actressPics</td><td>default_mismatch</td><td><span class="severity error">error</span></td><td>对象不匹配</td><td class="baseline-value"><span class="object">{1 keys}</span></td><td class="current-value"><span class="object">{1 keys}</span></td></tr><tr class="severity-error"><td>previewPics</td><td>default_mismatch</td><td><span class="severity error">error</span></td><td>对象不匹配</td><td class="baseline-value"><span class="array">[12 items]</span></td><td class="current-value"><span class="empty">[]</span></td></tr><tr class="severity-error"><td>score</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: ""</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="string"></span></td></tr><tr class="severity-error"><td>duration</td><td>default_mismatch</td><td><span class="severity error">error</span></td><td>值不匹配: 基准=""170"", 当前="0"</td><td class="baseline-value"><span class="string">170</span></td><td class="current-value"><span class="string">0</span></td></tr><tr class="severity-error"><td>producer</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>当前值为空，基准值: "アイデアポケット"</td><td class="baseline-value"><span class="string">アイデアポケット</span></td><td class="current-value"><span class="null">null</span></td></tr><tr class="severity-error"><td>director</td><td>default_mismatch</td><td><span class="severity error">error</span></td><td>值不匹配: 基准=""まえだのかほり"", 当前=""製作商 アイデアポケット""</td><td class="baseline-value"><span class="string">まえだのかほり</span></td><td class="current-value"><span class="string">製作商 アイデアポケット</span></td></tr><tr class="severity-error"><td>releaseDate</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: "長度: 170分鐘"</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="string">長度: 170分鐘</span></td></tr><tr class="severity-error"><td>runtime</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: 0</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="string">0</span></td></tr><tr class="severity-error"><td>studio</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: "發行商 ティッシュ"</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="string">發行商 ティッシュ</span></td></tr><tr class="severity-error"><td>label</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: ""</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="string"></span></td></tr><tr class="severity-error"><td>series</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: ""</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="string"></span></td></tr><tr class="severity-error"><td>uncensored</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: false</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="string">false</span></td></tr><tr class="severity-error"><td>metadata</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: {"source":"","scrapedAt":"2025-11-03T14:49:14.653Z","scraper":"","confidence":0}</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="object">{4 keys}</span></td></tr><tr class="severity-error"><td>extra</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: {}</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="empty">{}</span></td></tr><tr class="severity-error"><td>originalTitle</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: "IPX177 生意気な妹にニーハイを履かせ僕だけの絶対領域を誕生させ僕好みに痴女らせた 相沢みなみ"</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="string">IPX177 生意気な妹にニーハイを履かせ僕だけの絶対領域を誕生させ僕好みに痴女らせた 相沢みなみ</span></td></tr><tr class="severity-error"><td>avId</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: "發行日期 20180714"</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="string">發行日期 20180714</span></td></tr><tr class="severity-error"><td>publisher</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: "類別"</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="string">類別</span></td></tr><tr class="severity-error"><td>scrapedAt</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: "2025-11-03T14:49:14.680Z"</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="string">2025-11-03T14:49:14.680Z</span></td></tr><tr class="severity-error"><td>hasMetadata</td><td>null_mismatch</td><td><span class="severity error">error</span></td><td>基准值为空，当前值: true</td><td class="baseline-value"><span class="null">null</span></td><td class="current-value"><span class="string">true</span></td></tr></tbody></table></div></div>
+            </div>
+        </div>
+            </div>
+        </div>
+        </section>
+
+        <footer class="footer">
+            <p>报告由 JavSP 风格的回归测试框架生成</p>
+        </footer>
+    </div>
+
+    <script>
+        
+        function toggleSuite(suiteId) {
+            const content = document.getElementById(suiteId);
+            if (content) {
+                content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        function toggleTest(testId) {
+            const details = document.getElementById(testId);
+            if (details) {
+                details.style.display = details.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        // 默认展开失败的测试
+        document.addEventListener('DOMContentLoaded', function() {
+            const failedTests = document.querySelectorAll('.test.failed, .test.error');
+            failedTests.forEach(test => {
+                const details = test.querySelector('.test-details');
+                if (details) {
+                    details.style.display = 'block';
+                }
+            });
+        });
+    
+    </script>
+</body>
+</html>

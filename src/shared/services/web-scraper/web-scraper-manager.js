@@ -17,6 +17,7 @@ class WebScraperManager {
       enableCache: options.enableCache !== false,
       cacheExpiry: options.cacheExpiry || 3600000,
       delayRange: options.delayRange || [1000, 3000],
+      useSystemProxy: options.useSystemProxy !== false, // 默认启用系统代理
       ...options
     };
 
@@ -35,6 +36,25 @@ class WebScraperManager {
     // 结果缓存
     this.resultCache = new Map();
     this.cacheExpiry = this.globalOptions.cacheExpiry;
+  }
+
+  /**
+   * 初始化管理器
+   */
+  async initialize() {
+    try {
+      // 确保所有抓取器都已正确初始化
+      for (const [name, scraper] of this.scrapers) {
+        if (typeof scraper.initialize === 'function') {
+          await scraper.initialize();
+        }
+      }
+
+      console.log(`[WebScraperManager] 初始化完成，已注册 ${this.scrapers.size} 个抓取器`);
+    } catch (error) {
+      console.error('[WebScraperManager] 初始化失败:', error.message);
+      throw error;
+    }
   }
 
   /**
@@ -454,6 +474,37 @@ class WebScraperManager {
       scraperStatuses,
       timestamp: new Date().toISOString()
     };
+  }
+
+  /**
+   * 清理资源
+   */
+  async cleanup() {
+    try {
+      // 清理缓存
+      this.clearCache();
+
+      // 清理各个抓取器的资源
+      for (const [name, scraper] of this.scrapers) {
+        try {
+          if (typeof scraper.cleanup === 'function') {
+            await scraper.cleanup();
+          } else if (typeof scraper.clearCache === 'function') {
+            scraper.clearCache();
+          }
+        } catch (error) {
+          console.warn(`[WebScraperManager] 清理抓取器 ${name} 时出错:`, error.message);
+        }
+      }
+
+      // 清理缓存
+      this.resultCache.clear();
+      this.scrapers.clear();
+
+      console.log('[WebScraperManager] 资源清理完成');
+    } catch (error) {
+      console.error('[WebScraperManager] 清理资源时出错:', error.message);
+    }
   }
 }
 
