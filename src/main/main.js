@@ -59,30 +59,39 @@ function clearCacheDirectory() {
  * 创建应用主窗口
  */
 function createWindow() {
-    console.log('📱 创建主窗口...', '当前窗口数量:', BrowserWindow.getAllWindows().length);
+    try {
+        console.log('📱 创建主窗口...', '当前窗口数量:', BrowserWindow.getAllWindows().length);
 
-    // 清理缓存目录以避免权限问题
-    clearCacheDirectory();
-    
-    // 配置Electron缓存和GPU设置以避免常见错误
-    app.setPath('cache', path.join(app.getPath('userData'), 'cache'));
-    
-    mainWindow = new BrowserWindow({
-        width: 1200,
-        height: 800,
-        minWidth: 800,
-        minHeight: 600,
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
-            // 禁用GPU加速以避免GPU缓存错误
-            webgl: false,
-            // 禁用平滑滚动以减少缓存问题
-            smoothScrolling: false
-        },
-        autoHideMenuBar: true,
-        show: false
-    });
+        // 清理缓存目录以避免权限问题
+        clearCacheDirectory();
+        
+        // 配置Electron缓存和GPU设置以避免常见错误
+        app.setPath('cache', path.join(app.getPath('userData'), 'cache'));
+        
+        mainWindow = new BrowserWindow({
+            width: 1200,
+            height: 800,
+            minWidth: 800,
+            minHeight: 600,
+            webPreferences: {
+                nodeIntegration: true,
+                contextIsolation: false,
+                // 禁用GPU加速以避免GPU缓存错误
+                webgl: false,
+                // 禁用平滑滚动以减少缓存问题
+                smoothScrolling: false
+            },
+            autoHideMenuBar: true,
+            show: false
+        });
+
+        console.log('✅ 主窗口创建成功');
+    } catch (error) {
+        console.error('❌ 创建主窗口失败:', error);
+        // 重置mainWindow引用
+        mainWindow = null;
+        throw error;
+    }
 
     // 设置窗口标题
     mainWindow.setTitle(`${app.name} v${appVersion}`);
@@ -114,8 +123,18 @@ function createWindow() {
 
     // 页面加载完成后显示窗口
     mainWindow.once('ready-to-show', () => {
-        console.log('🖥️ 显示主窗口');
-        mainWindow.show();
+        try {
+            console.log('🖥️ 显示主窗口');
+            mainWindow.show();
+            console.log('✅ 主窗口显示成功');
+        } catch (error) {
+            console.error('❌ 显示主窗口失败:', error);
+            // 尝试重新创建窗口
+            if (!mainWindow.isDestroyed()) {
+                mainWindow.destroy();
+            }
+            createWindow();
+        }
     });
 }
 
@@ -131,7 +150,18 @@ function setupWindowEvents(win) {
         win.webContents.send('window-maximized', false);
     });
 
+    win.on('close', (event) => {
+        // 在macOS上，关闭窗口时隐藏而不是销毁，这样点击dock图标可以恢复
+        // 但如果是应用退出事件（Cmd+Q），则允许关闭
+        if (process.platform === 'darwin' && !app.isQuitting) {
+            console.log('🍎 macOS平台，隐藏窗口而不是销毁');
+            event.preventDefault();
+            win.hide();
+        }
+    });
+
     win.on('closed', () => {
+        console.log('🔚 窗口已销毁');
         mainWindow = null;
     });
 
@@ -196,8 +226,35 @@ app.whenReady().then(() => {
     createWindow();
 
     app.on('activate', () => {
-        if (BrowserWindow.getAllWindows().length === 0) {
+        console.log('🖱️ Dock图标被点击，当前窗口数量:', BrowserWindow.getAllWindows().length);
+        
+        // 在macOS上，当用户点击dock图标时，如果没有可见窗口，则创建或恢复窗口
+        const allWindows = BrowserWindow.getAllWindows();
+        const visibleWindows = allWindows.filter(win => win.isVisible());
+        
+        if (allWindows.length === 0) {
+            console.log('📱 没有窗口存在，创建新窗口');
             createWindow();
+        } else if (visibleWindows.length === 0) {
+            // 有窗口存在但都不可见，恢复主窗口
+            console.log('🔍 恢复已存在但隐藏的窗口');
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                try {
+                    mainWindow.show();
+                    mainWindow.focus();
+                    console.log('✅ 主窗口已恢复并聚焦');
+                } catch (error) {
+                    console.error('❌ 恢复主窗口失败:', error);
+                    createWindow();
+                }
+            } else {
+                console.log('⚠️ 主窗口引用无效，创建新窗口');
+                createWindow();
+            }
+        } else {
+            // 有可见窗口，聚焦到最前面的窗口
+            console.log('🎯 聚焦到现有可见窗口');
+            visibleWindows[0].focus();
         }
     });
 });
@@ -207,6 +264,12 @@ app.on('window-all-closed', () => {
         console.log('👋 应用即将退出');
         app.quit();
     }
+});
+
+// 处理应用退出前的事件（Cmd+Q）
+app.on('before-quit', () => {
+    console.log('🚪 应用准备退出...');
+    app.isQuitting = true;
 });
 
 console.log('✅ 模块化主进程脚本加载完成');
