@@ -1,4 +1,21 @@
 # 更新历史：
+### [0.4.2](https://github.com/raawaa/idok/compare/v0.4.1...v0.4.2) (2025-11-04)
+
+
+### 🔧 其他改动
+
+* 更新npm配置和项目文档 ([9c0554a](https://github.com/raawaa/idok/commit/9c0554a638f05e53e2e541b325b880f05b887c1b))
+
+
+### 🐛 Bug 修复
+
+* 修复macOS dock图标点击报错问题 ([336d3bd](https://github.com/raawaa/idok/commit/336d3bd5ba6477d30d306d23c7711d03a9956123))
+
+
+### 📝 文档
+
+* 更新项目文档，添加CI/CD和版本管理规范 ([0615aca](https://github.com/raawaa/idok/commit/0615aca8687417b099abb6d20399eec8149e9a81))
+
 ### [0.4.1](https://github.com/raawaa/idok/compare/v0.4.0...v0.4.1) (2025-10-31)
 
 
